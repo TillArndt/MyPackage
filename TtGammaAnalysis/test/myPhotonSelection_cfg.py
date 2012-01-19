@@ -4,7 +4,8 @@ process = cms.Process('myPhoSel')
 
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-      'file:/user/tholen/eventFiles/ttgamma_whizard_firstShot_PatTuple.root'
+      'file:/user/tholen/eventFiles/ttgamma_Enriched_PatTuple.root'
+      #'file:/user/tholen/eventFiles/ttgamma_whizard_firstShot_PatTuple.root'
  )
 )
 
@@ -49,10 +50,10 @@ process.cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
                    src       = cms.InputTag("patJetsPFlow"),
                    algorithm = cms.string("byDeltaR"),
                    preselection        = cms.string(""),  # don't preselect the muons
-                   deltaR              = cms.double(0.2),
+                   deltaR              = cms.double(0.5),
                    checkRecoComponents = cms.bool(False), # don't check if they share some AOD object ref
                    pairCut             = cms.string(""),
-                   requireNoOverlaps   = cms.bool(True),
+                   requireNoOverlaps   = cms.bool(False),
                 ),
             ),
             finalCut = cms.string(''),
@@ -78,20 +79,25 @@ process.photonsWithGenPart  = cms.EDFilter("PATPhotonSelector",
             filter = cms.bool(True)
             )
 
+process.photonsGenEXTRA = cms.EDFilter("PATPhotonSelector",
+            src = cms.InputTag("photonsWithGenPart"),
+            cut = cms.string('abs(genParticle.mother.pdgId) == 6'),
+            filter = cms.bool(True)
+            )
 
 
 #################################################################################
 ## Some analyzing
 
-process.PATPhotonAnalyzer = cms.EDAnalyzer(
+process.patPhotonAnalyzer = cms.EDAnalyzer(
     "PATPhotonHistoAnalyzer",
-    src = cms.InputTag("photonsWithGenPart"),
+    src = cms.InputTag("photonsGenEXTRA"),
     histograms = cms.VPSet(
             cms.PSet(min          = cms.untracked.double(     -250.5),
                      max          = cms.untracked.double(      250.5),
-                     nbins        = cms.untracked.int32 (       501),
-                     name         = cms.untracked.string('motherId'),
-                     description  = cms.untracked.string(        ''),
+                     nbins        = cms.untracked.int32 (        501),
+                     name         = cms.untracked.string( 'motherId'),
+                     description  = cms.untracked.string('motherId;x-axis;y-axis'),
                      plotquantity = cms.untracked.string('genParticle.mother.pdgId')
                      ),        
             cms.PSet(min          = cms.untracked.double(        0.),
@@ -107,11 +113,35 @@ process.PATPhotonAnalyzer = cms.EDAnalyzer(
                      name         = cms.untracked.string('Pt'),
                      description  = cms.untracked.string(        ''),
                      plotquantity = cms.untracked.string('pt')
-                     )        
+                     ),
+            cms.PSet(min          = cms.untracked.double(      -0.5),
+                     max          = cms.untracked.double(       5.5),
+                     nbins        = cms.untracked.int32 (         6),
+                     name         = cms.untracked.string('overlaps.size'),
+                     description  = cms.untracked.string(        ''),
+                     plotquantity = cms.untracked.string('overlaps("jets").size')
+                     ),
+            cms.PSet(min          = cms.untracked.double(       0.5),
+                     max          = cms.untracked.double(      30.5),
+                     nbins        = cms.untracked.int32 (        30),
+                     name         = cms.untracked.string('overlapsJetsNumConstituents'),
+                     description  = cms.untracked.string(        ''),
+                     lazyParsing  = cms.untracked.bool(True),
+                     plotquantity = cms.untracked.string('overlaps("jets")[0].getPFConstituents.size')
+                     ),
+            cms.PSet(min          = cms.untracked.double(        0.),
+                     max          = cms.untracked.double(         1),
+                     nbins        = cms.untracked.int32 (        10),
+                     name         = cms.untracked.string('dR(photon, Jet)'),
+                     description  = cms.untracked.string(        ''),
+                     plotquantity = cms.untracked.string('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)')
+                     )
         )
 )
 
-
+process.myPhotonAnalyzer = cms.EDAnalyzer("MyPhotonAnalyzer",
+                     src = cms.InputTag("photonsGenEXTRA")
+                     )
 
 #################################################################################
 ## Path declaration
@@ -122,5 +152,7 @@ process.p = cms.Path(process.myLargePtPhotons *
                      process.removeCocFails *
                      #process.photonsWithTightID *
                      process.photonsWithGenPart *
-                     process.PATPhotonAnalyzer
+                     process.photonsGenEXTRA *
+                     process.patPhotonAnalyzer *
+                     process.myPhotonAnalyzer
                      )
