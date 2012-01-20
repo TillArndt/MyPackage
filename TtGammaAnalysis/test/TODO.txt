@@ -1,8 +1,7 @@
 
 
 * Photon selection: good shower shape and isolation already done in pat?
-* what about infrared and collinear divergencies? m(q, gamma) < 5; m(l, gamma) < 5 @atlas
-
+* t->had T->lep: do 50/50
 
 
 

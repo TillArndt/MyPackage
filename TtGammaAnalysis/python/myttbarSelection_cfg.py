@@ -204,6 +204,7 @@ process.myJetCounter=cms.EDFilter("PATCandViewCountFilter",
                                   maxNumber = cms.uint32(99999)
                                   )
 
+"""
 # write out event ids
 process.myEventIDTightMuon=cms.EDAnalyzer("MyEventID",
                                           cutname = cms.string("output/myTightPatMuons.log")
@@ -214,6 +215,7 @@ process.myEventIDLooseMuon=cms.EDAnalyzer("MyEventID",
 process.myEventIDElectron=cms.EDAnalyzer("MyEventID",
                                          cutname = cms.string("output/myElectronVeto.log")
                                          )
+"""
 
 process.p = cms.Path(  
                        #process.patDefaultSequence * 
@@ -224,11 +226,11 @@ process.p = cms.Path(
                            process.myGoodJets *
                            process.myTightPatMuons * 
                            process.myTightMuonCounter *
-                           process.myEventIDTightMuon *  
+                           #process.myEventIDTightMuon *  
                            process.myLooseMuonCounter *
-                           process.myEventIDLooseMuon *
+                           #process.myEventIDLooseMuon *
                            process.myElectronCounter *
-                           process.myEventIDElectron *
+                           #process.myEventIDElectron *
                            process.myJetCounter
                        ) 
                      )
