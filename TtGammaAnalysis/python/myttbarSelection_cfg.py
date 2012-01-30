@@ -90,7 +90,7 @@ process.patseq = cms.Sequence(
 # HLT_IsoMu17
 import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt
 process.myHLTFilt = hlt.hltHighLevel.clone(TriggerResultsTag = "TriggerResults::HLT",
-                                           HLTPaths = cms.vstring('HLT_IsoMu17_v*'))
+                                           HLTPaths = cms.vstring('HLT_IsoMu24_*'))
 
 # Vertex
 process.myVertReq = cms.EDFilter("VertexSelector", 
@@ -171,7 +171,7 @@ process.myElectronCounter=cms.EDFilter("PATCandViewCountFilter",
 				      	)
 
 # jet selection
-process.myGoodJets=cms.EDFilter("PATJetRefSelector",
+process.myGoodJets=cms.EDFilter("PATJetSelector",
                                 src = cms.InputTag("patJets" + postfix),
                                 cut = cms.string('\
     pt() > 30 && \

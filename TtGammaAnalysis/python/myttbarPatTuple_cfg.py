@@ -29,6 +29,7 @@ removeCleaning(process)
 process.out.outputCommands.append("keep *_*hoton*_*_*")
 process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
+process.out.outputCommands.append("keep *_myGoodJets_*_*")
 process.out.outputCommands.append("drop *_*_*_PAT")
 #process.out.outputCommands.append("keep *_*genParticle*_*_*")
 #process.out.outputCommands.append("keep *_patPhotons*_*_*")
@@ -50,3 +51,4 @@ process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
 #add patPhotons 
 process.p.replace(process.photonMatchPFlow, process.photonMatchPFlow * process.patPhotonsPFlow)
 
+#require one b-tag
