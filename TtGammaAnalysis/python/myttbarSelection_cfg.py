@@ -87,7 +87,7 @@ process.patseq = cms.Sequence(
 ####################################################################################
 # my selection
 
-# HLT_IsoMu17
+# HLT_IsoMu24
 import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt
 process.myHLTFilt = hlt.hltHighLevel.clone(TriggerResultsTag = "TriggerResults::HLT",
                                            HLTPaths = cms.vstring('HLT_IsoMu24_*'))
@@ -127,7 +127,7 @@ process.myTightPatMuons=cms.EDFilter("PATMuonRefSelector",
                                   cut = cms.string('\
     isGlobalMuon() && \
     isTrackerMuon() && \
-    pt() > 20 && \
+    pt() > 26 && \
     abs(eta) < 2.1 && \
     globalTrack().normalizedChi2() < 10 && \
     innerTrack().numberOfValidHits() > 10 && \

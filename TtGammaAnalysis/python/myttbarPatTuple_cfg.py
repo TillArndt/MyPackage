@@ -1,25 +1,8 @@
 
 from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
 
-"""
-# guess some filenames...
-import sys
-basename = sys.argv
-
-#input
-process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring(
-      'file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR.root'
- )
-)
-
-#output
-process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('output/MakeMyttbarTuple.root')
-)
-
-process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR_PatTuple.root"
-"""
+import MyPackage.TtGammaAnalysis.myUtility as myUtil
+myUtil.addFileService(process)
 
 #remove cleaning (later done in photon selection)
 from PhysicsTools.PatAlgos.tools.coreTools import *
@@ -31,7 +14,7 @@ process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
 process.out.outputCommands.append("keep *_myGoodJets_*_*")
 process.out.outputCommands.append("drop *_*_*_PAT")
-#process.out.outputCommands.append("keep *_*genParticle*_*_*")
+process.out.outputCommands.append("keep *_*genParticle*_*_*")
 #process.out.outputCommands.append("keep *_patPhotons*_*_*")
 
 #max num of events processed

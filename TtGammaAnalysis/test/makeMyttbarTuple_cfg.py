@@ -4,8 +4,9 @@ from MyPackage.TtGammaAnalysis.myttbarPatTuple_cfg import *
 #input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-    #'file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR.root'
-    'file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR_noFSR.root'
+    'file:/user/tholen/eventFiles/ttgamma_whizard.root'
+    #'file:/user/tholen/eventFiles/ttgamma_whizard_noISR.root'
+    #'file:/user/tholen/eventFiles/ttgamma_whizard_noISR_noFSR.root'
     #'file:/user/tholen/eventFiles/ttgamma_Enriched.root'
     #'file:/user/tholen/eventFiles/ttgammaEnrichedFromGrid/ttgammaEnriched_10_1_4un.root', 
     #'file:/user/tholen/eventFiles/ttgammaEnrichedFromGrid/ttgammaEnriched_11_1_GOu.root', 
@@ -24,15 +25,10 @@ process.source = cms.Source("PoolSource",
  )
 )
 
-#output
-process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('output/MakeMyttbarTuple_2nd_noISR_noFSR.root')
-)
-
-#process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_firstShot_PatTuple.root"
 #process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_Enriched_PatTuple.root"
-process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR_noFSR_PatTuple.root"
-#process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR_PatTuple.root"
+process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_PatTuple.root"
+#process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_noISR_noFSR_PatTuple.root"
+#process.out.fileName = "file:/user/tholen/eventFiles/ttgamma_whizard_noISR_PatTuple.root"
 
 
 
