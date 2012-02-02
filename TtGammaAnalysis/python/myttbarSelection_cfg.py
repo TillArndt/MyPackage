@@ -121,7 +121,8 @@ process.myLooseMuonCounter=cms.EDFilter("PATCandViewCountFilter",
                                          maxNumber = cms.uint32(1)
                                          )
 
-# one tight muon
+####################################################################DIFFERENT FROM REFSEL: pt > 20
+# one tight muon 
 process.myTightPatMuons=cms.EDFilter("PATMuonRefSelector",
                                   src = cms.InputTag("selectedPatMuons" + postfix),
                                   cut = cms.string('\

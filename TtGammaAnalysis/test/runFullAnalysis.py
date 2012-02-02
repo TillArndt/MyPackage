@@ -1,4 +1,3 @@
-#!/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
 
 import os
 from YKuessel.TopCharge.sourceFiles_cfi import *

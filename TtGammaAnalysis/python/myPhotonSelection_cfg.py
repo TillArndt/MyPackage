@@ -86,7 +86,7 @@ process.cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
                    deltaR              = cms.double(0.5), # if > 0.5: make many jets overlapping
                    checkRecoComponents = cms.bool(False), # don't check if they share some AOD object ref
                    pairCut             = cms.string(""),
-                   requireNoOverlaps   = cms.bool(True),
+                   requireNoOverlaps   = cms.bool(False),
                 ),
             ),
             finalCut = cms.string(''),
