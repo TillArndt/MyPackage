@@ -218,8 +218,9 @@ process.myEventIDElectron=cms.EDAnalyzer("MyEventID",
                                          )
 """
 
+process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
+
 process.p = cms.Path(  
-                       #process.patDefaultSequence * 
                        process.myHLTFilt *
                        process.patseq *
                        ( 

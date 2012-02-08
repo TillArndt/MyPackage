@@ -1,8 +1,8 @@
 
 from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
 
-import MyPackage.TtGammaAnalysis.myUtility as myUtil
-myUtil.addFileService(process)
+import MyPackage.TtGammaAnalysis.MyUtility as util
+util.addFileService(process)
 
 #remove cleaning (later done in photon selection)
 from PhysicsTools.PatAlgos.tools.coreTools import *

@@ -14,8 +14,47 @@ patPhotonsFromME = cms.EDFilter("PATPhotonSelector",
     abs(genParticle.mother.pdgId) = 22 \
     && abs(genParticle.mother.mother.daughter(0).pdgId) == 6 \
                                '),
-            filter = cms.bool(True)
+            filter = cms.bool(False)
             )
+
+# photon NOT from matrix element
+patPhotonsFromElsewhere = cms.EDFilter("PATPhotonSelector",
+            src = cms.InputTag("photonsWithGenPart"),
+            cut = cms.string('\
+    abs(genParticle.mother.pdgId) = 22 \
+    && !(abs(genParticle.mother.mother.daughter(0).pdgId) == 6) \
+                               '),
+            filter = cms.bool(False)
+            )
+
+analyzerDR_PhotonsFromME = cms.EDAnalyzer(
+    "PATPhotonHistoAnalyzer",
+    src = cms.InputTag("patPhotonsFromME"),
+    histograms = cms.VPSet(
+            cms.PSet(min          = cms.untracked.double(         0.),
+                     max          = cms.untracked.double(        1.1),
+                     nbins        = cms.untracked.int32 (         44),
+                     name         = cms.untracked.string( 'deltaRJets'),
+                     description  = cms.untracked.string('deltaR(photon, jet);dR;count'),
+                     plotquantity = cms.untracked.string('\
+ ? overlaps("jets").size > 0 ?\
+ deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) : 1.09 \
+                                                          ')
+                     lazyParsing  = cms.untracked.bool(True)
+            ),
+            cms.PSet(min          = cms.untracked.double(         0.),
+                     max          = cms.untracked.double(        1.1),
+                     nbins        = cms.untracked.int32 (         44),
+                     name         = cms.untracked.string( 'deltaRMuons'),
+                     description  = cms.untracked.string('deltaR(photon, muon);dR;count'),
+                     plotquantity = cms.untracked.string('\
+ ? overlaps("muons").size > 0 ?\
+ deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) : 1.09 \
+                                                          ')
+                     lazyParsing  = cms.untracked.bool(True)
+            ),
+    )
+)
 
 # analyzer for genParticle related stuff (all photons)
 patPhotonAnalyzerAll = cms.EDAnalyzer(

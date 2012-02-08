@@ -12,7 +12,7 @@ generator = cms.EDFilter("Pythia6HadronizerFilter",
                         'PMAS(5,1)=4.4   ! b quark mass',
                         'PMAS(6,1)=173.1 ! t quark mass',
                         'MSTJ(1)=1       ! Fragmentation/hadronization on or off',
-                        'MSTP(61)=0      ! parton ISR on or off'),
+                        'MSTP(61)=1      ! parton ISR on or off'),
         # This is a vector of ParameterSet names to be read, in this order
         parameterSets = cms.vstring('pythiaUESettings',
             'processParameters')

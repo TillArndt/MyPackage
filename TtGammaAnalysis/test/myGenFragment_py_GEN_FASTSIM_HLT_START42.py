@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.303.2.7 
 # Source: /cvs_server/repositories/CMSSW/CMSSW/Configuration/PyReleaseValidation/python/ConfigBuilder.py,v 
-# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragment.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START42_V13::All --eventcontent=RECOSIM --filetype=LHE --filein=file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20111201/ttbar.lhef --fileout=file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR.root -n 10000 --no_exec
+# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragment.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START42_V13::All --eventcontent=RECOSIM --filetype=LHE --filein=file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120207/tT_qcdPaperCuts.lhef --fileout=file:/user/tholen/eventFiles/fastSimAndReco/whizard_tT_qcdPaperCuts.root -n 1000000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('HLT')
@@ -23,12 +23,12 @@ process.load('FastSimulation.Configuration.HLT_GRun_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(1000000)
 )
 
 # Input source
 process.source = cms.Source("LHESource",
-    fileNames = cms.untracked.vstring('file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20111201/ttbar.lhef')
+    fileNames = cms.untracked.vstring('file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120207/tT_qcdPaperCuts.lhef')
 )
 
 process.options = cms.untracked.PSet(
@@ -38,7 +38,7 @@ process.options = cms.untracked.PSet(
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
     version = cms.untracked.string('$Revision: 1.303.2.7 $'),
-    annotation = cms.untracked.string('MyPackage/TtGammaAnalysis/python/myGenFragment.py nevts:10000'),
+    annotation = cms.untracked.string('MyPackage/TtGammaAnalysis/python/myGenFragment.py nevts:1000000'),
     name = cms.untracked.string('PyReleaseValidation')
 )
 
@@ -48,7 +48,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RECOSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('file:/user/tholen/eventFiles/ttgamma_whizard_2nd_noISR.root'),
+    fileName = cms.untracked.string('file:/user/tholen/eventFiles/fastSimAndReco/whizard_tT_qcdPaperCuts.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('')
@@ -104,7 +104,7 @@ process.generator = cms.EDFilter("Pythia6HadronizerFilter",
             'PMAS(5,1)=4.4   ! b quark mass', 
             'PMAS(6,1)=173.1 ! t quark mass', 
             'MSTJ(1)=1       ! Fragmentation/hadronization on or off', 
-            'MSTP(61)=0      ! parton ISR on or off'),
+            'MSTP(61)=1      ! parton ISR on or off'),
         parameterSets = cms.vstring('pythiaUESettings', 
             'processParameters')
     )
