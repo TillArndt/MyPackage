@@ -19,10 +19,11 @@ patPhotonsFromME = cms.EDFilter("PATPhotonSelector",
 
 # photon NOT from matrix element
 patPhotonsFromElsewhere = cms.EDFilter("PATPhotonSelector",
-            src = cms.InputTag("photonsWithGenPart"),
+            src = cms.InputTag("cocPatPhotons"),
             cut = cms.string('\
-    abs(genParticle.mother.pdgId) = 22 \
-    && !(abs(genParticle.mother.mother.daughter(0).pdgId) == 6) \
+    genParticlesSize == 0 \ 
+    || abs(genParticle.mother.pdgId) != 22 \
+    || abs(genParticle.mother.mother.daughter(0).pdgId) != 6 \
                                '),
             filter = cms.bool(False)
             )
@@ -124,6 +125,6 @@ patPhotonsFromMEAnalyzer = patPhotonAnalyzerAll.clone(
 mcTruthSequence = cms.Sequence(
                      photonsWithGenPart *
                      patPhotonsFromME *
-                     patPhotonsFromMEAnalyzer * 
-                     patPhotonAnalyzerAll 
+#                     patPhotonsFromMEAnalyzer * 
+#                     patPhotonAnalyzerAll 
 )

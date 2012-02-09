@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Fri Jan 13 23:02:34 CET 2012
-// $Id$
+// $Id: MyPhotonAnalyzer.cc,v 1.1 2012/01/19 09:30:17 htholen Exp $
 //
 //
 
@@ -36,6 +36,7 @@
 
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
+#include <DataFormats/PatCandidates/interface/Muon.h>
 //
 // class declaration
 //
@@ -59,6 +60,7 @@ class MyPhotonAnalyzer : public edm::EDAnalyzer {
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
       // ----------member data ---------------------------
+      TH1D * deltaRMuons_;
       TH1D * deltaRJets_; 
       TH1D * overlapJetsNConst_; 
       edm::InputTag photons_;
@@ -80,9 +82,12 @@ MyPhotonAnalyzer::MyPhotonAnalyzer(const edm::ParameterSet& iConfig):
 {
    //now do what ever initialization is needed
   edm::Service<TFileService> fs;
-  deltaRJets_        = fs->make<TH1D>("overlapDeltaR", 
-				      "overlapDeltaR",
-				      10 , 0. , 1.);
+  deltaRJets_        = fs->make<TH1D>("DeltaR_jet", 
+				      "dR(photon, jet)",
+				      44 , 0. , 1.1);
+  deltaRMuons_       = fs->make<TH1D>("DeltaR_muon",   
+                                      "dR(photon, muon)",
+                                      44 , 0. , 1.1);
   overlapJetsNConst_ = fs->make<TH1D>("overlapJetsNumConstituents", 
 				      "overlapJetsNumConstituents",
 				      30 , 0.5 , 30.5);
@@ -107,17 +112,23 @@ MyPhotonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     std::vector<pat::Photon>::const_iterator photon = photons->begin();
     for( ; photon != photons->end(); ++photon) {
       
-      reco::CandidatePtrVector::const_iterator overlap_it = photon->overlaps("jets").begin();
+        reco::CandidatePtrVector::const_iterator overlap_it = photon->overlaps("jets").begin();
 	for(; overlap_it != photon->overlaps("jets").end(); ++overlap_it) { 
-	  const pat::Jet * overlapJet = dynamic_cast<const pat::Jet*>(overlap_it->get());
-
-	  // number of constituents
-	  overlapJetsNConst_->Fill(overlapJet->getPFConstituents().size());
-
-	  // deltaR to overlapJet
-	  float deltaR = reco::deltaR( overlapJet->eta(), overlapJet->phi(), photon->eta(), photon->phi() );
-	  deltaRJets_->Fill( deltaR );
+	    const pat::Jet * overlap = dynamic_cast<const pat::Jet*>(overlap_it->get());
+	    // number of constituents
+	    overlapJetsNConst_->Fill(overlap->getPFConstituents().size());
+	    // deltaR to overlapCand
+	    float deltaR = reco::deltaR( overlap->eta(), overlap->phi(), photon->eta(), photon->phi() );
+	    deltaRJets_->Fill( deltaR );
 	}
+        overlap_it = photon->overlaps("muons").begin();
+        for(; overlap_it != photon->overlaps("muons").end(); ++overlap_it) {
+            
+            const pat::Muon * overlap = dynamic_cast<const pat::Muon*>(overlap_it->get());
+            // deltaR to overlapCand
+            float deltaR = reco::deltaR( overlap->eta(), overlap->phi(), photon->eta(), photon->phi() );
+            deltaRMuons_->Fill( deltaR );
+        }
     }
 }
 

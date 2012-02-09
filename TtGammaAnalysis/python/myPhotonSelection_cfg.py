@@ -16,6 +16,9 @@ process.extend(logger)
 #max num of events processed
 #process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
+# what should have been done in patTuple:
+process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
+
 ################################################################################
 ## Everything that runs on the genParticle collection
 
@@ -85,18 +88,23 @@ process.removeCocFails = cms.EDFilter("PATCandViewCountFilter",
 
 process.load("MyPackage.TtGammaAnalysis.mcTruthSequence_cfi")
 
-process.myPhotonAnalyzer = cms.EDAnalyzer("MyPhotonAnalyzer",
-                     src = cms.InputTag("photonsGenEXTRA")
-                     )
+process.analyzer_dRPhotonFromME = cms.EDAnalyzer("MyPhotonAnalyzer",
+                     src = cms.InputTag("photonsFromME")
+)
 
-#################################################################################
+process.analyzer_dRPhotonFromElsewhere = process.analyzer_dRPhotonFromME.clone(
+                     src = cms.InputTag("photonsFromElsewhere")
+)
 ## Path declaration
 
-process.p = cms.Path(#process.mcGenPhotonSequence
-                     process.myLargePtPhotons *
-                     process.photonsWithTightID *
-                     process.cocPatPhotons *
-                     process.removeCocFails *
-                     process.mcTruthSequence
-                     #process.myPhotonAnalyzer
-                     )
+process.p = cms.Path(process.myBTagRequirement
+#                     * process.mcGenPhotonSequence
+                     * process.myLargePtPhotons 
+                     * process.photonsWithTightID 
+                     * process.cocPatPhotons 
+                     * process.removeCocFails 
+                     * process.mcTruthSequence
+                     * process.analyzer_dRPhotonFromME
+                     * process.analyzer_dRPhotonFromElsewhere  
+#                     * process.myPhotonAnalyzer
+)
