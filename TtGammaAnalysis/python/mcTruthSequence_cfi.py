@@ -8,7 +8,7 @@ photonsWithGenPart  = cms.EDFilter("PATPhotonSelector",
             )
 
 # photon coming from matrix element
-patPhotonsFromME = cms.EDFilter("PATPhotonSelector",
+photonsFromME = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonsWithGenPart"),
             cut = cms.string('\
     abs(genParticle.mother.pdgId) = 22 \
@@ -18,16 +18,16 @@ patPhotonsFromME = cms.EDFilter("PATPhotonSelector",
             )
 
 # photon NOT from matrix element
-patPhotonsFromElsewhere = cms.EDFilter("PATPhotonSelector",
+photonsFromElsewhere = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("cocPatPhotons"),
             cut = cms.string('\
-    genParticlesSize == 0 \ 
+    genParticlesSize == 0 \
     || abs(genParticle.mother.pdgId) != 22 \
     || abs(genParticle.mother.mother.daughter(0).pdgId) != 6 \
                                '),
             filter = cms.bool(False)
             )
-
+# Analyzer, not used because cut parser cannot iterate 
 analyzerDR_PhotonsFromME = cms.EDAnalyzer(
     "PATPhotonHistoAnalyzer",
     src = cms.InputTag("patPhotonsFromME"),
@@ -40,7 +40,7 @@ analyzerDR_PhotonsFromME = cms.EDAnalyzer(
                      plotquantity = cms.untracked.string('\
  ? overlaps("jets").size > 0 ?\
  deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) : 1.09 \
-                                                          ')
+                                                          '),
                      lazyParsing  = cms.untracked.bool(True)
             ),
             cms.PSet(min          = cms.untracked.double(         0.),
@@ -51,7 +51,7 @@ analyzerDR_PhotonsFromME = cms.EDAnalyzer(
                      plotquantity = cms.untracked.string('\
  ? overlaps("muons").size > 0 ?\
  deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) : 1.09 \
-                                                          ')
+                                                          '),
                      lazyParsing  = cms.untracked.bool(True)
             ),
     )
@@ -123,8 +123,11 @@ patPhotonsFromMEAnalyzer = patPhotonAnalyzerAll.clone(
 )
 
 mcTruthSequence = cms.Sequence(
-                     photonsWithGenPart *
-                     patPhotonsFromME *
-#                     patPhotonsFromMEAnalyzer * 
-#                     patPhotonAnalyzerAll 
+                     photonsWithGenPart
+                     * photonsFromME 
+                     * photonsFromElsewhere
+#                    * patPhotonsFromMEAnalyzer  
+#                    * patPhotonAnalyzerAll 
 )
+
+
