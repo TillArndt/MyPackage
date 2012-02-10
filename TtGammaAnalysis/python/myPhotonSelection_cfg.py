@@ -40,26 +40,16 @@ process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 
 process.load("MyPackage.TtGammaAnalysis.mcTruthSequence_cfi")
 
-process.analyzer_dRPhotonFromME = cms.EDAnalyzer("MyPhotonAnalyzer",
-                     src = cms.InputTag("photonsFromME")
-)
-
-process.analyzer_dRPhotonFromElsewhere = process.analyzer_dRPhotonFromME.clone(
-                     src = cms.InputTag("photonsFromElsewhere")
-)
 ## Path declaration
 
-process.p = cms.Path(process.myBTagRequirement
-#                     * process.mcGenPhotonSequence
-                     * process.hardPhotonSequence
-                     * process.cocPatPhotonSequence 
-                     * process.mcTruthSequence
-                     * process.analyzer_dRPhotonFromME
-                     * process.analyzer_dRPhotonFromElsewhere  
-#                     * process.myPhotonAnalyzer
+process.selectionPath = cms.Path(
+       process.myBTagRequirement
+#     * process.mcGenPhotonSequence
+     * process.hardPhotonSequence
+     * process.cocPatPhotonSequence 
 )
 
-# second path
+# other paths
 process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
 
 

@@ -8,18 +8,18 @@ import MyPackage.TtGammaAnalysis.MyUtility as util
 class CmsRunController(QtCore.QObject):
     def __init__(self):
         super(CmsRunController, self).__init__()
-        self.waiting_pros = []
-        self.running_pros = []
+        self.waiting_pros  = []
+        self.running_pros  = []
         self.finished_pros = []
-        self.failed_pros = []
+        self.failed_pros   = []
 
 
     #signal emited when lists are changed
     process_enqueued = QtCore.pyqtSignal(CmsRunProcess)
-    process_started = QtCore.pyqtSignal(CmsRunProcess)
+    process_started  = QtCore.pyqtSignal(CmsRunProcess)
     process_finished = QtCore.pyqtSignal(CmsRunProcess)
-    process_failed = QtCore.pyqtSignal(CmsRunProcess)
-    all_finished = QtCore.pyqtSignal()
+    process_failed   = QtCore.pyqtSignal(CmsRunProcess)
+    all_finished     = QtCore.pyqtSignal()
 
 
     def setup_processes(self, qsetting):
@@ -95,7 +95,7 @@ class CmsRunController(QtCore.QObject):
         """
         Remove finished processes from self.running_pros
 
-        >>> qset = QtCore.QSettings("fakeFile.ini", 1)
+        >>> qset = QtCore.QSettings('fakeFile.ini', 1)
         >>> crc = CmsRunController(qset)
         >>> crc.running_pros.append(CmsRunProcess("someName"))
         >>> crc.finish_processes()

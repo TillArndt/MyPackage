@@ -8,7 +8,6 @@ class CmsRunProcess(QtCore.QProcess):
     """
     This class host a cmsRun process.
     Output is streamed into logfile.
-
     """
     
     def __init__(self, name):        
@@ -32,6 +31,8 @@ class CmsRunProcess(QtCore.QProcess):
         python code, which is passed to cmsRun.
         Conf-Dir might be created. Conf-file stored in it.
         """
+
+        self.qsetting_base_group = qsetting.group()
         
         conf_lines = [] # collect lines of confFile
 
@@ -39,7 +40,7 @@ class CmsRunProcess(QtCore.QProcess):
         import time
         conf_lines.append("# generated")
         conf_lines.append("# on " + time.ctime())
-        conf_lines.append("# by cmsRunController.py")
+        conf_lines.append("# by CmsRunController.py")
         conf_lines.append("# using " + util.get_ini_file())
         conf_lines.append("")
         

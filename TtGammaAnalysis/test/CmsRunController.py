@@ -17,6 +17,7 @@ import MyPackage.TtGammaAnalysis.MyUtility as util
 from MyPackage.TtGammaAnalysis.CmsRunController import CmsRunController
 from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
+from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
 
 class SigintHandler:
     def __init__(self, cmsRunController):
@@ -29,14 +30,23 @@ class SigintHandler:
 
 def main():
     app = QtCore.QCoreApplication(sys.argv)
+
     qset = QtCore.QSettings(util.get_ini_file(),1)
+
     crc = CmsRunController()
     crc.setup_processes(qset)
+
     sig_handler = SigintHandler(crc)
     signal.signal(signal.SIGINT, sig_handler.handle)
-    crc.all_finished.connect(app.quit)
+
     crm = CmsRunMonitor()
     crm.connect_controller(crc)
+
+    crp = CmsRunCutflowParser(qset)
+    crc.process_finished.connect(crp.parse_cutflow_process)
+    crc.all_finished.connect(crp.sync_qsetting)
+    crc.all_finished.connect(app.quit)
+    
     crc.start_processes()
     return app.exec_()
     
