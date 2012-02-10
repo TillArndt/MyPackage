@@ -6,7 +6,7 @@ import MyPackage.TtGammaAnalysis.MyUtility as util
 
 class CmsRunProcess(QtCore.QProcess):
     """
-    This class host a cmsRun process.
+    This class hosts a cmsRun process.
     Output is streamed into logfile.
     """
     
@@ -28,7 +28,7 @@ class CmsRunProcess(QtCore.QProcess):
         """
         Takes all infos about the cmsRun to be started from the
         qsettings object and builds a configuration file with
-        python code, which is passed to cmsRun.
+        python code, which is passed to cmsRun on calling start().
         Conf-Dir might be created. Conf-file stored in it.
         """
 
@@ -100,4 +100,10 @@ class CmsRunProcess(QtCore.QProcess):
         conf_file.close()
 
     def start(self):
+        """
+        Start cmsRun with conf-file.
+        """
+
         super(CmsRunProcess, self).start(self.exe, [self.conf_file_name])
+
+

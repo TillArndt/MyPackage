@@ -6,7 +6,7 @@ process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
     #'file:/user/scratch/tholen/ttgammaEnrichedPat.root'
     #'/store/user/kuessel/TTJets_TuneZ2_7TeV-madgraph-tauola/YKMCSummer11/mergedTTJetsSummer11_1.root'
-    'file:/user/tholen/eventFiles/SynchTopGroup.root'
+    #'file:/user/tholen/eventFiles/SynchTopGroup.root'
  #   'file:/user/tholen/eventFiles/ttgamma_whizard_firstShot.root'
  #   'file:/user/tholen/eventFiles/ttgamma_whizard_tmp.root'
  )
