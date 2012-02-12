@@ -22,7 +22,7 @@ process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
 ################################################################################
 ## Everything that runs on the genParticle collection
 
-process.load("MyPackage.TtGammaAnalysis.mcGenPhotonSequence_cfi")
+#process.load("MyPackage.TtGammaAnalysis.mcGenPhotonSequence_cfi")
 
 ################################################################################
 ## Selection of events with a hard photon

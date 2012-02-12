@@ -2,24 +2,28 @@
 from PyQt4 import QtCore
 from PyQt4.QtCore import pyqtSlot
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
-import MyPackage.TtGammaAnalysis.MyUtility as util
 
 
 class CmsRunController(QtCore.QObject):
+    """
+    Generates, starts and finishes CmsRunProcesses.
+    """
+
+    #signal emited when lists are changed
+    process_enqueued  = QtCore.pyqtSignal(CmsRunProcess)
+    process_started   = QtCore.pyqtSignal(CmsRunProcess)
+    process_finished  = QtCore.pyqtSignal(CmsRunProcess)
+    process_failed    = QtCore.pyqtSignal(CmsRunProcess)
+    cfg_file_finished = QtCore.pyqtSignal(str)
+    all_finished      = QtCore.pyqtSignal()
+
+
     def __init__(self):
         super(CmsRunController, self).__init__()
         self.waiting_pros  = []
         self.running_pros  = []
         self.finished_pros = []
         self.failed_pros   = []
-
-
-    #signal emited when lists are changed
-    process_enqueued = QtCore.pyqtSignal(CmsRunProcess)
-    process_started  = QtCore.pyqtSignal(CmsRunProcess)
-    process_finished = QtCore.pyqtSignal(CmsRunProcess)
-    process_failed   = QtCore.pyqtSignal(CmsRunProcess)
-    all_finished     = QtCore.pyqtSignal()
 
 
     def setup_processes(self, qsetting):
@@ -53,29 +57,38 @@ class CmsRunController(QtCore.QObject):
                         self.waiting_pros.append(process)
                         self.process_enqueued.emit(process)
                 qsetting.endGroup()
-                self.waiting_pros.append("CfgFileEnd") #mark cfg file end
+                self.waiting_pros.append("CfgFileEnd " + str(cfg_file)) #mark cfg file end
 
 
     def start_processes(self):
         """
         Starts the qued processes.
-        
-        >>> qset = QtCore.QSettings("fakeFile.ini", 1)
-        >>> crc = CmsRunController(qset)
+
+        >>> crc = CmsRunController()
+        >>> crc.qsetting = QtCore.QSettings('fakeFile.ini', 1) # fake
         >>> crc.waiting_pros.append(CmsRunProcess("someName"))
+        >>> crc.waiting_pros.append("CfgFileEnd the_cfg_file")
+        >>> crc.start_processes()
+        >>> len(crc.waiting_pros)
+        1
+        >>> len(crc.running_pros)
+        1
+        >>> crc.running_pros = []
         >>> crc.start_processes()
         >>> len(crc.waiting_pros)
         0
         >>> len(crc.running_pros)
-        1
+        0
         """
 
         #block until cfg file is fully done
-        if len(self.waiting_pros) > 0 and self.waiting_pros[0] == "CfgFileEnd":
+        if (len(self.waiting_pros) > 0 and
+            str(self.waiting_pros[0]).split()[0] == "CfgFileEnd"):
             if len(self.running_pros) > 0:
                 return
             else:
-                self.waiting_pros.pop(0)
+                cfg_end_token = self.waiting_pros.pop(0)
+                self.cfg_file_finished.emit(cfg_end_token.split()[-1])
                 self.start_processes
         
         #check if launch is possible
@@ -99,8 +112,8 @@ class CmsRunController(QtCore.QObject):
         """
         Remove finished processes from self.running_pros
 
-        >>> qset = QtCore.QSettings('fakeFile.ini', 1)
-        >>> crc = CmsRunController(qset)
+        >>> crc = CmsRunController()
+        >>> crc.qsetting = QtCore.QSettings('fakeFile.ini', 1) # fake
         >>> crc.running_pros.append(CmsRunProcess("someName"))
         >>> crc.finish_processes()
         >>> len(crc.running_pros)
