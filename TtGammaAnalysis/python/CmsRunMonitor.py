@@ -29,8 +29,13 @@ class CmsRunMonitor(QtCore.QObject):
         print "process FAILED  :   cmsRun ", process.conf_file_name
 
 
+    def parser_error(self, process):
+        print "ERROR parsing output of process " + process.name
+
+
     def all_finished(self):
         print "All processes finished"
+
 
     def connect_controller(self, controller):
         controller.process_enqueued.connect(self.proc_enqueued)
@@ -39,3 +44,6 @@ class CmsRunMonitor(QtCore.QObject):
         controller.process_failed.connect(self.proc_failed)
         controller.all_finished.connect(self.all_finished)
 
+    def connect_parser(self, parser):
+        parser.trigger_report_empty.connect(self.parser_error)
+        parser.no_logfile.connect(self.parser_error)

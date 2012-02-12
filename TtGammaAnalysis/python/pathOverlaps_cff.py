@@ -11,20 +11,13 @@ widenedCocPatPhotons.checkOverlaps.jets.deltaR = 1.0
 widenedCocPatPhotons.checkOverlaps.jets.requireNoOverlaps = False
 widenedCocPatPhotons.checkOverlaps.muons.requireNoOverlaps = False
 
-
-analyzer_dRPhotonFromME = cms.EDAnalyzer("MyPhotonAnalyzer",
-                     src = cms.InputTag("photonsFromME")
-)
-
-analyzer_dRPhotonFromElsewhere = analyzer_dRPhotonFromME.clone(
-                     src = cms.InputTag("photonsFromElsewhere")
+analyzer_dRPhoton = cms.EDAnalyzer("MyPhotonAnalyzer",
+    src = cms.InputTag("widenedCocPatPhotons")
 )
 
 overlapsPath = cms.Path(
       btag.myBTagRequirement
     * hardPhot.hardPhotonSequence
-    * mcTruth.mcTruthSequence
     * widenedCocPatPhotons
-    * analyzer_dRPhotonFromME
-    * analyzer_dRPhotonFromElsewhere
+    * analyzer_dRPhoton
 )

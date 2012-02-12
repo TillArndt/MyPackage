@@ -37,13 +37,17 @@ class CmsRunController(QtCore.QObject):
         #load all cfg file setups
         cfg_file_abbrevs = qsetting.childGroups()
         for cfg_file in cfg_file_abbrevs:
-            if qsetting.value(cfg_file + "/enable").toBool():
+            if qsetting.value(cfg_file + "/enable", True).toBool():
                 qsetting.beginGroup(cfg_file)
 
                 #load all cmsRun starts
+                enable_by_default = qsetting.value("enableByDefault",
+                                                   True).toBool()
                 cmsRun_conf_abbrevs = qsetting.childGroups()
+                cmsRun_conf_abbrevs.removeAll(QtCore.QString("fileSets"))
                 for cmsRun_conf in cmsRun_conf_abbrevs:
-                    if qsetting.value(cmsRun_conf + "/enable").toBool():
+                    if qsetting.value(cmsRun_conf + "/enable",
+                                      enable_by_default).toBool():
                         process = CmsRunProcess(cmsRun_conf)
                         process.prepare_run_conf(qsetting)
                         self.waiting_pros.append(process)
@@ -75,7 +79,7 @@ class CmsRunController(QtCore.QObject):
                 self.start_processes
         
         #check if launch is possible
-        num_proc, parse_ok = self.qsetting.value("maxProcesses", 2).toInt()
+        num_proc, parse_ok = self.qsetting.value("maxNumProcesses", 2).toInt()
         if not parse_ok:
             num_proc = 2
         if len(self.waiting_pros) == 0 or len(self.running_pros) >= num_proc:

@@ -112,7 +112,7 @@ class CmsRunCutflowParser(QtCore.QObject):
 
         # read trigger report from logfile
         if not self.read_trigger_report(abbrev):
-            no_logfile.emit(process)
+            self.no_logfile.emit(process)
             return
         
         if len(self.trigger_report) == 0:

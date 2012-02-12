@@ -1,5 +1,5 @@
-#!/afs/cern.ch/cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
 #!/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
+#!/afs/cern.ch/cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
 
 """
 This program manages cmsRun processes. It reads run information
@@ -39,13 +39,14 @@ def main():
     sig_handler = SigintHandler(crc)
     signal.signal(signal.SIGINT, sig_handler.handle)
 
-    crm = CmsRunMonitor()
-    crm.connect_controller(crc)
-
     crp = CmsRunCutflowParser(qset)
     crc.process_finished.connect(crp.parse_cutflow_process)
     crc.all_finished.connect(crp.sync_qsetting)
     crc.all_finished.connect(app.quit)
+
+    crm = CmsRunMonitor()
+    crm.connect_controller(crc)
+    crm.connect_parser(crp)
     
     crc.start_processes()
     return app.exec_()

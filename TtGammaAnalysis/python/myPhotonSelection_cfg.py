@@ -38,7 +38,6 @@ process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 #################################################################################
 ## Some analyzing
 
-process.load("MyPackage.TtGammaAnalysis.mcTruthSequence_cfi")
 
 ## Path declaration
 
