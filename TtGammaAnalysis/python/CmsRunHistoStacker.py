@@ -3,6 +3,16 @@ import MyPackage.TtGammaAnalysis.MyUtility as util
 from ROOT import TFile, TDirectory, TKey, TH1, THStack
 from PyQt4 import QtCore
 
+# Histogram wrapper
+class HistogramWrapper:
+    def __init__(self, histo, abbrev = ""):
+        self.histo      = histo
+        self.is_data    = False
+        self.name       = histo.GetName()
+        self.abbrev     = abbrev
+        self.lumi       = -1
+        self.legend     = ""
+
 class CmsRunHistoStacker(QtCore.QObject):
     """
     Stacks Histograms produced in cmsRun and stored with TFileService.
@@ -16,7 +26,12 @@ class CmsRunHistoStacker(QtCore.QObject):
 
     def __init__(self, qsetting):
         super(CmsRunHistoStacker, self).__init__()
-        self.qsetting = qsetting
+        self.qsetting           = qsetting
+        self.root_file_names    = []
+        self.all_histo_names    = []
+        self.all_legend_entries = []
+        self.histograms         = []
+        self.merged_histos      = []
 
 
     def load_histograms(self):
@@ -26,19 +41,24 @@ class CmsRunHistoStacker(QtCore.QObject):
             {'histoname': {'basename (of file)': TH1 reference}}
 
         >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings("test/res/tmp.ini")
+        >>> qset = QtCore.QSettings(util.DIR_FILESERVICE + "/tmp.ini",1)
         >>> qset.setValue("stackedHistos",
         ...               QtCore.QStringList(["DeltaR_jet", "DeltaR_muon"]))
         >>> crhs = CmsRunHistoStacker(qset)
         >>> crhs.load_histograms()
-        >>> crhs.root_file_names
-        ['test/res/ttgamma_whizard.root', 'test/res/WJets.root']
-        >>> crhs.histograms
-        {'DeltaR_muon': {'ttgamma_whizard': None, 'WJets': None}, 'DeltaR_jet': {'ttgamma_whizard': None, 'WJets': None}}
+        >>> len(crhs.root_file_names) > 0
+        True
+        >>> crhs.all_histo_names
+        ['DeltaR_jet', 'DeltaR_muon']
+        >>> len(crhs.histograms) > 0
+        True
+        >>> crhs.histograms[0].name
+        'DeltaR_jet'
+        >>> crhs.histograms[0].abbrev
+        'WJets'
         """
 
         # get filenames
-        self.root_file_names = []
         import os
         import fnmatch
         for root, dirs, files in os.walk(util.DIR_FILESERVICE):
@@ -46,12 +66,12 @@ class CmsRunHistoStacker(QtCore.QObject):
                 self.root_file_names.append(os.path.join(root, filename))
 
         # setup self.histograms with names
-        self.histograms = []
-        list_of_stacked_histos = self.qsetting.value("stackedHistos", "").toStringList()
+        all_histo_names = self.qsetting.value("stackedHistos", "None").toStringList()
+        self.all_histo_names = [str(h) for h in all_histo_names]
 
         # walk over files
         for filename in self.root_file_names:
-            file = TFile(filename)
+            file = TFile.Open(filename)
             abbrev = os.path.basename(filename)[0:-5]
 
             #walk over folders in file
@@ -65,22 +85,38 @@ class CmsRunHistoStacker(QtCore.QObject):
                 for histo_key in folder_key.ReadObj().GetListOfKeys():
 
                     histname = histo_key.GetName()
-                    if not list_of_stacked_histos.contains(histname):
+
+                    # only stacked ones are treated
+                    if not all_histo_names.contains(histname):
                         continue
 
                     histo = histo_key.ReadObj()
-                    histo.name = histname
-                    histo.abbrev = abbrev
-                    self.histograms.append(histo)
+                    wrapper = HistogramWrapper(histo, abbrev)
+                    self.histograms.append(wrapper)
 
 
-    def add_histogram_info(self):
+    def collect_histogram_info(self):
         """
-        Takes infos for qsettings-object and puts to histograms.
+        Takes infos for qsettings-object and puts to histograms in self.histograms.
+
+        >>> util.DIR_FILESERVICE = "test/res"
+        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
+        >>> qset.beginGroup("photonSelection")
+        >>> crhs = CmsRunHistoStacker(qset)
+        >>> crhs.load_histograms()
+        >>> crhs.collect_histogram_info()
+        >>> crhs.all_legend_entries
+        ['WZ + Jets', 'Signal']
+        >>> histo = crhs.histograms[0]
+        >>> int(histo.lumi)    # int() to avoid double precision errors
+        2591
+        >>> histo.legend
+        'WZ + Jets'
+        >>> histo.is_data
+        False
         """
 
         qset = self.qsetting
-        self.all_legend_entries = []
         for histo in self.histograms[:]:
             qset.beginGroup(histo.abbrev)
 
@@ -93,99 +129,116 @@ class CmsRunHistoStacker(QtCore.QObject):
                     "Parsing of lumi value failed for " + histo.abbrev
             else:
                 self.histograms.remove(histo)
+                continue
 
-            # legend entry
-            legend_entry = str(qset.value("legend", "").toString())
+            # data or not?
+            histo.is_data = qset.value("isData", False).toBool()
+
+            # legend entry (if not given, takes histo.abbrev)
+            legend_entry = str(qset.value("legend", histo.abbrev).toString())
             histo.legend = legend_entry
-            self.all_legend_entries.append(legend_entry)
+
+            if self.all_legend_entries.count(legend_entry) == 0:
+                self.all_legend_entries.append(legend_entry)
 
             qset.endGroup() # histo.abbrev
 
 
-    def sort_histograms(self):
-        """
-        Sorts histograms by 'legend' key in qsettings-object.
-        """
-
-        self.sorted_hists = dict()
-        for name in self.histograms:
-
-            groups = dict()
-            for abbrev in self.histograms[name]:
-
-                # no legend name, no histogram!
-                if not self.qsetting.contains(abbrev + "/legend"):
-                    continue
-
-                legend_name = str(
-                    self.qsetting.value(abbrev + "/legend").toString()
-                )
-
-                if not groups.has_key(legend_name):
-                    groups[legend_name] = dict()
-
-                histo = self.histograms[name][abbrev]
-                groups[legend_name][abbrev] = histo
-
-            self.sorted_hists[name] = groups
-
-
     def merge_histograms(self):
         """
-        Merges histograms with same 'legend' key.
-        Scales by luminosity first.
+        Merges histograms from self.histograms with same 'name' and 'legend'
+        string. Scales by luminosity first. Appends them to self.merged_histos.
+
+        >>> util.DIR_FILESERVICE = "test/res"
+        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
+        >>> qset.beginGroup("photonSelection")
+        >>> crhs = CmsRunHistoStacker(qset)
+        >>> crhs.load_histograms()
+        >>> crhs.collect_histogram_info()
+        >>> crhs.merge_histograms()
+        >>> len(crhs.histograms)
+        9
+        >>> len(crhs.merged_histos)
+        6
+        >>> #histo = crhs.merged_histos[0]
+        >>> #histo.abbrev
+        'merged'
         """
 
-        self.merged_histos = []
-        for histo in self.histograms:
+        for histo_name in self.all_histo_names:
 
-            merged_histos = dict()
-            for legend_name in self.sorted_hists[name]:
+            for legend_entry in self.all_legend_entries:
 
-                same_legend_histos = self.sorted_hists[name][legend_name]
+                for is_data in [True, False]:
 
-                # get histo
-                abbrev, histo = same_legend_histos.popitem()
-
-                # scale
-                lumi, parse_ok = self.qsetting.value(abbrev + "/lumi")
-                if not parse_ok:
-                    raise self.ParseError, \
-                    "Parsing of lumi value failed for " + abbrev
-                histo.Scale(1 / lumi)
-
-                # merge
-                merged_hist = histo.Clone()
-
-                # now same procedure for all others
-                while (len(same_legend_histos) > 0):
-                    abbrev, histo = same_legend_histos.popitem()
-                    lumi, parse_ok = self.qsetting.value(abbrev + "/lumi")
-                    if not parse_ok:
-                        raise self.ParseError, \
-                        "Parsing of lumi value failed for " + abbrev
-                    histo.Scale(1 / lumi)
-                    merged_hist.Add(histo)
-
-                merged_histos[legend_name] = merged_hist
-
-            self.merged_histos[name] = merged_histos
+                    merged_hist = None
+                    for histo_wrap in self.histograms:
 
 
-    def make_stack_by_lumi(self, name):
+                        # search for same legend entry
+                        if not histo_wrap.name == histo_name:
+                            continue
+
+                        # search for same legend entry
+                        if not histo_wrap.legend == legend_entry:
+                            continue
+
+                        # search for mc / data
+                        if not is_data == histo_wrap.is_data:
+                            continue
+
+                        # scale by lumi first
+                        histo_wrap.histo.Scale(1/histo_wrap.lumi)
+
+                        # merge
+                        if not merged_hist:
+                            merged_hist = HistogramWrapper(
+                                histo_wrap.histo.Clone(),
+                                histo_wrap.abbrev
+                            )
+                            merged_hist.lumi = 1
+                            merged_hist.legend = legend_entry
+                            merged_hist.abbrev = "merged"
+
+                        else:
+                            merged_hist.histo.Add(histo_wrap.histo)
+                            merged_hist.lumi += 1
+
+                    if merged_hist != None:
+                        self.merged_histos.append(merged_hist)
+
+
+    def make_merged_pretty(self):
+        """
+        Gives the merged histograms a nice finish. Applies color, set's the
+        Title appropriatly. That stuff...
+        """
+
+        for index, histoWrap in enumerate(self.merged_histos):
+
+            # This is arbitrary. Kool Kolors later...
+            histoWrap.histo.SetFillColor(3 + index)
+            histoWrap.histo.SetTitle(histoWrap.legend)
+
+
+    def make_stacks(self):
         """
         Makes one stacked histogram, weighted by luminosity.
-        Takes histograms from self.merged_histos[name].
+        Takes histograms from self.merged_histos.
         Appends stack to self.stacks.
         """
 
-        stack = THStack(name, name)
-        for index, legend_name in enumerate(self.merged_histos[name]):
+        for histo_name in self.all_histo_names:
 
-            histo = self.merged_histos[name][legend_name]
-            histo.SetFillColor(3 + index)
-            histo.SetTitle(legend_name)
-            stack.Add(histo)
+            for is_data in [True, False]:
+
+                stack = THStack()
+                for legend_entry in self.all_legend_entries:
+
+                    for histo in self.merged_histos:
+                        pass
+
+                        stack.Add(histo)
 
 
     def make_all_stacks(self):
@@ -201,8 +254,10 @@ class CmsRunHistoStacker(QtCore.QObject):
         """
 
         self.load_histograms()
-        self.sort_histograms()
+        self.collect_histogram_info()
         self.merge_histograms()
+        self.make_merged_pretty()
+        self.make_stack_by_lumi()
 
         self.stacks = dict()
         for name in self.histograms:
