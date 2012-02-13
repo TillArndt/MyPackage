@@ -16,6 +16,16 @@ class HistogramWrapper:
 class CmsRunHistoStacker(QtCore.QObject):
     """
     Stacks Histograms produced in cmsRun and stored with TFileService.
+    Please checkout run_full_procedure(), from there everything is started.
+    If you're a pedestrian, this is the method to call.
+    Further on, have a look at __init__(), where all important lists are
+    defined.
+
+    >>> util.DIR_FILESERVICE = "test/res"
+    >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
+    >>> qset.beginGroup("photonSelection")
+    >>> crhs = CmsRunHistoStacker(qset)
+    >>> crhs.run_full_procedure()
     """
 
     # signals
@@ -23,6 +33,7 @@ class CmsRunHistoStacker(QtCore.QObject):
 
     # errors
     class ParseError(Exception): pass
+    class InputNotReadyError(Exception): pass
 
     def __init__(self, qsetting):
         super(CmsRunHistoStacker, self).__init__()
@@ -32,6 +43,7 @@ class CmsRunHistoStacker(QtCore.QObject):
         self.all_legend_entries = []
         self.histograms         = []
         self.merged_histos      = []
+        self.stacks             = []
 
 
     def load_histograms(self):
@@ -116,6 +128,10 @@ class CmsRunHistoStacker(QtCore.QObject):
         False
         """
 
+        if not len(self.histograms):
+            raise self.InputNotReadyError, \
+            "self.histograms is empty!"
+
         qset = self.qsetting
         for histo in self.histograms[:]:
             qset.beginGroup(histo.abbrev)
@@ -138,7 +154,7 @@ class CmsRunHistoStacker(QtCore.QObject):
             legend_entry = str(qset.value("legend", histo.abbrev).toString())
             histo.legend = legend_entry
 
-            if self.all_legend_entries.count(legend_entry) == 0:
+            if not self.all_legend_entries.count(legend_entry):
                 self.all_legend_entries.append(legend_entry)
 
             qset.endGroup() # histo.abbrev
@@ -158,12 +174,20 @@ class CmsRunHistoStacker(QtCore.QObject):
         >>> crhs.merge_histograms()
         >>> len(crhs.histograms)
         9
-        >>> len(crhs.merged_histos)
+        >>> len (crhs.merged_histos)
         6
-        >>> #histo = crhs.merged_histos[0]
-        >>> #histo.abbrev
+        >>> histo = crhs.merged_histos[0]
+        >>> histo is None
+        False
+        >>> histo.abbrev
         'merged'
+        >>> histo.lumi
+        2
         """
+
+        if not len(self.all_legend_entries):
+            raise self.InputNotReadyError,\
+            "self.all_legend_entries is empty!"
 
         for histo_name in self.all_histo_names:
 
@@ -198,13 +222,13 @@ class CmsRunHistoStacker(QtCore.QObject):
                             )
                             merged_hist.lumi = 1
                             merged_hist.legend = legend_entry
-                            merged_hist.abbrev = "merged"
 
                         else:
                             merged_hist.histo.Add(histo_wrap.histo)
                             merged_hist.lumi += 1
+                            merged_hist.abbrev = "merged"
 
-                    if merged_hist != None:
+                    if merged_hist is not None:
                         self.merged_histos.append(merged_hist)
 
 
@@ -223,47 +247,82 @@ class CmsRunHistoStacker(QtCore.QObject):
 
     def make_stacks(self):
         """
-        Makes one stacked histogram, weighted by luminosity.
+        Makes stacked histograms from merged histograms.
         Takes histograms from self.merged_histos.
         Appends stack to self.stacks.
+
+        >>> util.DIR_FILESERVICE = "test/res"
+        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
+        >>> qset.beginGroup("photonSelection")
+        >>> crhs = CmsRunHistoStacker(qset)
+        >>> crhs.load_histograms()
+        >>> crhs.collect_histogram_info()
+        >>> crhs.merge_histograms()
+        >>> crhs.make_stacks()
+        >>> len(crhs.stacks)
+        3
+        >>> stack = crhs.stacks[0]
+        >>> stack is None
+        False
+        >>> stack.lumi
+        3
+        >>> stack.name
+        'DeltaR_jet'
         """
+
+        if not len(self.merged_histos):
+            raise self.InputListEmptyError,\
+            "self.merged_histos is empty!"
 
         for histo_name in self.all_histo_names:
 
             for is_data in [True, False]:
 
-                stack = THStack()
-                for legend_entry in self.all_legend_entries:
+                stack_wrap = HistogramWrapper(
+                    THStack(histo_name, histo_name)
+                )
+                stack_wrap.is_data = is_data
+                stack_wrap.lumi = 0
+                for histo_wrap in self.merged_histos:
 
-                    for histo in self.merged_histos:
-                        pass
+                    # filter by name
+                    if not histo_name == histo_wrap.name:
+                        continue
 
-                        stack.Add(histo)
+                    # filter by data or not
+                    if not is_data == histo_wrap.is_data:
+                        continue
+
+                    stack_wrap.histo.Add(histo_wrap.histo)
+                    stack_wrap.lumi += histo_wrap.lumi
+
+                if stack_wrap.lumi > 0:
+                    self.stacks.append(stack_wrap)
 
 
-    def make_all_stacks(self):
+    def save_stacks(self):
         """
-        Makes all stacked histograms.
+        Saves finished stacks.
+        """
 
-        >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings("test/res/tmp.ini")
-        >>> qset.setValue("stackedHistos",
-        ...               QtCore.QStringList(["DeltaR_jet", "DeltaR_muon"]))
-        >>> crhs = CmsRunHistoStacker(qset)
-        >>> #crhs.make_all_stacks()
+        file = TFile(util.DIR_FILESERVICE + "/stackedHistos.root", "RECREATE")
+        file.cd()
+        for stack_wrap in self.stacks:
+            stack_wrap.histo.Write()
+        file.Close()
+
+
+    def run_full_procedure(self):
+        """
+        Run all steps to produce and save stacked histograms.
         """
 
         self.load_histograms()
         self.collect_histogram_info()
         self.merge_histograms()
         self.make_merged_pretty()
-        self.make_stack_by_lumi()
-
-        self.stacks = dict()
-        for name in self.histograms:
-            self.make_stack(name)
-
-
+        self.make_stacks()
+        self.save_stacks()
 
 
 if __name__ == '__main__':

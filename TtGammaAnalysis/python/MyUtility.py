@@ -1,9 +1,15 @@
-import os
 import sys
 
 class _MyUtility:
+
     class ConstError(TypeError): pass
+
     def __setattr__(self, name, value):
+        """
+        Denies to change variables. Anyway this does not work for testing
+        reasons (doctest, unittest). Turned off.
+        """
+
         #if self.__dict__.has_key(name):
             #raise self.ConstError, "No dude, you would not _change_ the constant '%s'!"%name
             #print "WARNING: constant '{0:>s}' is changed to '{2:>s}'!".format(
@@ -13,13 +19,22 @@ class _MyUtility:
         self.__dict__[name]=value
         
     def __delattr__(self, name):
+        """
+        Deny to delete any attributes.
+        """
+
         if self.__dict__.has_key(name):
             raise self.ConstError, "No dude, you would not _delete_ the constant '%s'!"%name
 
 ###########
 # constants
 ###########
+
     def __init__(self):
+        """
+        Defines project wide constants.
+        """
+
         self.DIR_FILESERVICE = "outputFileService"
         self.DIR_LOGS        = "outputLogs"
         self.DIR_CONFS       = "outputConfs"
@@ -28,10 +43,19 @@ class _MyUtility:
 # functions
 ###########
     def get_ini_file(self) :
+        """
+        Fetches first '*.ini' filename from sys.argv.
+        """
+
         import sys
-        return sys.argv[-1]
+        import fnmatch
+        return fnmatch.filter(sys.argv, "*.ini")[0]
 
     def addFileService(self, process):
+        """
+        Name placeholder.
+        """
+
         self.add_file_service(process)
 
     def add_file_service(self, process) :
