@@ -4,13 +4,12 @@ import sys
 class _MyUtility:
     class ConstError(TypeError): pass
     def __setattr__(self, name, value):
-        if self.__dict__.has_key(name):
+        #if self.__dict__.has_key(name):
             #raise self.ConstError, "No dude, you would not _change_ the constant '%s'!"%name
-            print "WARNING: constant '{0:>s}' is changed from '{1:>s}' to '{2:>s}'!".format(
-                name,
-                self.__dict__[name],
-                value
-            )
+            #print "WARNING: constant '{0:>s}' is changed to '{2:>s}'!".format(
+            #    name,
+            #    value
+            #)
         self.__dict__[name]=value
         
     def __delattr__(self, name):
