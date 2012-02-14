@@ -1,3 +1,4 @@
+__author__ = 'Heiner Tholen'
 
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
@@ -117,8 +118,8 @@ class CmsRunCutflowParser(QtCore.QObject):
             self.no_logfile.emit(process)
             return
         
-        if len(self.trigger_report) == 0:
-           self.trigger_report_emtpy.emit(process)
+        if not len(self.trigger_report):
+           self.trigger_report_empty.emit(process)
            return
         
         path_summary = self.get_block(

@@ -1,3 +1,4 @@
+__author__ = 'Heiner Tholen'
 
 from PyQt4 import QtCore
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess

@@ -1,4 +1,4 @@
-import sys
+__author__ = 'Heiner Tholen'
 
 class _MyUtility:
 
@@ -85,5 +85,6 @@ class _MyUtility:
         process.TFileService = cms.Service("TFileService",
           fileName = cms.string(file_service_dir + os.path.basename(basename + ".root"))
         )
-    
+
+import sys
 sys.modules[__name__] = _MyUtility()

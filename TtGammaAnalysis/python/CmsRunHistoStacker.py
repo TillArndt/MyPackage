@@ -1,6 +1,8 @@
+__author__ = 'Heiner Tholen'
 
 import MyPackage.TtGammaAnalysis.MyUtility as util
-from ROOT import TFile, TDirectory, TKey, TH1, THStack
+import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
+from ROOT import TFile, TDirectory, TKey, TH1, THStack, TCanvas
 from PyQt4 import QtCore
 
 # Histogram wrapper
@@ -21,11 +23,12 @@ class CmsRunHistoStacker(QtCore.QObject):
     Further on, have a look at __init__(), where all important lists are
     defined.
 
+    TODO: simplify by using one HistoStacker for only one name, not for all.
+
     >>> util.DIR_FILESERVICE = "test/res"
     >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
-    >>> qset.beginGroup("photonSelection")
     >>> crhs = CmsRunHistoStacker(qset)
-    >>> crhs.run_full_procedure()
+    >>> crhs.stack_it_all("photonSelection")
     """
 
     # signals
@@ -238,11 +241,18 @@ class CmsRunHistoStacker(QtCore.QObject):
         Title appropriatly. That stuff...
         """
 
-        for index, histoWrap in enumerate(self.merged_histos):
+        for histoWrap in self.merged_histos:
 
-            # This is arbitrary. Kool Kolors later...
-            histoWrap.histo.SetFillColor(3 + index)
-            histoWrap.histo.SetTitle(histoWrap.legend)
+            histo = histoWrap.histo
+            if histoWrap.is_data:
+                histo.SetMarkerSize(1.2)
+                histo.SetMarkerColor(1)
+            else:
+                histo.SetFillColor(
+                    root_style.get_fill_color(histoWrap.legend)
+                )
+
+            histo.SetTitle(histoWrap.legend)
 
 
     def make_stacks(self):
@@ -312,6 +322,37 @@ class CmsRunHistoStacker(QtCore.QObject):
         file.Close()
 
 
+    def draw_full_plot(self):
+        """
+        Puts everything together. Data and MC are plotted and saved.
+        """
+
+        for histo_name in self.all_histo_names:
+
+            canvas = TCanvas(histo_name, histo_name)
+            hist_data = None
+            hist_mc   = None
+            for stack_wrap in self.stacks:
+
+                # filter by name
+                if not histo_name == stack_wrap.name:
+                    continue
+
+                if stack_wrap.is_data:
+                    hist_data = stack_wrap
+                else:
+                    hist_mc   = stack_wrap
+
+            # draw higher first (assuming it's data)
+            if hist_data:
+                hist_data.histo.Draw("E1")
+                if hist_mc:
+                    hist_mc.histo.Draw("same")
+            filename = util.DIR_FILESERVICE + "/" + histo_name
+            canvas.SaveAs(filename + ".root")
+            canvas.SaveAs(filename + ".png")
+
+
     def run_full_procedure(self):
         """
         Run all steps to produce and save stacked histograms.
@@ -323,6 +364,17 @@ class CmsRunHistoStacker(QtCore.QObject):
         self.make_merged_pretty()
         self.make_stacks()
         self.save_stacks()
+        self.draw_full_plot()
+
+
+    def stack_it_all(self, cfg_abbrev):
+        """
+        Switches self.qsettings to cfg_abbrev, then runs full procedure.
+        """
+
+        self.qsetting.beginGroup(cfg_abbrev)
+        self.run_full_procedure()
+        self.qsetting.endGroup()
 
 
 if __name__ == '__main__':

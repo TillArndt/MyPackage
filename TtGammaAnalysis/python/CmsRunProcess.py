@@ -1,4 +1,4 @@
-
+__author__ = 'Heiner Tholen'
 
 import sys, os
 from PyQt4 import QtCore

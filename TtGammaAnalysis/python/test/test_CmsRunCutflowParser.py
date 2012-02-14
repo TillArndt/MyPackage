@@ -1,3 +1,5 @@
+__author__ = 'Heiner Tholen'
+
 import unittest
 
 from PyQt4 import QtCore

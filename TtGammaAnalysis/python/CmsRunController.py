@@ -1,3 +1,4 @@
+__author__ = 'Heiner Tholen'
 
 from PyQt4 import QtCore
 from PyQt4.QtCore import pyqtSlot
@@ -57,7 +58,9 @@ class CmsRunController(QtCore.QObject):
                         self.waiting_pros.append(process)
                         self.process_enqueued.emit(process)
                 qsetting.endGroup()
-                self.waiting_pros.append("CfgFileEnd " + str(cfg_file)) #mark cfg file end
+
+                # mark cfg file end
+                self.waiting_pros.append("CfgFileEnd " + str(cfg_file))
 
 
     def start_processes(self):
@@ -81,7 +84,7 @@ class CmsRunController(QtCore.QObject):
         0
         """
 
-        #block until cfg file is fully done
+        # block until cfg file is fully done
         if (len(self.waiting_pros) > 0 and
             str(self.waiting_pros[0]).split()[0] == "CfgFileEnd"):
             if len(self.running_pros) > 0:

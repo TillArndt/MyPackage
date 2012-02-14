@@ -41,14 +41,16 @@ process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 
 ## Path declaration
 
+
 process.selectionPath = cms.Path(
        process.myBTagRequirement
+     * process.patPhotonsPFlow
 #     * process.mcGenPhotonSequence
      * process.hardPhotonSequence
      * process.cocPatPhotonSequence 
 )
 
 # other paths
-process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
+#process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
 
 
