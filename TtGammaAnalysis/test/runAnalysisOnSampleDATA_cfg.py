@@ -1,8 +1,8 @@
 
-from MyPackage.TtGammaAnalysis.myttbarPatTuple_cfg import *
+from MyPackage.TtGammaAnalysis.myttbarPatTupleDATA_cfg import *
 import sys
 
-input = "/user/tholen/eventFiles/Samplelist_Background.txt"
+input = "/user/tholen/eventFiles/Samplelist_Data.txt"
 if len(sys.argv) > 3:
     input= sys.argv[3]
     print "input proddetails set to "+input
@@ -29,7 +29,7 @@ else:
           print "maxEvents: " + (dictOfLists["subset"])[line]
           process.maxEvents.input  = int((dictOfLists["subset"])[line])          
           process.source.fileNames = GetFileNames(sourceType, input, "merged")
-          process.out.fileName = "file:/user/tholen/eventFiles/subsamples_Background/"+sourceType+".root"
+          process.out.fileName = "file:/user/tholen/eventFiles/subsamples_Data/"+sourceType+".root"
           process.TFileService.fileName = "output/runFullAnalysis_"+sourceType+".root"
           knownsample=True
 if not knownsample:
