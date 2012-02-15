@@ -1,5 +1,5 @@
 
-from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
+from MyPackage.TtGammaAnalysis.myttbarSelectionDATA_cfg import *
 
 import MyPackage.TtGammaAnalysis.MyUtility as util
 util.addFileService(process)
@@ -14,7 +14,6 @@ process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
 process.out.outputCommands.append("keep *_myGoodJets_*_*")
 process.out.outputCommands.append("drop *_*_*_PAT")
-process.out.outputCommands.append("keep *_*genParticle*_*_*")
 
 #max num of events processed
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
@@ -42,8 +41,12 @@ process.out.outputCommands.append("keep *_addPileupInfo*_*_*")
 process.out.outputCommands.append("keep *_puWeight_*_*")
 
 #add patPhotons
+process.load("PhysicsTools.PatAlgos.producersLayer1.photonProducer_cfi")
+process.patPhotonsPFlow = process.patPhotons.clone(
+    addGenMatch = cms.bool(False)
+)
 process.out.outputCommands.append("keep *_patPhotons*_*_*")
-process.p.replace(process.photonMatchPFlow, process.photonMatchPFlow * process.patPhotonsPFlow)
+process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
 
 #require one b-tag
 process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")

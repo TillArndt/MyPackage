@@ -58,7 +58,7 @@ process.goodOfflinePrimaryVertices = cms.EDFilter(
 
 import PhysicsTools.PatAlgos.tools.pfTools as pfTools
 postfix = "PFlow"
-pfTools.usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix)
+pfTools.usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=False, postfix=postfix)
 process.pfPileUpPFlow.Enable = True
 process.pfPileUpPFlow.Vertices = 'goodOfflinePrimaryVertices'
 process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)
@@ -204,7 +204,6 @@ process.myJetCounter=cms.EDFilter("PATCandViewCountFilter",
                                   minNumber = cms.uint32(4),
                                   maxNumber = cms.uint32(99999)
                                   )
-
 
 process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
 

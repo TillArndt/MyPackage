@@ -83,13 +83,14 @@ class _CmsRunKoolStyle(TStyle):
 
         # fill colors
         colors = dict()
-        colors["Signal"] = ROOT.kRed + 1
-        colors["Other"] = ROOT.kAzure + 7
-        colors["W + Jets"] = ROOT.kSpring + 8
-        colors["Z + Jets"] = ROOT.kSpring + 5
-        colors["WZ + Jets"] = ROOT.kSpring + 2
-        colors["Single Top"] = ROOT.kOrange + 2
-        colors["QCD"] = ROOT.kYellow + 2
+        colors["Signal"]        = ROOT.kRed + 1
+        colors["Other"]         = ROOT.kAzure + 7
+        colors["W + Jets"]      = ROOT.kSpring + 8
+        colors["Z + Jets"]      = ROOT.kSpring + 5
+        colors["WZ + Jets"]     = ROOT.kSpring + 2
+        colors["Single Top"]    = ROOT.kOrange + 2
+        colors["QCD"]           = ROOT.kYellow + 2
+        #colors["Data"]          = 0
 
         self.fill_colors = colors
 

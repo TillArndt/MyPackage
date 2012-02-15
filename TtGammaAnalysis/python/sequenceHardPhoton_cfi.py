@@ -11,6 +11,7 @@ photonInputDummy = cms.EDFilter("PATPhotonSelector",
 analyzer_PT = cms.EDAnalyzer(
     "CandViewHistoAnalyzer",
     src = cms.InputTag("photonInputDummy"),
+    #weights = cms.untracked.InputTag("puWeight", "Reweight1BX"),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(         0.),

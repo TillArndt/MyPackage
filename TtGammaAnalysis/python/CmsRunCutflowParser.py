@@ -161,6 +161,10 @@ class CmsRunCutflowParser(QtCore.QObject):
         self.parse_cutflow(process.name)
         self.qsetting.endGroup()
 
+    #def parse_cutflow_full_settings(self, cfg_abbrev):
+    #    self.qsetting.beginGroup(cfg_abbrev)
+    #    for
+    #    self.qsetting.endGroup()
 
     def sync_qsetting(self):
         self.qsetting.sync()

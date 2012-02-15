@@ -1,5 +1,6 @@
 __author__ = 'Heiner Tholen'
 
+import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
 from ROOT import TFile, TDirectory, TKey, TH1, THStack, TCanvas
@@ -202,7 +203,7 @@ class CmsRunHistoStacker(QtCore.QObject):
                     for histo_wrap in self.histograms:
 
 
-                        # search for same legend entry
+                        # search for same name
                         if not histo_wrap.name == histo_name:
                             continue
 
@@ -214,25 +215,67 @@ class CmsRunHistoStacker(QtCore.QObject):
                         if not is_data == histo_wrap.is_data:
                             continue
 
-                        # scale by lumi first
-                        histo_wrap.histo.Scale(1/histo_wrap.lumi)
+                        # scale mc by lumi first
+                        if not is_data:
+                            histo_wrap.histo.Scale(1/histo_wrap.lumi)
+                            histo_wrap.lumi = 1
 
-                        # merge
+                        # merge (or create to merge later)
                         if not merged_hist:
                             merged_hist = HistogramWrapper(
                                 histo_wrap.histo.Clone(),
                                 histo_wrap.abbrev
                             )
-                            merged_hist.lumi = 1
+                            merged_hist.lumi = histo_wrap.lumi
                             merged_hist.legend = legend_entry
+                            merged_hist.is_data = histo_wrap.is_data
 
                         else:
                             merged_hist.histo.Add(histo_wrap.histo)
-                            merged_hist.lumi += 1
+                            merged_hist.lumi += histo_wrap.lumi
                             merged_hist.abbrev = "merged"
 
                     if merged_hist is not None:
                         self.merged_histos.append(merged_hist)
+
+
+    def scale_mc_stacks_to_lumi(self):
+        """
+        Scales up MC histograms to match data luminosity.
+        Does it by (1) adding up data lumi. (2) Adding up MC lumi.
+        (3) Calculating the scale factor. (4) Appling scale to MC
+        histograms.
+        """
+
+        for histo_name in self.all_histo_names:
+
+            # (1) + (2) calculate lumi
+            lumi_data = 0.
+            lumi_mc   = 0.
+            for merged_hist in self.merged_histos:
+
+                # filter for same name
+                if not merged_hist.name == histo_name:
+                    continue
+
+                if merged_hist.is_data:
+                    lumi_data += merged_hist.lumi
+                else:
+                    lumi_mc   += merged_hist.lumi
+
+            # (3) scale factor
+            scale_factor = lumi_data / lumi_mc
+
+            # (4) Apply to mc
+            for merged_hist in self.merged_histos:
+
+                # filter for same name
+                if not merged_hist.name == histo_name:
+                    continue
+
+                if not merged_hist.is_data:
+                    merged_hist.histo.Scale(scale_factor)
+                    merged_hist.lumi *= scale_factor
 
 
     def make_merged_pretty(self):
@@ -315,10 +358,15 @@ class CmsRunHistoStacker(QtCore.QObject):
         Saves finished stacks.
         """
 
-        file = TFile(util.DIR_FILESERVICE + "/stackedHistos.root", "RECREATE")
+        output_dir = util.DIR_FILESERVICE + "/stacked"
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
+        file = TFile(output_dir + "/stackedHistos.root", "RECREATE")
         file.cd()
         for stack_wrap in self.stacks:
             stack_wrap.histo.Write()
+            print "Saving Stack. Is Data: " + str(stack_wrap.is_data) + " Lumi: " + str(stack_wrap.lumi)
         file.Close()
 
 
@@ -326,6 +374,10 @@ class CmsRunHistoStacker(QtCore.QObject):
         """
         Puts everything together. Data and MC are plotted and saved.
         """
+
+        output_dir = util.DIR_FILESERVICE + "/stacked"
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
 
         for histo_name in self.all_histo_names:
 
@@ -348,9 +400,15 @@ class CmsRunHistoStacker(QtCore.QObject):
                 hist_data.histo.Draw("E1")
                 if hist_mc:
                     hist_mc.histo.Draw("same")
-            filename = util.DIR_FILESERVICE + "/" + histo_name
+
+            # build legend
+            canvas.BuildLegend()
+
+            # save canvas
+            filename = output_dir + "/" + histo_name
             canvas.SaveAs(filename + ".root")
             canvas.SaveAs(filename + ".png")
+            canvas.SaveAs(filename + ".pdf")
 
 
     def run_full_procedure(self):
@@ -361,6 +419,7 @@ class CmsRunHistoStacker(QtCore.QObject):
         self.load_histograms()
         self.collect_histogram_info()
         self.merge_histograms()
+        self.scale_mc_stacks_to_lumi()
         self.make_merged_pretty()
         self.make_stacks()
         self.save_stacks()

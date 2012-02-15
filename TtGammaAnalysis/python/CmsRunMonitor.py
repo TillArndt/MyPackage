@@ -31,6 +31,8 @@ class CmsRunMonitor(QtCore.QObject):
 
 
     def parser_error(self, process):
+        if not process: # killed by sigint
+            return
         print "ERROR parsing output of process " + process.name
 
 
