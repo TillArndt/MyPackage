@@ -3,6 +3,7 @@ __author__ = 'Heiner Tholen'
 class _MyUtility:
 
     class ConstError(TypeError): pass
+    class FileError(Exception): pass
 
     def __setattr__(self, name, value):
         """
@@ -47,9 +48,14 @@ class _MyUtility:
         Fetches first '*.ini' filename from sys.argv.
         """
 
+        import os
         import sys
         import fnmatch
-        return fnmatch.filter(sys.argv, "*.ini")[0]
+        filename = fnmatch.filter(sys.argv, "*.ini")[0]
+        if os.path.exists(filename):
+            return filename
+        else:
+            raise self.FileError, "Config file does not exist: " + filename
 
     def addFileService(self, process):
         """

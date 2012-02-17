@@ -1,9 +1,9 @@
 __author__ = 'Heiner Tholen'
 
+import os
 from PyQt4 import QtCore
-from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
-from MyPackage.TtGammaAnalysis.CmsRunController import CmsRunController
-
+#from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
+#from MyPackage.TtGammaAnalysis.CmsRunController import CmsRunController
 
 class CmsRunMonitor(QtCore.QObject):
     """
@@ -12,6 +12,7 @@ class CmsRunMonitor(QtCore.QObject):
     """
     def __init__(self):
         super(CmsRunMonitor, self).__init__()
+        self.error_logs_opened = 0
 
 
     def proc_enqueued(self, process):
@@ -28,6 +29,10 @@ class CmsRunMonitor(QtCore.QObject):
 
     def proc_failed(self, process):
         print "process FAILED  :   cmsRun ", process.conf_file_name
+        if not self.error_logs_opened:
+            print "_____________________________________________cmsRun logfile"
+            os.system("cat " + process.log_file_name)
+            self.error_logs_opened += 1
 
 
     def parser_error(self, process):
@@ -40,6 +45,10 @@ class CmsRunMonitor(QtCore.QObject):
         print "All processes finished"
 
 
+    def message(self, string):
+        print string
+
+
     def connect_controller(self, controller):
         controller.process_enqueued.connect(self.proc_enqueued)
         controller.process_started.connect(self.proc_started)
@@ -47,6 +56,8 @@ class CmsRunMonitor(QtCore.QObject):
         controller.process_failed.connect(self.proc_failed)
         controller.all_finished.connect(self.all_finished)
 
+
     def connect_parser(self, parser):
         parser.trigger_report_empty.connect(self.parser_error)
         parser.no_logfile.connect(self.parser_error)
+        parser.message.connect(self.message)

@@ -36,4 +36,8 @@ process.selectionPath = cms.Path(
 # other paths
 process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
 
-
+# schedule
+process.schedule = cms.Schedule(
+    process.selectionPath,
+    process.overlapsPath
+)

@@ -9,7 +9,7 @@ photonInputDummy = cms.EDFilter("PATPhotonSelector",
 
 # record pt before cutting
 analyzer_PT = cms.EDAnalyzer(
-    "CandViewHistoAnalyzer",
+    "PATPhotonHistoAnalyzer",
     src = cms.InputTag("photonInputDummy"),
     #weights = cms.untracked.InputTag("puWeight", "Reweight1BX"),
     histograms = cms.VPSet(
@@ -18,7 +18,7 @@ analyzer_PT = cms.EDAnalyzer(
             max          = cms.untracked.double(        500),
             nbins        = cms.untracked.int32 (         50),
             name         = cms.untracked.string( 'photonPT'),
-            description  = cms.untracked.string('photonPT;photon p_{T};number of photons'),
+            description  = cms.untracked.string(';photon p_{T};number of photons'),
             plotquantity = cms.untracked.string('pt'),
         )
     )

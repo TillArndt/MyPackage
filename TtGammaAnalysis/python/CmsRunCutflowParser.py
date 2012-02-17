@@ -2,8 +2,10 @@ __author__ = 'Heiner Tholen'
 
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
+import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as style
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
 from PyQt4 import QtCore
+from ROOT import TH1D, TFile, TDirectory
 
 class CmsRunCutflowParser(QtCore.QObject):
     """
@@ -21,7 +23,9 @@ class CmsRunCutflowParser(QtCore.QObject):
 
     def __init__(self, qsetting):
         super(CmsRunCutflowParser, self).__init__()
-        self.qsetting = qsetting
+        self.qsetting                       = qsetting
+        self.write_cutflow_to_qsetting      = False
+        self.write_cutflow_to_histo_files   = True
 
 
     def read_trigger_report(self, abbrev):
@@ -63,7 +67,7 @@ class CmsRunCutflowParser(QtCore.QObject):
         return self.trigger_report[index_start:index_end]
 
 
-    def add_group(self, qsetting, line):
+    def add_qsettings_group(self, line):
         """
         Begins new group for path in qsetting.
 
@@ -71,7 +75,7 @@ class CmsRunCutflowParser(QtCore.QObject):
         >>> from PyQt4 import QtCore          
         >>> qset = QtCore.QSettings('res/tmp.ini',1)
         >>> cp = CmsRunCutflowParser(qset)
-        >>> cp.add_group(qset, line)
+        >>> cp.add_group(line)
         >>> for key in qset.allKeys():
         ...     print key
         ... 
@@ -81,16 +85,67 @@ class CmsRunCutflowParser(QtCore.QObject):
         >>> qset.value('photonsWithTightID/Failed').toInt()
         (852, True)
         """
-        
+
+        if not self.write_cutflow_to_qsetting:
+            return
+
+        qset = self.qsetting
         tokens = line.split()
-        qsetting.beginGroup(tokens[-1])
-        qsetting.setValue("Visited", tokens[3])
-        qsetting.setValue("Passed", tokens[4])
-        qsetting.setValue("Failed", tokens[5])
-        qsetting.endGroup()
+        qset.beginGroup(tokens[-1])
+        qset.setValue("Visited", tokens[3])
+        qset.setValue("Passed", tokens[4])
+        qset.setValue("Failed", tokens[5])
+        qset.endGroup()
 
 
-    def parse_cutflow(self, abbrev, process = None):
+    def begin_cutflow_histo(self, line):
+        """
+        Books ROOT histogram for filling cutflow.
+        """
+
+        if not self.write_cutflow_to_histo_files:
+            return
+
+        tokens = line.split()
+        self.cutflow_histo = TH1D(
+            "cutflow_" + tokens[-1],
+            ";cutflow step;number of passed events",
+            3, 0, 3
+        )
+        self.cutflow_histo.SetBit(TH1D.kCanRebin);
+        self.cutflow_histo.SetStats(0);
+
+
+    def fill_cutflow_histo(self, line):
+        """
+        Fills cutflow values into histogram.
+        """
+
+        if not self.cutflow_histo:
+            return
+
+        tokens = line.split()
+        pretty_name = style.get_pretty_name(tokens[-1])
+        self.cutflow_histo.Fill(pretty_name, float(tokens[4]))
+
+
+    def end_cutflow_histo(self):
+        """
+        Saves cutflow histo
+        """
+
+        if not self.cutflow_histo:
+            return
+
+        file = TFile.Open(self.process.service_file_name, "UPDATE")
+        file_dir = file.mkdir("cutflow")
+        file_dir.cd()
+        self.cutflow_histo.Write()
+        file.Close()
+        del self.cutflow_histo
+
+
+    def parse_cutflow(self, abbrev):
         """
         Parses Message Logger output in cmsRun logfile.
         Writes cutflow into qsettings.
@@ -100,26 +155,26 @@ class CmsRunCutflowParser(QtCore.QObject):
         qset = self.qsetting
 
         # get lists (QStringList)
-        parse_paths = qset.value("parsePaths", "None").toStringList()
-        parse_modules = qset.value("parseModules", "None").toStringList()
+        parse_paths = qset.value("cutflowParsePaths", "None").toStringList()
+        parse_modules = qset.value("cutflowParseModules", "None").toStringList()
 
         # convert to pythonic lists
         parse_paths_list = [str(l) for l in parse_paths]
         parse_modules_list = [str(l) for l in parse_modules]
 
-        self.message.emit("parsing paths  : " + str(parse_paths_list))
-        self.message.emit("parsing modules: " + str(parse_modules_list))
+        self.message.emit("INFO parsing paths  : " + str(parse_paths_list))
+        self.message.emit("INFO parsing modules: " + str(parse_modules_list))
 
         if parse_paths_list == ["None"]:
             return
 
         # read trigger report from logfile
         if not self.read_trigger_report(abbrev):
-            self.no_logfile.emit(process)
+            self.no_logfile.emit(self.process)
             return
         
         if not len(self.trigger_report):
-           self.trigger_report_empty.emit(process)
+           self.trigger_report_empty.emit(self.process)
            return
         
         path_summary = self.get_block(
@@ -133,10 +188,11 @@ class CmsRunCutflowParser(QtCore.QObject):
             if (parse_paths_list == ["All"]
                 or parse_paths.contains(tokens[-1])):
 
-                # add path itself to qset
-                self.add_group(qset, path_line)
+                # add path itself to qset, book histogram
+                self.add_qsettings_group(path_line)
+                self.begin_cutflow_histo(path_line)
 
-                qset.beginGroup(tokens[-1])
+                qset.beginGroup(tokens[-1]) # path
                 path_header = ("TrigReport ---------- Modules in Path: "
                                + tokens[-1]
                                + " ------------")
@@ -147,19 +203,23 @@ class CmsRunCutflowParser(QtCore.QObject):
                     if (parse_modules_list == ["All"]
                         or parse_modules.contains(tokens_mod[-1])):
                 
-                        # add modules in path to qset
-                        self.add_group(qset, module_line)
+                        # add modules in path
+                        self.add_qsettings_group(module_line)
+                        self.fill_cutflow_histo(module_line)
 
-                qset.endGroup() #tokens[-1]
+                qset.endGroup() #tokens[-1] (path)
+                self.end_cutflow_histo()
 
         qset.endGroup() # "cutflow"
         qset.endGroup() # abbrev
         
 
     def parse_cutflow_process(self, process):
+        self.process = process
         self.qsetting.beginGroup(process.qsetting_base_group)
         self.parse_cutflow(process.name)
         self.qsetting.endGroup()
+        del self.process
 
     #def parse_cutflow_full_settings(self, cfg_abbrev):
     #    self.qsetting.beginGroup(cfg_abbrev)
@@ -167,7 +227,8 @@ class CmsRunCutflowParser(QtCore.QObject):
     #    self.qsetting.endGroup()
 
     def sync_qsetting(self):
-        self.qsetting.sync()
+        if self.write_cutflow_to_qsetting:
+            self.qsetting.sync()
 
 
 if __name__ == '__main__':

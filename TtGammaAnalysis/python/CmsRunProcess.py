@@ -13,16 +13,20 @@ class CmsRunProcess(QtCore.QProcess):
     def __init__(self, name):        
         super(CmsRunProcess, self).__init__()
 
+        self.name              = name
+        self.exe               = "cmsRun"
+        self.log_file_name     = util.DIR_LOGS + "/" + str(name) + ".log"
+        self.conf_file_name    = util.DIR_CONFS + "/" + str(name) + ".py"
+        self.service_file_name = util.DIR_FILESERVICE\
+                                 + "/" + str(name) + ".root"
+
         # set all surroundings
         self.setWorkingDirectory(os.getcwd())
         self.setEnvironment(QtCore.QProcess.systemEnvironment())
         self.setProcessChannelMode(1)
-        self.setStandardOutputFile(util.DIR_LOGS + "/" + name + ".log")
+        self.setStandardOutputFile(self.log_file_name)
         if not os.path.exists(util.DIR_LOGS):
             os.mkdir(util.DIR_LOGS)
-        self.name = name
-        self.exe = "cmsRun"
-        self.conf_file_name = util.DIR_CONFS + "/" + name + ".py"
 
     def prepare_run_conf(self, qsetting):
         """

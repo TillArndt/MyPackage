@@ -1,7 +1,6 @@
 __author__ = 'Heiner Tholen'
 
 from PyQt4 import QtCore
-from PyQt4.QtCore import pyqtSlot
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
 
 
@@ -34,7 +33,7 @@ class CmsRunController(QtCore.QObject):
         process.
         """
 
-        if len(self.waiting_pros) > 0: #setup has been done already
+        if len(self.waiting_pros): #setup has been done already
             return 
         
         self.qsetting = qsetting
@@ -84,7 +83,7 @@ class CmsRunController(QtCore.QObject):
         0
         """
 
-        # block until cfg file is fully done
+        # on cfg file end, block until it's fully done
         if (len(self.waiting_pros) > 0 and
             str(self.waiting_pros[0]).split()[0] == "CfgFileEnd"):
             if len(self.running_pros) > 0:
@@ -92,7 +91,7 @@ class CmsRunController(QtCore.QObject):
             else:
                 cfg_end_token = self.waiting_pros.pop(0)
                 self.cfg_file_finished.emit(cfg_end_token.split()[-1])
-                self.start_processes
+                self.start_processes()
         
         #check if launch is possible
         num_proc, parse_ok = self.qsetting.value("maxNumProcesses", 2).toInt()
@@ -110,6 +109,7 @@ class CmsRunController(QtCore.QObject):
 
         #recursively
         self.start_processes()
+
 
     def finish_processes(self):
         """
@@ -155,6 +155,76 @@ class CmsRunController(QtCore.QObject):
         for process in self.running_pros:
             process.terminate()
 
+
+import signal
+import sys
+import getopt
+from PyQt4 import QtCore
+import MyPackage.TtGammaAnalysis.MyUtility as util
+from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
+from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
+from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
+
+class SigintHandler:
+    def __init__(self, controller):
+        self.controller = controller
+
+    def handle(self, signal_int, frame):
+        if signal_int is signal.SIGINT:
+            self.controller.abort_all_processes()
+
+
+def main():
+    """
+    Main...
+    """
+
+    letters  = 'n:s:'
+    opts, extraparams = getopt.getopt(sys.argv[1:], letters)
+
+    # instantiations for both, single tool and normal run
+    qset = QtCore.QSettings(util.get_ini_file(),1)
+    crp = CmsRunCutflowParser(qset)
+    crh = CmsRunHistoStacker(qset)
+
+    # single tools only
+    no_process_setup = False
+    no_cmsRun_execute = False
+    for opt, value in opts:
+
+        if opt == "-s":
+            no_process_setup = True
+            crh.stack_it_all(value)
+
+        if opt == "-n":
+            no_cmsRun_execute = True
+
+    if no_process_setup:
+        return 0
+
+    # normal run from here on
+    app = QtCore.QCoreApplication(sys.argv)
+
+    crc = CmsRunController()
+    crc.setup_processes(qset)
+
+    # cutflow parser
+    crc.process_finished.connect(crp.parse_cutflow_process)
+    crc.all_finished.connect(crp.sync_qsetting)
+    crc.all_finished.connect(app.quit)
+
+    # histo stakker
+    crc.cfg_file_finished.connect(crh.stack_it_all)
+
+    crm = CmsRunMonitor()
+    crm.connect_controller(crc)
+    crm.connect_parser(crp)
+
+    sig_handler = SigintHandler(crc)
+    signal.signal(signal.SIGINT, sig_handler.handle)
+
+    crc.start_processes()
+    return app.exec_()
 
 
 if __name__ == '__main__':
