@@ -145,6 +145,16 @@ class CmsRunCutflowParser(QtCore.QObject):
         del self.cutflow_histo
 
 
+    def write_confirmation(self, summary_string):
+        """
+        Puts summary_string to process info file.
+        """
+
+        file = open(self.process.info_file_name, "a")
+        file.write("Cutflow :" + summary_string + "\n")
+        file.close()
+
+
     def parse_cutflow(self, abbrev):
         """
         Parses Message Logger output in cmsRun logfile.
@@ -162,11 +172,11 @@ class CmsRunCutflowParser(QtCore.QObject):
         parse_paths_list = [str(l) for l in parse_paths]
         parse_modules_list = [str(l) for l in parse_modules]
 
-        self.message.emit("INFO parsing paths  : " + str(parse_paths_list))
-        self.message.emit("INFO parsing modules: " + str(parse_modules_list))
-
         if parse_paths_list == ["None"]:
             return
+
+        self.message.emit("INFO parsing paths  : " + str(parse_paths_list))
+        self.message.emit("INFO parsing modules: " + str(parse_modules_list))
 
         # read trigger report from logfile
         if not self.read_trigger_report(abbrev):
@@ -212,21 +222,30 @@ class CmsRunCutflowParser(QtCore.QObject):
 
         qset.endGroup() # "cutflow"
         qset.endGroup() # abbrev
+
+        self.write_confirmation("OK")
         
 
     def parse_cutflow_process(self, process):
+        """
+        Overload  of parse_cutflow for process objects.
+        """
+
+        if process.reused_old_data:
+            return
+
         self.process = process
         self.qsetting.beginGroup(process.qsetting_base_group)
         self.parse_cutflow(process.name)
         self.qsetting.endGroup()
         del self.process
 
-    #def parse_cutflow_full_settings(self, cfg_abbrev):
-    #    self.qsetting.beginGroup(cfg_abbrev)
-    #    for
-    #    self.qsetting.endGroup()
 
     def sync_qsetting(self):
+        """
+        Writes out cutflow data to qsettings file.
+        """
+
         if self.write_cutflow_to_qsetting:
             self.qsetting.sync()
 

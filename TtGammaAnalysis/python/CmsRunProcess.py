@@ -1,6 +1,7 @@
 __author__ = 'Heiner Tholen'
 
-import sys, os
+import time
+import os
 from PyQt4 import QtCore
 import MyPackage.TtGammaAnalysis.MyUtility as util
 
@@ -9,16 +10,22 @@ class CmsRunProcess(QtCore.QProcess):
     This class hosts a cmsRun process.
     Output is streamed into logfile.
     """
-    
-    def __init__(self, name):        
+
+    message = QtCore.pyqtSignal(str)
+
+    def __init__(self, name, try_reuse_old_data = False):
         super(CmsRunProcess, self).__init__()
 
-        self.name              = name
-        self.exe               = "cmsRun"
-        self.log_file_name     = util.DIR_LOGS + "/" + str(name) + ".log"
-        self.conf_file_name    = util.DIR_CONFS + "/" + str(name) + ".py"
-        self.service_file_name = util.DIR_FILESERVICE\
+        self.name               = name
+        self.exe                = "cmsRun"
+        self.log_file_name      = util.DIR_LOGS + "/" + str(name) + ".log"
+        self.conf_file_name     = util.DIR_CONFS + "/" + str(name) + ".py"
+        self.service_file_name  = util.DIR_FILESERVICE\
                                  + "/" + str(name) + ".root"
+        self.info_file_name     = util.DIR_PROCESS_INFO + "/" + str(name) + ".log"
+        self.try_reuse_old_data = try_reuse_old_data
+        self.reused_old_data    = False
+        self.sig_int            = False
 
         # set all surroundings
         self.setWorkingDirectory(os.getcwd())
@@ -27,6 +34,8 @@ class CmsRunProcess(QtCore.QProcess):
         self.setStandardOutputFile(self.log_file_name)
         if not os.path.exists(util.DIR_LOGS):
             os.mkdir(util.DIR_LOGS)
+        self.finished.connect(self.write_process_info_file)
+
 
     def prepare_run_conf(self, qsetting):
         """
@@ -41,7 +50,6 @@ class CmsRunProcess(QtCore.QProcess):
         conf_lines = [] # collect lines of confFile
 
         # starting statement
-        import time
         conf_lines.append("# generated")
         conf_lines.append("# on " + time.ctime())
         conf_lines.append("# by CmsRunController.py")
@@ -103,11 +111,96 @@ class CmsRunProcess(QtCore.QProcess):
             conf_file.write(line + "\n")
         conf_file.close()
 
+
+    def write_process_info_file(self, exit_code):
+        """
+        Writes start and endtime as well as exitcode to the process info file.
+        If self.sigint is true, deletes old file and does not write anything.
+        """
+
+        self.time_end = time.ctime()
+
+        # on SIGINT do not write the process info
+        if self.sig_int:
+            return
+
+        # on reuse, do also not overwrite file
+        if self.reused_old_data:
+            return
+
+        # collect lines to be written at once
+        info_lines = []
+        info_lines.append("Start   :" + self.time_start)
+        info_lines.append("End     :" + self.time_end)
+        info_lines.append("Exitcode:" + str(exit_code))
+
+        # write out
+        if not os.path.exists(util.DIR_PROCESS_INFO):
+            os.mkdir(util.DIR_PROCESS_INFO)
+        file = open(self.info_file_name, "w")
+        for line in info_lines:
+            file.write(line + "\n")
+        file.close()
+
+
+    def check_reuse_possible(self):
+        """
+        Checks if log, conf and file service files are present and if the
+        process was finished successfully before. If yes returns True,
+        because the previous results can be used again.
+        """
+
+        if not os.path.exists(self.log_file_name):
+            return False
+        if not os.path.exists(self.conf_file_name):
+            return False
+        if not os.path.exists(self.service_file_name):
+            return False
+        if not os.path.exists(self.info_file_name):
+            return False
+
+        # search tokens
+        exit_code_good = False
+        cutflow_good   = False
+        info_file = open(self.info_file_name, "r")
+        for line in info_file.readlines():
+            tokens = line.split(":")
+            if tokens[0] == "Exitcode" and not int(tokens[1]):
+                exit_code_good = True
+            if tokens[0] == "Cutflow " and str(tokens[1]) == "OK\n":
+                cutflow_good = True
+        info_file.close()
+
+        if exit_code_good and cutflow_good:
+            return True
+        else:
+            return False
+
+
     def start(self):
         """
-        Start cmsRun with conf-file.
+        Start cmsRun with conf-file. If self.try_reuse is True and reuse is
+        possible, just calls 'cmsRun --help' and pipes output to /dev/null.
         """
 
-        super(CmsRunProcess, self).start(self.exe, [self.conf_file_name])
+        self.time_start =  time.ctime()
+
+        if self.try_reuse_old_data and self.check_reuse_possible():
+            self.setStandardOutputFile("/dev/null")
+            self.reused_old_data = True
+            self.message.emit("INFO reusing data for " + self.name)
+            super(CmsRunProcess, self).start(self.exe, ["--help"])
+        else:
+            if os.path.exists(self.info_file_name):
+                os.remove(self.info_file_name)
+            super(CmsRunProcess, self).start(self.exe, [self.conf_file_name])
 
 
+    def terminate(self):
+        """
+        Overwrites terminate method, set's flag for infofile first, then calls
+        terminate.
+        """
+
+        self.sig_int = True
+        super(CmsRunProcess,self).terminate()

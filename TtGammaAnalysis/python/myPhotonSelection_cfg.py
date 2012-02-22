@@ -18,18 +18,18 @@ process.extend(logger)
 #process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
-process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")      ##############################remove me!!!!!!
-
-
 # Selection of events with a hard photon
 process.load("MyPackage.TtGammaAnalysis.sequenceHardPhoton_cfi")
 process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 
 
+# EventIDPrinter (not added to Path, do this in extraCode!)
+# TODO add EventIDPrinter to top/tools
+process.eventIDPrinter = cms.EDAnalyzer("EventIDPrinter")
+
 # Path declaration
 process.selectionPath = cms.Path(
-       process.myBTagRequirement                                     ##############################remove me!!!!!!
-     * process.hardPhotonSequence
+       process.hardPhotonSequence
      * process.cocPatPhotonSequence 
 )
 

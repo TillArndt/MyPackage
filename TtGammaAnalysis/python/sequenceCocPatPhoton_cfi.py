@@ -19,9 +19,9 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
                 muons = cms.PSet(
                    src                 = cms.InputTag("myTightPatMuons"),
                    algorithm           = cms.string("byDeltaR"),
-                   preselection        = cms.string(""),  # don't preselect the jets
-                   deltaR              = cms.double(0.5), # if > 0.5: make many jets overlapping
-                   checkRecoComponents = cms.bool(False), # don't check if they share some AOD object ref
+                   preselection        = cms.string(""),
+                   deltaR              = cms.double(0.5),
+                   checkRecoComponents = cms.bool(False),
                    pairCut             = cms.string(""),
                    requireNoOverlaps   = cms.bool(True),
                ),

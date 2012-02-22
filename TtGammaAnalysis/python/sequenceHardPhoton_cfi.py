@@ -18,7 +18,7 @@ analyzer_PT = cms.EDAnalyzer(
             max          = cms.untracked.double(        500),
             nbins        = cms.untracked.int32 (         50),
             name         = cms.untracked.string( 'photonPT'),
-            description  = cms.untracked.string(';photon p_{T};number of photons'),
+            description  = cms.untracked.string(';photon p_{T} / GeV;number of photons'),
             plotquantity = cms.untracked.string('pt'),
         )
     )

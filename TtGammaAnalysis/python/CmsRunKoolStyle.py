@@ -25,13 +25,13 @@ class _CmsRunKoolStyle(TStyle):
 
         # fill colors
         colors = dict()
-        colors["Signal"]        = ROOT.kRed + 1
-        colors["Other"]         = ROOT.kAzure + 7
-        colors["W + Jets"]      = ROOT.kSpring + 8
-        colors["Z + Jets"]      = ROOT.kSpring + 5
-        colors["WZ + Jets"]     = ROOT.kSpring + 2
-        colors["Single Top"]    = ROOT.kOrange + 2
-        colors["QCD"]           = ROOT.kYellow + 2
+        colors["Signal"]            = ROOT.kRed + 1
+        colors["Semi-#mu t#bart"]   = ROOT.kAzure + 7
+        colors["W + Jets"]          = ROOT.kSpring + 8
+        colors["Z + Jets"]          = ROOT.kSpring + 5
+        colors["WZ + Jets"]         = ROOT.kSpring + 2
+        colors["Single Top"]        = ROOT.kOrange + 2
+        colors["QCD"]               = ROOT.kYellow + 2
         self.fill_colors = colors
 
         # Stacking Order (lowest first)
@@ -42,14 +42,15 @@ class _CmsRunKoolStyle(TStyle):
         order.append("Single Top")
         order.append("Z + Jets")
         order.append("W + Jets")
-        order.append("Other")
+        order.append("Semi-#mu t#bart")
         self.stacking_order = order
 
         # pretty names
         pn = dict()
-        pn["myLargePtPhotons"]     = "large p_{T}"
-        pn["photonsWithTightID"]   = "tight photon ID"
-        pn["removeCocFails"]       = "#Delta R(photon, jet)"
+        pn["photonInputDummy"]      = "preselected"
+        pn["myLargePtPhotons"]      = "large p_{T}"
+        pn["photonsWithTightID"]    = "tight photon ID"
+        pn["removeCocFails"]        = "#DeltaR(photon, jet)"
         self.pretty_names = pn
 
 
@@ -142,7 +143,7 @@ class _CmsRunKoolStyle(TStyle):
         self.SetOptTitle(1)
         self.SetOptStat(0)
 
-        # don't know what these are for. Need to ask the Kuessel-o-Mat.
+        # don't know what these are for. Need to ask the Kuess'l-o-Mat.
         self.colors = [1, 2, 3, 4, 6, 7, 8, 9, 11]
         self.markers = [20, 21, 22, 23, 24, 25, 26, 27, 28]
         self.styles = [1, 2, 3, 4, 5, 6, 7, 8, 9]

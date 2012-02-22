@@ -15,8 +15,8 @@ class CmsRunController(QtCore.QObject):
     process_finished  = QtCore.pyqtSignal(CmsRunProcess)
     process_failed    = QtCore.pyqtSignal(CmsRunProcess)
     cfg_file_finished = QtCore.pyqtSignal(str)
+    message           = QtCore.pyqtSignal(str)
     all_finished      = QtCore.pyqtSignal()
-
 
     def __init__(self):
         super(CmsRunController, self).__init__()
@@ -26,7 +26,7 @@ class CmsRunController(QtCore.QObject):
         self.failed_pros   = []
 
 
-    def setup_processes(self, qsetting):
+    def setup_processes(self, qsetting, try_reuse = False):
         """
         CmsRunProcesses are set up, and filled into self.waiting_pros
         CmsRunProcess.prepareRunConf(qsettings) is called for every
@@ -52,7 +52,8 @@ class CmsRunController(QtCore.QObject):
                 for cmsRun_conf in cmsRun_conf_abbrevs:
                     if qsetting.value(cmsRun_conf + "/enable",
                                       enable_by_default).toBool():
-                        process = CmsRunProcess(cmsRun_conf)
+                        process = CmsRunProcess(cmsRun_conf, try_reuse)
+                        process.message.connect(self.message)
                         process.prepare_run_conf(qsetting)
                         self.waiting_pros.append(process)
                         self.process_enqueued.emit(process)
@@ -179,47 +180,37 @@ def main():
     Main...
     """
 
-    letters  = 'n:s:'
+    letters  = 'r'
     opts, extraparams = getopt.getopt(sys.argv[1:], letters)
 
-    # instantiations for both, single tool and normal run
-    qset = QtCore.QSettings(util.get_ini_file(),1)
-    crp = CmsRunCutflowParser(qset)
-    crh = CmsRunHistoStacker(qset)
-
-    # single tools only
-    no_process_setup = False
-    no_cmsRun_execute = False
+    try_reuse = False
     for opt, value in opts:
 
-        if opt == "-s":
-            no_process_setup = True
-            crh.stack_it_all(value)
+        if opt == "-r":
+            try_reuse = True
 
-        if opt == "-n":
-            no_cmsRun_execute = True
-
-    if no_process_setup:
-        return 0
-
-    # normal run from here on
+    # settings, app, monitor
+    qset = QtCore.QSettings(util.get_ini_file(),1)
     app = QtCore.QCoreApplication(sys.argv)
+    crm = CmsRunMonitor()
 
+    # controller
     crc = CmsRunController()
-    crc.setup_processes(qset)
+    crm.connect_controller(crc)
+    crc.setup_processes(qset, try_reuse)
 
     # cutflow parser
+    crp = CmsRunCutflowParser(qset)
+    crm.connect_parser(crp)
     crc.process_finished.connect(crp.parse_cutflow_process)
     crc.all_finished.connect(crp.sync_qsetting)
     crc.all_finished.connect(app.quit)
 
     # histo stakker
+    crh = CmsRunHistoStacker(qset)
     crc.cfg_file_finished.connect(crh.stack_it_all)
 
-    crm = CmsRunMonitor()
-    crm.connect_controller(crc)
-    crm.connect_parser(crp)
-
+    # SIGINT handler
     sig_handler = SigintHandler(crc)
     signal.signal(signal.SIGINT, sig_handler.handle)
 

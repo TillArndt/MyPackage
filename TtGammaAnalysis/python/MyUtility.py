@@ -36,9 +36,10 @@ class _MyUtility:
         Defines project wide constants.
         """
 
-        self.DIR_FILESERVICE = "outputFileService"
-        self.DIR_LOGS        = "outputLogs"
-        self.DIR_CONFS       = "outputConfs"
+        self.DIR_FILESERVICE  = "outputFileService"
+        self.DIR_LOGS         = "outputLogs"
+        self.DIR_CONFS        = "outputConfs"
+        self.DIR_PROCESS_INFO = ".processInfo"
 
 ###########
 # functions

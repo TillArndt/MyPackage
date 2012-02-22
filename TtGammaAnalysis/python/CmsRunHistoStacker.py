@@ -352,11 +352,6 @@ class CmsRunHistoStacker(QtCore.QObject):
             for legend in root_style.get_stacking_order():
 
                 histo_wrap = self.histos_merged_dict[legend]
-
-                # filter by data or not
-                if not is_data == histo_wrap.is_data:
-                    continue
-
                 stack_wrap.histo.Add(histo_wrap.histo)
                 stack_wrap.x_axis = histo_wrap.histo.GetXaxis().GetTitle()
                 stack_wrap.y_axis = histo_wrap.histo.GetYaxis().GetTitle()
@@ -408,11 +403,13 @@ class CmsRunHistoStacker(QtCore.QObject):
 
             #print "Name :", self.histo_name, "Data: ", stack_wrap.is_data, "Lumi: ", stack_wrap.lumi
 
-        # draw higher first (assuming it's data)
+        # draw mc first, then data
         if histo_data:
             histo_mc.histo.Draw()
+            histo_mc.histo.GetXaxis().SetLabelSize(0.052)
             histo_mc.histo.GetXaxis().SetTitle(histo_data.x_axis)
             histo_mc.histo.GetYaxis().SetTitle(histo_data.y_axis)
+
             if histo_mc:
                 histo_data.histo.Draw("sameE1")
 

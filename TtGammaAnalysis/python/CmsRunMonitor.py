@@ -16,19 +16,19 @@ class CmsRunMonitor(QtCore.QObject):
 
 
     def proc_enqueued(self, process):
-        print "process enqueued:   cmsRun ", process.conf_file_name
+        print "INFO process enqueued:   cmsRun ", process.conf_file_name
 
 
     def proc_started(self, process):
-        print "process started :   cmsRun ", process.conf_file_name
+        print "INFO process started :   cmsRun ", process.conf_file_name
 
 
     def proc_finished(self, process):
-        print "process finished:   cmsRun ", process.conf_file_name
+        print "INFO process finished:   cmsRun ", process.conf_file_name
 
 
     def proc_failed(self, process):
-        print "process FAILED  :   cmsRun ", process.conf_file_name
+        print "WARNING process FAILED  :   cmsRun ", process.conf_file_name
         if not self.error_logs_opened:
             print "_____________________________________________cmsRun logfile"
             os.system("cat " + process.log_file_name)
@@ -42,7 +42,7 @@ class CmsRunMonitor(QtCore.QObject):
 
 
     def all_finished(self):
-        print "All processes finished"
+        print "INFO All processes finished"
 
 
     def message(self, string):
@@ -55,6 +55,7 @@ class CmsRunMonitor(QtCore.QObject):
         controller.process_finished.connect(self.proc_finished)
         controller.process_failed.connect(self.proc_failed)
         controller.all_finished.connect(self.all_finished)
+        controller.message.connect(self.message)
 
 
     def connect_parser(self, parser):
