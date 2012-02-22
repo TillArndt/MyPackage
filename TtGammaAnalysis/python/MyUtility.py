@@ -39,6 +39,7 @@ class _MyUtility:
         self.DIR_FILESERVICE  = "outputFileService"
         self.DIR_LOGS         = "outputLogs"
         self.DIR_CONFS        = "outputConfs"
+        self.DIR_PLOTS        = "outputPlots"
         self.DIR_PROCESS_INFO = ".processInfo"
 
 ###########

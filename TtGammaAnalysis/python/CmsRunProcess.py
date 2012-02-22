@@ -45,8 +45,9 @@ class CmsRunProcess(QtCore.QProcess):
         Conf-Dir might be created. Conf-file stored in it.
         """
 
-        self.qsetting_base_group = qsetting.group()
-        
+        if self.try_reuse_old_data and self.check_reuse_possible():
+            return
+
         conf_lines = [] # collect lines of confFile
 
         # starting statement

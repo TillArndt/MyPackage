@@ -14,7 +14,6 @@ class CmsRunController(QtCore.QObject):
     process_started   = QtCore.pyqtSignal(CmsRunProcess)
     process_finished  = QtCore.pyqtSignal(CmsRunProcess)
     process_failed    = QtCore.pyqtSignal(CmsRunProcess)
-    cfg_file_finished = QtCore.pyqtSignal(str)
     message           = QtCore.pyqtSignal(str)
     all_finished      = QtCore.pyqtSignal()
 
@@ -35,98 +34,61 @@ class CmsRunController(QtCore.QObject):
 
         if len(self.waiting_pros): #setup has been done already
             return 
-        
+
+        # preparation
         self.qsetting = qsetting
+        enable_by_default = qsetting.value("enableByDefault",
+                                           True).toBool()
 
-        #load all cfg file setups
-        cfg_file_abbrevs = qsetting.childGroups()
-        for cfg_file in cfg_file_abbrevs:
-            if qsetting.value(cfg_file + "/enable", True).toBool():
-                qsetting.beginGroup(cfg_file)
+        #load all cmsRun starts
+        cmsRun_conf_abbrevs = qsetting.childGroups()
+        cmsRun_conf_abbrevs.removeAll(QtCore.QString("fileSets"))
 
-                #load all cmsRun starts
-                enable_by_default = qsetting.value("enableByDefault",
-                                                   True).toBool()
-                cmsRun_conf_abbrevs = qsetting.childGroups()
-                cmsRun_conf_abbrevs.removeAll(QtCore.QString("fileSets"))
-                for cmsRun_conf in cmsRun_conf_abbrevs:
-                    if qsetting.value(cmsRun_conf + "/enable",
-                                      enable_by_default).toBool():
-                        process = CmsRunProcess(cmsRun_conf, try_reuse)
-                        process.message.connect(self.message)
-                        process.prepare_run_conf(qsetting)
-                        self.waiting_pros.append(process)
-                        self.process_enqueued.emit(process)
-                qsetting.endGroup()
+        # loop over runs
+        for cmsRun_conf in cmsRun_conf_abbrevs:
 
-                # mark cfg file end
-                self.waiting_pros.append("CfgFileEnd " + str(cfg_file))
+            # check for enabled
+            if not qsetting.value(cmsRun_conf + "/enable",
+                                  enable_by_default).toBool():
+                continue
+
+            # create processes
+            process = CmsRunProcess(cmsRun_conf, try_reuse)
+            process.message.connect(self.message)
+            process.prepare_run_conf(qsetting)
+            self.waiting_pros.append(process)
+            self.process_enqueued.emit(process)
 
 
     def start_processes(self):
         """
         Starts the qued processes.
-
-        >>> crc = CmsRunController()
-        >>> crc.qsetting = QtCore.QSettings('fakeFile.ini', 1) # fake
-        >>> crc.waiting_pros.append(CmsRunProcess("someName"))
-        >>> crc.waiting_pros.append("CfgFileEnd the_cfg_file")
-        >>> crc.start_processes()
-        >>> len(crc.waiting_pros)
-        1
-        >>> len(crc.running_pros)
-        1
-        >>> crc.running_pros = []
-        >>> crc.start_processes()
-        >>> len(crc.waiting_pros)
-        0
-        >>> len(crc.running_pros)
-        0
         """
 
-        # on cfg file end, block until it's fully done
-        if (len(self.waiting_pros) > 0 and
-            str(self.waiting_pros[0]).split()[0] == "CfgFileEnd"):
-            if len(self.running_pros) > 0:
-                return
-            else:
-                cfg_end_token = self.waiting_pros.pop(0)
-                self.cfg_file_finished.emit(cfg_end_token.split()[-1])
-                self.start_processes()
-        
-        #check if launch is possible
+        # check if launch is possible
         num_proc, parse_ok = self.qsetting.value("maxNumProcesses", 2).toInt()
         if not parse_ok:
+            self.message.emit("ERROR maxNumProcesses not parseable! Using 2.")
             num_proc = 2
-        if len(self.waiting_pros) == 0 or len(self.running_pros) >= num_proc:
+        if len(self.waiting_pros) == 0:
+            return
+        if len(self.running_pros) >= num_proc:
             return
 
-        #now start processing
+        # now start processing
         process = self.waiting_pros.pop(0)
         process.finished.connect(self.finish_processes)
         process.start()
         self.running_pros.append(process)
         self.process_started.emit(process)
 
-        #recursively
+        # recursively
         self.start_processes()
 
 
     def finish_processes(self):
         """
-        Remove finished processes from self.running_pros
-
-        >>> crc = CmsRunController()
-        >>> crc.qsetting = QtCore.QSettings('fakeFile.ini', 1) # fake
-        >>> crc.running_pros.append(CmsRunProcess("someName"))
-        >>> crc.finish_processes()
-        >>> len(crc.running_pros)
-        0
-        >>> len(crc.finished_pros)
-        1
-        >>> len(crc.failed_pros)
-        0
-        >>> crc.finished_pros[0].close()
+        Remove finished processes from self.running_pros.
         """
 
         for process in self.running_pros[:]:
@@ -139,10 +101,10 @@ class CmsRunController(QtCore.QObject):
                     self.failed_pros.append(process)
                     self.process_failed.emit(process)
 
-        #see if there is new processes to start
+        # see if there is new processes to start
         self.start_processes()
 
-        if len(self.running_pros) == 0:
+        if not len(self.running_pros):
             self.all_finished.emit()
 
 
@@ -204,16 +166,19 @@ def main():
     crm.connect_parser(crp)
     crc.process_finished.connect(crp.parse_cutflow_process)
     crc.all_finished.connect(crp.sync_qsetting)
-    crc.all_finished.connect(app.quit)
 
     # histo stakker
     crh = CmsRunHistoStacker(qset)
-    crc.cfg_file_finished.connect(crh.stack_it_all)
+    crc.all_finished.connect(crh.run_full_procedure)
 
     # SIGINT handler
     sig_handler = SigintHandler(crc)
     signal.signal(signal.SIGINT, sig_handler.handle)
 
+    # connect for quiting (all other finishing connections before)
+    crc.all_finished.connect(app.quit)
+
+    # GO!
     crc.start_processes()
     return app.exec_()
 

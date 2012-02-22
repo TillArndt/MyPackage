@@ -235,9 +235,7 @@ class CmsRunCutflowParser(QtCore.QObject):
             return
 
         self.process = process
-        self.qsetting.beginGroup(process.qsetting_base_group)
         self.parse_cutflow(process.name)
-        self.qsetting.endGroup()
         del self.process
 
 

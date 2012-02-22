@@ -1,6 +1,5 @@
 __author__ = 'Heiner Tholen'
 
-import ROOT
 from ROOT import TStyle, gROOT
 
 class _CmsRunKoolStyle(TStyle):
@@ -23,48 +22,50 @@ class _CmsRunKoolStyle(TStyle):
         gROOT.SetStyle("KoolStyle")
         gROOT.ForceStyle()
 
-        # fill colors
-        colors = dict()
-        colors["Signal"]            = ROOT.kRed + 1
-        colors["Semi-#mu t#bart"]   = ROOT.kAzure + 7
-        colors["W + Jets"]          = ROOT.kSpring + 8
-        colors["Z + Jets"]          = ROOT.kSpring + 5
-        colors["WZ + Jets"]         = ROOT.kSpring + 2
-        colors["Single Top"]        = ROOT.kOrange + 2
-        colors["QCD"]               = ROOT.kYellow + 2
-        self.fill_colors = colors
+        # create fall backs
+        self.fill_colors    = dict()
+        self.pretty_names   = dict()
+        self.stacking_order = []
 
-        # Stacking Order (lowest first)
-        order = []
-        order.append("Data")
-        order.append("Signal")
-        order.append("QCD")
-        order.append("Single Top")
-        order.append("Z + Jets")
-        order.append("W + Jets")
-        order.append("Semi-#mu t#bart")
-        self.stacking_order = order
 
-        # pretty names
-        pn = dict()
-        pn["photonInputDummy"]      = "preselected"
-        pn["myLargePtPhotons"]      = "large p_{T}"
-        pn["photonsWithTightID"]    = "tight photon ID"
-        pn["removeCocFails"]        = "#DeltaR(photon, jet)"
-        self.pretty_names = pn
+    def set_fill_colors(self, colors):
+
+        if type(colors) != dict:
+            raise TypeError, "ERROR argument is not of type dict."
+        else:
+            self.fill_colors = colors
+
+
+    def set_stacking_order(self, order):
+
+        if type(order) != list:
+            raise TypeError, "ERROR argument is not of type list."
+        elif len(self.stacking_order):
+            raise Exception, "ERROR stacking_order can only be set once."
+        else:
+            self.stacking_order = order
+
+
+    def set_pretty_names(self, names):
+
+        if type(names) != dict:
+            raise TypeError, "ERROR argument is not of type dict."
+        else:
+            self.pretty_names = names
 
 
     def get_fill_color(self, sample_kind):
         """
         Returns ROOT color code for 'sample_kind'. For example 'signal' or
         'W + Jets'.
-
-        >>> import CmsRunKoolStyle as style
-        >>> style.get_fill_color("W + Jets")
-        828
         """
 
-        return self.fill_colors[sample_kind]
+        if self.fill_colors.has_key(sample_kind):
+            return self.fill_colors[sample_kind]
+        else:
+            print "ERROR I don't have a color for '" + sample_kind \
+            + "' please add this color in CmsRunController.py"
+            return 0
 
 
     def get_pretty_name(self, name_in_code):
@@ -78,12 +79,13 @@ class _CmsRunKoolStyle(TStyle):
         else:
             return name_in_code
 
+
     def get_stacking_order(self):
         """
-        Returns MC stacking order.
+        Returns copy of MC stacking order.
         """
 
-        return self.stacking_order
+        return self.stacking_order[:]
 
 
     def root_style_settings(self):

@@ -49,6 +49,11 @@ class CmsRunHistoStacker(QtCore.QObject):
     class InputNotReadyError(Exception): pass
 
     def __init__(self, qsetting, histo_name = ""):
+        """
+        Constructor. Reminder: One HistoStacker instance is only responsible
+        for one tpye of histogram (according to histo_name)
+        """
+
         super(CmsRunHistoStacker, self).__init__()
         self.qsetting             = qsetting
         self.histo_name           = histo_name
@@ -60,7 +65,7 @@ class CmsRunHistoStacker(QtCore.QObject):
         # TODO: kill these definitions,
         # create lists in functions,
         # check for needed lists in functions
-        # TODO: rename 'abbrev' to 'dataset_name'
+        # TODO: rename 'abbrev' to 'run_name'
 
 
     def load_histograms(self, histo_stackers):
@@ -125,7 +130,9 @@ class CmsRunHistoStacker(QtCore.QObject):
         the histograms. Stores into "collected"
         """
 
-        output_dir = "collected"
+        output_dir = util.DIR_PLOTS + "/collected"
+        if not os.path.exists(util.DIR_PLOTS):
+            os.mkdir(util.DIR_PLOTS)
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -320,24 +327,6 @@ class CmsRunHistoStacker(QtCore.QObject):
         Makes stacked histograms from merged histograms.
         Takes histograms from self.merged_histos.
         Appends stack to self.stacks.
-
-        >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
-        >>> qset.beginGroup("photonSelection")
-        >>> crhs = CmsRunHistoStacker(qset)
-        >>> crhs.load_histograms()
-        >>> crhs.collect_histogram_info()
-        >>> crhs.merge_histograms()
-        >>> crhs.make_stacks()
-        >>> len(crhs.stacks)
-        3
-        >>> stack = crhs.stacks[0]
-        >>> stack is None
-        False
-        >>> stack.lumi
-        3
-        >>> stack.name
-        'DeltaR_jet'
         """
 
         if not len(self.histograms_merged):
@@ -349,9 +338,15 @@ class CmsRunHistoStacker(QtCore.QObject):
             stack_wrap = HistogramWrapper(THStack(self.histo_name, ""))
             stack_wrap.is_data = is_data
             stack_wrap.lumi = 0.
-            for legend in root_style.get_stacking_order():
+            order = root_style.get_stacking_order()
+            for legend in order:
 
                 histo_wrap = self.histos_merged_dict[legend]
+
+                # distinguinsh data / mc
+                if not histo_wrap.is_data == is_data:
+                    continue
+
                 stack_wrap.histo.Add(histo_wrap.histo)
                 stack_wrap.x_axis = histo_wrap.histo.GetXaxis().GetTitle()
                 stack_wrap.y_axis = histo_wrap.histo.GetYaxis().GetTitle()
@@ -366,14 +361,16 @@ class CmsRunHistoStacker(QtCore.QObject):
 
     def save_stacks(self):
         """
-        Saves finished stacks.
+        Saves finished stacks. No canvases...
         """
 
-        output_dir = "stacked"
+        output_dir = util.DIR_PLOTS + "/stacks"
+        if not os.path.exists(util.DIR_PLOTS):
+            os.mkdir(util.DIR_PLOTS)
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        filename = output_dir + "/" + self.histo_name + "stacked.root"
+        filename = output_dir + "/" + self.histo_name + "_stacked.root"
         file = TFile(filename, "RECREATE")
         file.cd()
         for stack_wrap in self.stacks:
@@ -386,7 +383,9 @@ class CmsRunHistoStacker(QtCore.QObject):
         Puts everything together. Data and MC are plotted and saved.
         """
 
-        output_dir = "stacked"
+        output_dir = util.DIR_PLOTS + "/final"
+        if not os.path.exists(util.DIR_PLOTS):
+            os.mkdir(util.DIR_PLOTS)
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -462,16 +461,6 @@ class CmsRunHistoStacker(QtCore.QObject):
 
         for s in stackers:
             s.run_procedure()
-
-
-    def stack_it_all(self, cfg_abbrev):
-        """
-        Switches self.qsettings to cfg_abbrev, then runs full procedure.
-        """
-
-        self.qsetting.beginGroup(cfg_abbrev)
-        self.run_full_procedure()
-        self.qsetting.endGroup()
 
 
 if __name__ == '__main__':
