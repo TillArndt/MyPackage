@@ -4,7 +4,7 @@ import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
 from ROOT import TFile, TDirectory, TKey, TH1, THStack, TCanvas
-from PyQt4 import QtCore
+from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcTool
 
 # Histogram wrapper
 class HistogramWrapper:
@@ -25,24 +25,14 @@ class HistogramWrapper:
             + "\nlegend :" + str(self.legend)
         )
 
-class CmsRunHistoStacker(QtCore.QObject):
+class CmsRunHistoStacker(CmsRunPostProcTool):
     """
     Stacks Histograms produced in cmsRun and stored with TFileService.
     Please checkout run_full_procedure(), from there everything is started.
     If you're a pedestrian, this is the method to call.
     Further on, have a look at __init__(), where all important lists are
     defined.
-
-    TODO: simplify by using one HistoStacker for only one name, not for all.
-
-    >>> util.DIR_FILESERVICE = "test/res"
-    >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
-    >>> crhs = CmsRunHistoStacker(qset)
-    >>> crhs.stack_it_all("photonSelection")
     """
-
-    # signals
-    message = QtCore.pyqtSignal(str)
 
     # errors
     class ParseError(Exception): pass
@@ -65,29 +55,16 @@ class CmsRunHistoStacker(QtCore.QObject):
         # TODO: kill these definitions,
         # create lists in functions,
         # check for needed lists in functions
-        # TODO: rename 'abbrev' to 'run_name'
+
+        # see if histo-stacking can be bypassed
+        stacked_histos = qsetting.value("stackedHistos", "None").toString()
+        if str(stacked_histos) == "None":
+            self.tool_enabled = False
 
 
     def load_histograms(self, histo_stackers):
         """
         Loads histograms from FileService files.
-
-        >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings(util.DIR_FILESERVICE + "/tmp.ini",1)
-        >>> qset.setValue("stackedHistos",
-        ...               QtCore.QStringList(["DeltaR_jet", "DeltaR_muon"]))
-        >>> crhs = CmsRunHistoStacker(qset)
-        >>> crhs.load_histograms()
-        >>> len(crhs.root_file_names) > 0
-        True
-        >>> crhs.all_histo_names
-        ['DeltaR_jet', 'DeltaR_muon']
-        >>> len(crhs.histograms) > 0
-        True
-        >>> crhs.histograms[0].name
-        'DeltaR_jet'
-        >>> crhs.histograms[0].abbrev
-        'WJets'
         """
 
         # get filenames
@@ -148,22 +125,6 @@ class CmsRunHistoStacker(QtCore.QObject):
         """
         Takes infos for qsettings-object and puts to histograms in
         self.histograms.
-
-        >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
-        >>> qset.beginGroup("photonSelection")
-        >>> crhs = CmsRunHistoStacker(qset)
-        >>> crhs.load_histograms()
-        >>> crhs.collect_histogram_info()
-        >>> crhs.all_legend_entries
-        ['WZ + Jets', 'Signal']
-        >>> histo = crhs.histograms[0]
-        >>> int(histo.lumi)    # int() to avoid double precision errors
-        2591
-        >>> histo.legend
-        'WZ + Jets'
-        >>> histo.is_data
-        False
         """
 
         if not len(self.histograms):
@@ -177,6 +138,7 @@ class CmsRunHistoStacker(QtCore.QObject):
             # check if dataset is disabled
             if str(qset.value("enable").toString()) == "False":
                 self.message.emit(
+                    self,
                     "INFO: (HistoStacker) Dataset " + histo.abbrev
                     + "is disabled. Skipping!"
                 )
@@ -192,6 +154,7 @@ class CmsRunHistoStacker(QtCore.QObject):
                     "Parsing of lumi value failed for " + histo.abbrev
             else:
                 self.message.emit(
+                    self,
                     "INFO: (HistoStacker) Dataset " + histo.abbrev
                     + "has no lumi entry. Skipping!"
                 )
@@ -237,25 +200,6 @@ class CmsRunHistoStacker(QtCore.QObject):
         """
         Merges histograms from self.histograms with same 'name' and 'legend'
         string. Scales by luminosity first. Appends them to self.merged_histos.
-
-        >>> util.DIR_FILESERVICE = "test/res"
-        >>> qset = QtCore.QSettings("test/res/photonSelection.ini",1)
-        >>> qset.beginGroup("photonSelection")
-        >>> crhs = CmsRunHistoStacker(qset)
-        >>> crhs.load_histograms()
-        >>> crhs.collect_histogram_info()
-        >>> crhs.merge_histograms()
-        >>> len(crhs.histograms)
-        9
-        >>> len (crhs.merged_histos)
-        6
-        >>> histo = crhs.merged_histos[0]
-        >>> histo is None
-        False
-        >>> histo.abbrev
-        'merged'
-        >>> histo.lumi
-        2
         """
 
         if not len(self.all_legend_entries):
@@ -340,6 +284,17 @@ class CmsRunHistoStacker(QtCore.QObject):
             stack_wrap.lumi = 0.
             order = root_style.get_stacking_order()
             for legend in order:
+
+                if not self.histos_merged_dict.has_key(legend):
+                    self.message.emit(
+                        self,
+                        "WARNING no merged histos for legendentry '"
+                        + legend
+                        + "', histoname '"
+                        + self.histo_name
+                        + "'"
+                    )
+                    continue
 
                 histo_wrap = self.histos_merged_dict[legend]
 
@@ -429,6 +384,7 @@ class CmsRunHistoStacker(QtCore.QObject):
 
         if not len(self.histograms):
             self.message.emit(
+                self,
                 "WARNING: No histograms to stack for "
                 + self.name
             )
@@ -444,23 +400,32 @@ class CmsRunHistoStacker(QtCore.QObject):
         self.draw_full_plot()
 
 
-    def run_full_procedure(self):
+    def start(self, process):
         """
         Run all steps to produce and save stacked histograms.
         """
 
+        # only when all finished
+        if type(process) != list:
+            return
+
+        self.started.emit(self)
         all_histo_names = self.qsetting.value("stackedHistos").toStringList()
 
         # create histostackers
         stackers = []
         for name in all_histo_names:
-            stackers.append(CmsRunHistoStacker(self.qsetting, str(name)))
+            stakker = CmsRunHistoStacker(self.qsetting, str(name))
+            stakker.message.connect(self.message)
+            stackers.append(stakker)
 
         # load all histograms
         self.load_histograms(stackers)
 
         for s in stackers:
             s.run_procedure()
+
+        self.finished.emit(self)
 
 
 if __name__ == '__main__':

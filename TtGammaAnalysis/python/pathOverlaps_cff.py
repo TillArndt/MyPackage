@@ -1,7 +1,5 @@
-import FWCore.ParameterSet.Config as cms
 
-import MyPackage.TtGammaAnalysis.myBTagRequirement_cfi as btag
-#import MyPackage.TtGammaAnalysis.sequenceHardPhoton_cfi as hardPhot
+import FWCore.ParameterSet.Config as cms
 import MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi as cocPhot
 
 

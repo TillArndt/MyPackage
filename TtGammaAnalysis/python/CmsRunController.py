@@ -14,8 +14,8 @@ class CmsRunController(QtCore.QObject):
     process_started   = QtCore.pyqtSignal(CmsRunProcess)
     process_finished  = QtCore.pyqtSignal(CmsRunProcess)
     process_failed    = QtCore.pyqtSignal(CmsRunProcess)
-    message           = QtCore.pyqtSignal(str)
-    all_finished      = QtCore.pyqtSignal()
+    message           = QtCore.pyqtSignal(QtCore.QObject, str)
+    all_finished      = QtCore.pyqtSignal(list)
 
     def __init__(self):
         super(CmsRunController, self).__init__()
@@ -68,7 +68,7 @@ class CmsRunController(QtCore.QObject):
         # check if launch is possible
         num_proc, parse_ok = self.qsetting.value("maxNumProcesses", 2).toInt()
         if not parse_ok:
-            self.message.emit("ERROR maxNumProcesses not parseable! Using 2.")
+            self.message.emit(self, "ERROR maxNumProcesses not parseable! Using 2.")
             num_proc = 2
         if len(self.waiting_pros) == 0:
             return
@@ -105,7 +105,7 @@ class CmsRunController(QtCore.QObject):
         self.start_processes()
 
         if not len(self.running_pros):
-            self.all_finished.emit()
+            self.all_finished.emit(self.finished_pros)
 
 
     def abort_all_processes(self):
@@ -127,6 +127,7 @@ import MyPackage.TtGammaAnalysis.MyUtility as util
 from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
 from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
 from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
+from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcessor
 
 class SigintHandler:
     def __init__(self, controller):
@@ -145,31 +146,39 @@ def main():
     letters  = 'r'
     opts, extraparams = getopt.getopt(sys.argv[1:], letters)
 
-    try_reuse = False
+    try_reuse_results = False
     for opt, value in opts:
 
         if opt == "-r":
-            try_reuse = True
+            try_reuse_results = True
 
-    # settings, app, monitor
+    # settings
     qset = QtCore.QSettings(util.get_ini_file(),1)
+    try_reuse_results =\
+        qset.value("tryReuseResults", try_reuse_results).toBool()
+
+    # app, monitor
     app = QtCore.QCoreApplication(sys.argv)
     crm = CmsRunMonitor()
 
     # controller
     crc = CmsRunController()
     crm.connect_controller(crc)
-    crc.setup_processes(qset, try_reuse)
+
+    # post processor
+    crpp = CmsRunPostProcessor()
+    crc.process_finished.connect(crpp.start)
+    crc.all_finished.connect(crpp.start)
 
     # cutflow parser
     crp = CmsRunCutflowParser(qset)
-    crm.connect_parser(crp)
-    crc.process_finished.connect(crp.parse_cutflow_process)
-    crc.all_finished.connect(crp.sync_qsetting)
+    crm.connect_post_processing_tool(crp)
+    crpp.add_tool(crp)
 
     # histo stakker
     crh = CmsRunHistoStacker(qset)
-    crc.all_finished.connect(crh.run_full_procedure)
+    crm.connect_post_processing_tool(crh)
+    crpp.add_tool(crh)
 
     # SIGINT handler
     sig_handler = SigintHandler(crc)
@@ -179,6 +188,7 @@ def main():
     crc.all_finished.connect(app.quit)
 
     # GO!
+    crc.setup_processes(qset, try_reuse_results)
     crc.start_processes()
     return app.exec_()
 

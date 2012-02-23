@@ -24,7 +24,6 @@ photonsNoise = cms.EDFilter(
     filter = cms.bool(False)
 )
 
-
 mcTruthSequence = cms.Sequence(
       photonsSignal
     * photonsNoise

@@ -2,8 +2,6 @@ __author__ = 'Heiner Tholen'
 
 import os
 from PyQt4 import QtCore
-#from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
-#from MyPackage.TtGammaAnalysis.CmsRunController import CmsRunController
 
 class CmsRunMonitor(QtCore.QObject):
     """
@@ -35,18 +33,12 @@ class CmsRunMonitor(QtCore.QObject):
             self.error_logs_opened += 1
 
 
-    def parser_error(self, process):
-        if not process: # killed by sigint
-            return
-        print "ERROR parsing output of process " + process.name
-
-
     def all_finished(self):
         print "INFO All processes finished"
 
 
-    def message(self, string):
-        print string
+    def message(self, sender, string):
+        print string + " (" + str(type(sender)) + ")"
 
 
     def connect_controller(self, controller):
@@ -58,7 +50,5 @@ class CmsRunMonitor(QtCore.QObject):
         controller.message.connect(self.message)
 
 
-    def connect_parser(self, parser):
-        parser.trigger_report_empty.connect(self.parser_error)
-        parser.no_logfile.connect(self.parser_error)
-        parser.message.connect(self.message)
+    def connect_post_processing_tool(self, tool):
+        tool.message.connect(self.message)

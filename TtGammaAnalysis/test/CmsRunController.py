@@ -30,7 +30,7 @@ if __name__ == '__main__':
     order = []
     order.append("Data")
     order.append("Signal")
-    #order.append("QCD")
+    order.append("QCD")
     order.append("Single Top")
     order.append("Z + Jets")
     order.append("W + Jets")

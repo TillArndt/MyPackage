@@ -11,7 +11,7 @@ class CmsRunProcess(QtCore.QProcess):
     Output is streamed into logfile.
     """
 
-    message = QtCore.pyqtSignal(str)
+    message = QtCore.pyqtSignal(QtCore.QObject, str)
 
     def __init__(self, name, try_reuse_old_data = False):
         super(CmsRunProcess, self).__init__()
@@ -189,7 +189,7 @@ class CmsRunProcess(QtCore.QProcess):
         if self.try_reuse_old_data and self.check_reuse_possible():
             self.setStandardOutputFile("/dev/null")
             self.reused_old_data = True
-            self.message.emit("INFO reusing data for " + self.name)
+            self.message.emit(self, "INFO reusing data for " + self.name)
             super(CmsRunProcess, self).start(self.exe, ["--help"])
         else:
             if os.path.exists(self.info_file_name):

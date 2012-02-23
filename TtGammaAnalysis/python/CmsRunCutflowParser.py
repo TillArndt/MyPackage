@@ -3,11 +3,10 @@ __author__ = 'Heiner Tholen'
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as style
-from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
-from PyQt4 import QtCore
+from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcTool
 from ROOT import TH1D, TFile, TDirectory
 
-class CmsRunCutflowParser(QtCore.QObject):
+class CmsRunCutflowParser(CmsRunPostProcTool):
     """
     Does cutflow parsing from cmsRun logfiles.
     Searches for keys 'parsePaths' and 'parseModules' in section of a cfg_file
@@ -15,17 +14,17 @@ class CmsRunCutflowParser(QtCore.QObject):
     modulenames.
     """
 
-    # signals
-    trigger_report_empty = QtCore.pyqtSignal(CmsRunProcess)
-    no_logfile           = QtCore.pyqtSignal(CmsRunProcess)
-    message              = QtCore.pyqtSignal(str)
-
 
     def __init__(self, qsetting):
         super(CmsRunCutflowParser, self).__init__()
         self.qsetting                       = qsetting
         self.write_cutflow_to_qsetting      = False
         self.write_cutflow_to_histo_files   = True
+
+        # see if cutflow parsing can be bypassed
+        parse_paths = qsetting.value("cutflowParsePaths", "None").toString()
+        if str(parse_paths) == "None":
+            self.tool_enabled = False
 
 
     def read_trigger_report(self, abbrev):
@@ -70,20 +69,6 @@ class CmsRunCutflowParser(QtCore.QObject):
     def add_qsettings_group(self, line):
         """
         Begins new group for path in qsetting.
-
-        >>> line = 'TrigReport     1    0       1548        696        852          0 photonsWithTightID'
-        >>> from PyQt4 import QtCore          
-        >>> qset = QtCore.QSettings('res/tmp.ini',1)
-        >>> cp = CmsRunCutflowParser(qset)
-        >>> cp.add_group(line)
-        >>> for key in qset.allKeys():
-        ...     print key
-        ... 
-        photonsWithTightID/Failed
-        photonsWithTightID/Passed
-        photonsWithTightID/Visited
-        >>> qset.value('photonsWithTightID/Failed').toInt()
-        (852, True)
         """
 
         if not self.write_cutflow_to_qsetting:
@@ -165,8 +150,10 @@ class CmsRunCutflowParser(QtCore.QObject):
         qset = self.qsetting
 
         # get lists (QStringList)
-        parse_paths = qset.value("cutflowParsePaths", "None").toStringList()
-        parse_modules = qset.value("cutflowParseModules", "None").toStringList()
+        parse_paths = qset.value(\
+            "cutflowParsePaths", "None").toStringList()
+        parse_modules = qset.value(\
+            "cutflowParseModules", "None").toStringList()
 
         # convert to pythonic lists
         parse_paths_list = [str(l) for l in parse_paths]
@@ -175,16 +162,26 @@ class CmsRunCutflowParser(QtCore.QObject):
         if parse_paths_list == ["None"]:
             return
 
-        self.message.emit("INFO parsing paths  : " + str(parse_paths_list))
-        self.message.emit("INFO parsing modules: " + str(parse_modules_list))
+        self.message.emit(\
+            self, "INFO parsing paths  : " + str(parse_paths_list))
+        self.message.emit(\
+            self, "INFO parsing modules: " + str(parse_modules_list))
 
         # read trigger report from logfile
         if not self.read_trigger_report(abbrev):
-            self.no_logfile.emit(self.process)
+            self.message.emit(
+                self,
+                "ERROR no logfile found for "
+                + self.process.name
+            )
             return
         
         if not len(self.trigger_report):
-           self.trigger_report_empty.emit(self.process)
+           self.message.emit(
+               self,
+               "ERROR trigger report empty for "
+               + self.process.name
+           )
            return
         
         path_summary = self.get_block(
@@ -226,10 +223,26 @@ class CmsRunCutflowParser(QtCore.QObject):
         self.write_confirmation("OK")
         
 
-    def parse_cutflow_process(self, process):
+    def sync_qsetting(self):
+        """
+        Writes out cutflow data to qsettings file.
+        """
+
+        if self.write_cutflow_to_qsetting:
+            self.qsetting.sync()
+
+
+    def start(self, process):
         """
         Overload  of parse_cutflow for process objects.
         """
+
+        # all processes are finished
+        if type(process) == list:
+            self.sync_qsetting()
+            return
+
+        self.started.emit(self)
 
         if process.reused_old_data:
             return
@@ -238,14 +251,7 @@ class CmsRunCutflowParser(QtCore.QObject):
         self.parse_cutflow(process.name)
         del self.process
 
-
-    def sync_qsetting(self):
-        """
-        Writes out cutflow data to qsettings file.
-        """
-
-        if self.write_cutflow_to_qsetting:
-            self.qsetting.sync()
+        self.finished.emit(self)
 
 
 if __name__ == '__main__':

@@ -1,11 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-# input dummy
-photonInputDummy = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag("patPhotonsPFlow"),
-    cut = cms.string(""),
-    filter = cms.bool(False)
-)
 
 # record pt before cutting
 analyzer_PT = cms.EDAnalyzer(
@@ -42,8 +36,7 @@ photonsWithTightID = cms.EDFilter("PATPhotonSelector",
 )
 
 hardPhotonSequence = cms.Sequence(
-      photonInputDummy
-    * analyzer_PT
+      analyzer_PT
     * myLargePtPhotons
     * photonsWithTightID
 )
