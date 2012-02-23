@@ -12,6 +12,9 @@ author: Heiner Tholen
 import ROOT
 import MyPackage.TtGammaAnalysis.CmsRunController as controller
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
+from MyPackage.TtGammaAnalysis.CmsRunHistoOverflow import CmsRunHistoOverflow
+from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
+from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
 
 if __name__ == '__main__':
 
@@ -45,6 +48,12 @@ if __name__ == '__main__':
     pn["removeCocFails"]        = "#DeltaR(photon, jet)"
     root_style.set_pretty_names(pn)
 
+    # list of post processing tools
+    tools = []
+    tools.append(CmsRunHistoOverflow)
+    tools.append(CmsRunCutflowParser)
+    tools.append(CmsRunHistoStacker)
+
     # start working
-    controller.main()
+    controller.main(tools)
 

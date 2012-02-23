@@ -125,8 +125,6 @@ import getopt
 from PyQt4 import QtCore
 import MyPackage.TtGammaAnalysis.MyUtility as util
 from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
-from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
-from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
 from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcessor
 
 class SigintHandler:
@@ -138,7 +136,7 @@ class SigintHandler:
             self.controller.abort_all_processes()
 
 
-def main():
+def main(post_processing_tools = []):
     """
     Main...
     """
@@ -169,16 +167,10 @@ def main():
     crpp = CmsRunPostProcessor()
     crc.process_finished.connect(crpp.start)
     crc.all_finished.connect(crpp.start)
-
-    # cutflow parser
-    crp = CmsRunCutflowParser(qset)
-    crm.connect_post_processing_tool(crp)
-    crpp.add_tool(crp)
-
-    # histo stakker
-    crh = CmsRunHistoStacker(qset)
-    crm.connect_post_processing_tool(crh)
-    crpp.add_tool(crh)
+    for tool in post_processing_tools:
+        tool_instance = tool(qset)
+        crm.connect_post_processing_tool(tool_instance)
+        crpp.add_tool(tool_instance)
 
     # SIGINT handler
     sig_handler = SigintHandler(crc)

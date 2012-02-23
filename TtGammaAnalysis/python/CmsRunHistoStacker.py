@@ -47,6 +47,7 @@ class CmsRunHistoStacker(CmsRunPostProcTool):
         super(CmsRunHistoStacker, self).__init__()
         self.qsetting             = qsetting
         self.histo_name           = histo_name
+        self.open_root_files      = []
         self.all_legend_entries   = []
         self.histograms           = []
         self.histograms_merged    = []
@@ -78,6 +79,7 @@ class CmsRunHistoStacker(CmsRunPostProcTool):
         # walk over files
         for filename in root_file_names:
             file = TFile.Open(filename)
+            self.open_root_files.append(file)
             abbrev = os.path.basename(filename)[0:-5]
 
             #walk over folders in file
@@ -139,7 +141,7 @@ class CmsRunHistoStacker(CmsRunPostProcTool):
             if str(qset.value("enable").toString()) == "False":
                 self.message.emit(
                     self,
-                    "INFO: (HistoStacker) Dataset " + histo.abbrev
+                    "INFO: Dataset " + histo.abbrev
                     + "is disabled. Skipping!"
                 )
                 self.histograms.remove(histo)
@@ -155,7 +157,7 @@ class CmsRunHistoStacker(CmsRunPostProcTool):
             else:
                 self.message.emit(
                     self,
-                    "INFO: (HistoStacker) Dataset " + histo.abbrev
+                    "INFO: Dataset " + histo.abbrev
                     + "has no lumi entry. Skipping!"
                 )
                 self.histograms.remove(histo)
@@ -422,8 +424,13 @@ class CmsRunHistoStacker(CmsRunPostProcTool):
         # load all histograms
         self.load_histograms(stackers)
 
+        # work
         for s in stackers:
             s.run_procedure()
+
+        # close root files
+        while len(self.open_root_files):
+            self.open_root_files.pop(0).Close()
 
         self.finished.emit(self)
 

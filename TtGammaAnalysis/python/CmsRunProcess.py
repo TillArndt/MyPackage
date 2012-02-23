@@ -161,18 +161,16 @@ class CmsRunProcess(QtCore.QProcess):
             return False
 
         # search tokens
+        # TODO: Think about tokens for PostProcessing, is it needed?
         exit_code_good = False
-        cutflow_good   = False
         info_file = open(self.info_file_name, "r")
         for line in info_file.readlines():
             tokens = line.split(":")
             if tokens[0] == "Exitcode" and not int(tokens[1]):
                 exit_code_good = True
-            if tokens[0] == "Cutflow " and str(tokens[1]) == "OK\n":
-                cutflow_good = True
         info_file.close()
 
-        if exit_code_good and cutflow_good:
+        if exit_code_good:
             return True
         else:
             return False

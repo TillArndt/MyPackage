@@ -242,10 +242,11 @@ class CmsRunCutflowParser(CmsRunPostProcTool):
             self.sync_qsetting()
             return
 
-        self.started.emit(self)
-
+        # only when really running
         if process.reused_old_data:
             return
+
+        self.started.emit(self)
 
         self.process = process
         self.parse_cutflow(process.name)
