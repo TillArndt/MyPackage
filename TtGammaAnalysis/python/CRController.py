@@ -125,7 +125,7 @@ import getopt
 from PyQt4 import QtCore
 import MyPackage.TtGammaAnalysis.MyUtility as util
 from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
-from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcessor
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcessor
 
 class SigintHandler:
     def __init__(self, controller):
@@ -164,7 +164,7 @@ def main(post_processing_tools = []):
     crm.connect_controller(crc)
 
     # post processor
-    crpp = CmsRunPostProcessor()
+    crpp = CRPostProcessor()
     crc.process_finished.connect(crpp.start)
     crc.all_finished.connect(crpp.start)
     for tool in post_processing_tools:

@@ -3,7 +3,7 @@ __author__ = 'Heiner Tholen'
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as style
-from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcTool
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CmsRunPostProcTool
 from ROOT import TH1D, TFile, TDirectory
 
 class CmsRunCutflowParser(CmsRunPostProcTool):

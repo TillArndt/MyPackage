@@ -1,7 +1,7 @@
 __author__ = 'tholen'
 
 from ROOT import TFile
-from MyPackage.TtGammaAnalysis.CmsRunPostProcessor import CmsRunPostProcTool
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CmsRunPostProcTool
 
 class CmsRunHistoOverflow(CmsRunPostProcTool):
     """

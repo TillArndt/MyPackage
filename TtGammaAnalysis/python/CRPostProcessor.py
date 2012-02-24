@@ -30,7 +30,7 @@ class CmsRunPostProcTool(QtCore.QObject):
         pass
 
 
-class CmsRunPostProcessor(QtCore.QObject):
+class CRPostProcessor(QtCore.QObject):
     """
     Toolchain for post processing. Add tools via add_tool(...). For execution,
     the start() method is called on the tool. The hole chain is executed, at
@@ -38,7 +38,7 @@ class CmsRunPostProcessor(QtCore.QObject):
     """
 
     def __init__(self):
-        super(CmsRunPostProcessor, self).__init__()
+        super(CRPostProcessor, self).__init__()
         self.toolchain = []
 
 
