@@ -1,9 +1,9 @@
 __author__ = 'tholen'
 
 from ROOT import TFile
-from MyPackage.TtGammaAnalysis.CRPostProcessor import CmsRunPostProcTool
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 
-class CmsRunHistoOverflow(CmsRunPostProcTool):
+class CmsRunHistoOverflow(CRPostProcTool):
     """
     Takes care about histogram overflow bins. Ether removes it completely or
     fills it into nearest real bin. This works on fileservice histograms, it

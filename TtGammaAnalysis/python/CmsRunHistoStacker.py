@@ -4,7 +4,7 @@ import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
 from ROOT import TFile, TDirectory, TKey, TH1, THStack, TCanvas
-from MyPackage.TtGammaAnalysis.CRPostProcessor import CmsRunPostProcTool
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 
 # Histogram wrapper
 class HistogramWrapper:
@@ -25,7 +25,7 @@ class HistogramWrapper:
             + "\nlegend :" + str(self.legend)
         )
 
-class CmsRunHistoStacker(CmsRunPostProcTool):
+class CmsRunHistoStacker(CRPostProcTool):
     """
     Stacks Histograms produced in cmsRun and stored with TFileService.
     Please checkout run_full_procedure(), from there everything is started.

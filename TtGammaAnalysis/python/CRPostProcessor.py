@@ -2,7 +2,7 @@ __author__ = 'tholen'
 
 from PyQt4 import QtCore
 
-class CmsRunPostProcTool(QtCore.QObject):
+class CRPostProcTool(QtCore.QObject):
     """
     Base class for post processing tool.
     """
@@ -14,7 +14,7 @@ class CmsRunPostProcTool(QtCore.QObject):
 
 
     def __init__(self):
-        super(CmsRunPostProcTool, self).__init__()
+        super(CRPostProcTool, self).__init__()
         self.tool_enabled = True
 
 

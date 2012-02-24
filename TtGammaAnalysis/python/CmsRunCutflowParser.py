@@ -3,10 +3,10 @@ __author__ = 'Heiner Tholen'
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
 import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as style
-from MyPackage.TtGammaAnalysis.CRPostProcessor import CmsRunPostProcTool
+from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 from ROOT import TH1D, TFile, TDirectory
 
-class CmsRunCutflowParser(CmsRunPostProcTool):
+class CmsRunCutflowParser(CRPostProcTool):
     """
     Does cutflow parsing from cmsRun logfiles.
     Searches for keys 'parsePaths' and 'parseModules' in section of a cfg_file
