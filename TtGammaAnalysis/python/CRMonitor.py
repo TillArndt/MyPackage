@@ -3,13 +3,13 @@ __author__ = 'Heiner Tholen'
 import os
 from PyQt4 import QtCore
 
-class CmsRunMonitor(QtCore.QObject):
+class CRMonitor(QtCore.QObject):
     """
     CRProcess monitoring. As of now, stuff is only printed to
     console.
     """
     def __init__(self):
-        super(CmsRunMonitor, self).__init__()
+        super(CRMonitor, self).__init__()
         self.error_logs_opened = 0
 
 

@@ -124,7 +124,7 @@ import sys
 import getopt
 from PyQt4 import QtCore
 import MyPackage.TtGammaAnalysis.MyUtility as util
-from MyPackage.TtGammaAnalysis.CmsRunMonitor import CmsRunMonitor
+from MyPackage.TtGammaAnalysis.CRMonitor import CRMonitor
 from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcessor
 
 class SigintHandler:
@@ -157,7 +157,7 @@ def main(post_processing_tools = []):
 
     # app, monitor
     app = QtCore.QCoreApplication(sys.argv)
-    crm = CmsRunMonitor()
+    crm = CRMonitor()
 
     # controller
     crc = CRController()
