@@ -19,7 +19,7 @@ class _CRRootStyle(TStyle):
         super(_CRRootStyle, self).__init__("CRRootStyle", "CRRootStyle")
         self.root_style_settings()
         self.cd()
-        gROOT.SetStyle("KoolStyle")
+        gROOT.SetStyle("CRRootStyle")
         gROOT.ForceStyle()
 
         # create fall backs

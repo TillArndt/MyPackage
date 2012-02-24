@@ -2,7 +2,7 @@ __author__ = 'Heiner Tholen'
 
 import os
 import MyPackage.TtGammaAnalysis.MyUtility as util
-import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as style
+import MyPackage.TtGammaAnalysis.CRRootStyle as style
 from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 from ROOT import TH1D, TFile, TDirectory
 
