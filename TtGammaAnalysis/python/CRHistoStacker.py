@@ -25,7 +25,7 @@ class HistogramWrapper:
             + "\nlegend :" + str(self.legend)
         )
 
-class CmsRunHistoStacker(CRPostProcTool):
+class CRHistoStacker(CRPostProcTool):
     """
     Stacks Histograms produced in cmsRun and stored with TFileService.
     Please checkout run_full_procedure(), from there everything is started.
@@ -44,7 +44,7 @@ class CmsRunHistoStacker(CRPostProcTool):
         for one tpye of histogram (according to histo_name)
         """
 
-        super(CmsRunHistoStacker, self).__init__()
+        super(CRHistoStacker, self).__init__()
         self.qsetting             = qsetting
         self.histo_name           = histo_name
         self.open_root_files      = []
@@ -417,7 +417,7 @@ class CmsRunHistoStacker(CRPostProcTool):
         # create histostackers
         stackers = []
         for name in all_histo_names:
-            stakker = CmsRunHistoStacker(self.qsetting, str(name))
+            stakker = CRHistoStacker(self.qsetting, str(name))
             stakker.message.connect(self.message)
             stackers.append(stakker)
 

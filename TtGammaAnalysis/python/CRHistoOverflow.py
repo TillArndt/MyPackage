@@ -3,7 +3,7 @@ __author__ = 'tholen'
 from ROOT import TFile
 from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 
-class CmsRunHistoOverflow(CRPostProcTool):
+class CRHistoOverflow(CRPostProcTool):
     """
     Takes care about histogram overflow bins. Ether removes it completely or
     fills it into nearest real bin. This works on fileservice histograms, it
@@ -13,7 +13,7 @@ class CmsRunHistoOverflow(CRPostProcTool):
     """
 
     def __init__(self, qsetting):
-        super(CmsRunHistoOverflow, self).__init__()
+        super(CRHistoOverflow, self).__init__()
         self.qsetting = qsetting
 
         # get lists (QStringList)

@@ -6,7 +6,7 @@ import MyPackage.TtGammaAnalysis.CRRootStyle as style
 from MyPackage.TtGammaAnalysis.CRPostProcessor import CRPostProcTool
 from ROOT import TH1D, TFile, TDirectory
 
-class CmsRunCutflowParser(CRPostProcTool):
+class CRCutflowParser(CRPostProcTool):
     """
     Does cutflow parsing from cmsRun logfiles.
     Searches for keys 'parsePaths' and 'parseModules' in section of a cfg_file
@@ -16,7 +16,7 @@ class CmsRunCutflowParser(CRPostProcTool):
 
 
     def __init__(self, qsetting):
-        super(CmsRunCutflowParser, self).__init__()
+        super(CRCutflowParser, self).__init__()
         self.qsetting                       = qsetting
         self.write_cutflow_to_qsetting      = False
         self.write_cutflow_to_histo_files   = True

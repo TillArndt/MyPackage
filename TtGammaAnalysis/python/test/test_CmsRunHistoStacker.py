@@ -2,8 +2,8 @@ __author__ = 'Heiner Tholen'
 
 import unittest
 import doctest
-import MyPackage.TtGammaAnalysis.CmsRunHistoStacker as crhs
-from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
+import MyPackage.TtGammaAnalysis.CRHistoStakker as crhs
+from MyPackage.TtGammaAnalysis.CRHistoStakker import CRHistoStakker
 
 
 class MyTest(unittest.TestCase):
