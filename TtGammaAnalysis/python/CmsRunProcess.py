@@ -53,7 +53,7 @@ class CmsRunProcess(QtCore.QProcess):
         # starting statement
         conf_lines.append("# generated")
         conf_lines.append("# on " + time.ctime())
-        conf_lines.append("# by CmsRunController.py")
+        conf_lines.append("# by CRController.py")
         conf_lines.append("# using " + util.get_ini_file())
         conf_lines.append("")
         

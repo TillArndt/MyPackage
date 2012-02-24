@@ -4,7 +4,7 @@ from PyQt4 import QtCore
 from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
 
 
-class CmsRunController(QtCore.QObject):
+class CRController(QtCore.QObject):
     """
     Generates, starts and finishes CmsRunProcesses.
     """
@@ -18,7 +18,7 @@ class CmsRunController(QtCore.QObject):
     all_finished      = QtCore.pyqtSignal(list)
 
     def __init__(self):
-        super(CmsRunController, self).__init__()
+        super(CRController, self).__init__()
         self.waiting_pros  = []
         self.running_pros  = []
         self.finished_pros = []
@@ -160,7 +160,7 @@ def main(post_processing_tools = []):
     crm = CmsRunMonitor()
 
     # controller
-    crc = CmsRunController()
+    crc = CRController()
     crm.connect_controller(crc)
 
     # post processor

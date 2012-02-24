@@ -64,7 +64,7 @@ class _CmsRunKoolStyle(TStyle):
             return self.fill_colors[sample_kind]
         else:
             print "ERROR I don't have a color for '" + sample_kind \
-            + "' please add this color in CmsRunController.py"
+            + "' please add this color in CRController.py"
             return 0
 
 
