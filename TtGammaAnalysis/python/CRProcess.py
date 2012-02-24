@@ -5,7 +5,7 @@ import os
 from PyQt4 import QtCore
 import MyPackage.TtGammaAnalysis.MyUtility as util
 
-class CmsRunProcess(QtCore.QProcess):
+class CRProcess(QtCore.QProcess):
     """
     This class hosts a cmsRun process.
     Output is streamed into logfile.
@@ -14,7 +14,7 @@ class CmsRunProcess(QtCore.QProcess):
     message = QtCore.pyqtSignal(QtCore.QObject, str)
 
     def __init__(self, name, try_reuse_old_data = False):
-        super(CmsRunProcess, self).__init__()
+        super(CRProcess, self).__init__()
 
         self.name               = name
         self.exe                = "cmsRun"
@@ -188,11 +188,11 @@ class CmsRunProcess(QtCore.QProcess):
             self.setStandardOutputFile("/dev/null")
             self.reused_old_data = True
             self.message.emit(self, "INFO reusing data for " + self.name)
-            super(CmsRunProcess, self).start(self.exe, ["--help"])
+            super(CRProcess, self).start(self.exe, ["--help"])
         else:
             if os.path.exists(self.info_file_name):
                 os.remove(self.info_file_name)
-            super(CmsRunProcess, self).start(self.exe, [self.conf_file_name])
+            super(CRProcess, self).start(self.exe, [self.conf_file_name])
 
 
     def terminate(self):
@@ -202,4 +202,4 @@ class CmsRunProcess(QtCore.QProcess):
         """
 
         self.sig_int = True
-        super(CmsRunProcess,self).terminate()
+        super(CRProcess,self).terminate()

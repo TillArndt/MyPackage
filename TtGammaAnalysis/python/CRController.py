@@ -1,19 +1,19 @@
 __author__ = 'Heiner Tholen'
 
 from PyQt4 import QtCore
-from MyPackage.TtGammaAnalysis.CmsRunProcess import CmsRunProcess
+from MyPackage.TtGammaAnalysis.CRProcess import CRProcess
 
 
 class CRController(QtCore.QObject):
     """
-    Generates, starts and finishes CmsRunProcesses.
+    Generates, starts and finishes CRProcesses.
     """
 
     #signal emited when lists are changed
-    process_enqueued  = QtCore.pyqtSignal(CmsRunProcess)
-    process_started   = QtCore.pyqtSignal(CmsRunProcess)
-    process_finished  = QtCore.pyqtSignal(CmsRunProcess)
-    process_failed    = QtCore.pyqtSignal(CmsRunProcess)
+    process_enqueued  = QtCore.pyqtSignal(CRProcess)
+    process_started   = QtCore.pyqtSignal(CRProcess)
+    process_finished  = QtCore.pyqtSignal(CRProcess)
+    process_failed    = QtCore.pyqtSignal(CRProcess)
     message           = QtCore.pyqtSignal(QtCore.QObject, str)
     all_finished      = QtCore.pyqtSignal(list)
 
@@ -27,8 +27,8 @@ class CRController(QtCore.QObject):
 
     def setup_processes(self, qsetting, try_reuse = False):
         """
-        CmsRunProcesses are set up, and filled into self.waiting_pros
-        CmsRunProcess.prepareRunConf(qsettings) is called for every
+        CRProcesses are set up, and filled into self.waiting_pros
+        CRProcess.prepareRunConf(qsettings) is called for every
         process.
         """
 
@@ -53,7 +53,7 @@ class CRController(QtCore.QObject):
                 continue
 
             # create processes
-            process = CmsRunProcess(cmsRun_conf, try_reuse)
+            process = CRProcess(cmsRun_conf, try_reuse)
             process.message.connect(self.message)
             process.prepare_run_conf(qsetting)
             self.waiting_pros.append(process)

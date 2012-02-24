@@ -5,7 +5,7 @@ from PyQt4 import QtCore
 
 class CmsRunMonitor(QtCore.QObject):
     """
-    CmsRunProcess monitoring. As of now, stuff is only printed to
+    CRProcess monitoring. As of now, stuff is only printed to
     console.
     """
     def __init__(self):
