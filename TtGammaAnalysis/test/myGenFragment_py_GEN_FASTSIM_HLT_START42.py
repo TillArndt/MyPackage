@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.303.2.7 
 # Source: /cvs_server/repositories/CMSSW/CMSSW/Configuration/PyReleaseValidation/python/ConfigBuilder.py,v 
-# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragment.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START42_V13::All --eventcontent=RECOSIM --filetype=LHE --filein=file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120213/two2seven.lhef --fileout=file:/user/tholen/eventFiles/ttgamma_whizard_two2seven.root -n 10000 --no_exec
+# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragment.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START42_V13::All --eventcontent=RECOSIM --filetype=LHE --filein=file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120330/ttbar_43.lhef --fileout=file:/user/tholen/eventFiles/ttgamma_whizard_43.root -n 10000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('HLT')
@@ -28,7 +28,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("LHESource",
-    fileNames = cms.untracked.vstring('file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120213/two2seven.lhef')
+    fileNames = cms.untracked.vstring('file:/home/home2/institut_3b/tholen/dev/ttgamma/forProduction20120330/ttbar_43.lhef')
 )
 
 process.options = cms.untracked.PSet(
@@ -48,7 +48,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RECOSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('file:/user/tholen/eventFiles/ttgamma_whizard_two2seven.root'),
+    fileName = cms.untracked.string('file:/user/tholen/eventFiles/ttgamma_whizard_43.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('')

@@ -1,37 +1,32 @@
-#!/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
-#!/afs/cern.ch/cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_8/external/slc5_amd64_gcc434/bin/python
 
 """
 This program manages cmsRun processes. It reads run information
 from *.ini configuration files and starts cmsRun with proper
 parameters.
-
-author: Heiner Tholen
 """
 
+__author__ = 'Heiner Tholen'
+
 import ROOT
-import MyPackage.TtGammaAnalysis.CmsRunController as controller
-import MyPackage.TtGammaAnalysis.CmsRunKoolStyle as root_style
-from MyPackage.TtGammaAnalysis.CmsRunHistoOverflow import CmsRunHistoOverflow
-from MyPackage.TtGammaAnalysis.CmsRunCutflowParser import CmsRunCutflowParser
-from MyPackage.TtGammaAnalysis.CmsRunHistoStacker import CmsRunHistoStacker
+from UserCode.RWTH3b.cmsRunController.classes.CRRootStyle import root_style
 
 if __name__ == '__main__':
 
-    # fill colors
+    # colors
     colors = dict()
     colors["Signal"]            = ROOT.kRed + 1
+    colors["q_{top} = 4/3"]     = ROOT.kViolet + 8
     colors["Semi-#mu t#bart"]   = ROOT.kAzure + 7
     colors["W + Jets"]          = ROOT.kSpring + 8
     colors["Z + Jets"]          = ROOT.kSpring + 5
-    colors["WZ + Jets"]         = ROOT.kSpring + 2
     colors["Single Top"]        = ROOT.kOrange + 2
     colors["QCD"]               = ROOT.kYellow + 2
-    root_style.set_fill_colors(colors)
+    root_style.set_colors(colors)
 
-    # Stacking Order (lowest first)
+    # Stacking Order (lowest first, also non-mc should be stated)
     order = []
     order.append("Data")
+    order.append("q_{top} = 4/3")
     order.append("Signal")
     order.append("QCD")
     order.append("Single Top")
@@ -48,12 +43,37 @@ if __name__ == '__main__':
     pn["removeCocFails"]        = "#DeltaR(photon, jet)"
     root_style.set_pretty_names(pn)
 
+    # change directory names
+    #root_style.DIR_FILESERVICE  = "outputFileService"
+    #root_style.DIR_LOGS         = "outputLogs"
+    #root_style.DIR_CONFS        = "outputConfs"
+    #root_style.DIR_PLOTS        = "outputPlots"
+
+    # add postfixes for canvas saving
+    root_style.canvas_postfixes.append('.png')
+
     # list of post processing tools
     tools = []
-    tools.append(CmsRunHistoOverflow)
-    tools.append(CmsRunCutflowParser)
-    tools.append(CmsRunHistoStacker)
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoOverflow import CRHistoOverflow
+    from UserCode.RWTH3b.cmsRunController.tools.CRCutflowParser import CRCutflowParser
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
+    tools.append(CRHistoOverflow)
+    tools.append(CRCutflowParser)
+    tools.append(CRHistoStacker)
+
+    # decorators for CRHistoStacker
+    decs_stacker = []
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRLegend
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRSaveLogScaleY
+    from UserCode.RWTH3b.cmsRunController.examples.HistoCosmetics import MyHistoCosmetics
+    decs_stacker.append(CRSaveLogScaleY)
+    decs_stacker.append(MyHistoCosmetics)
+    decs_stacker.append(CRLegend)
+    # assign to the _class_ which should be decorated:
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRSingleStacker
+    CRSingleStacker.decorators = decs_stacker
 
     # start working
+    import UserCode.RWTH3b.cmsRunController.classes.CRController as controller
     controller.main(tools)
 
