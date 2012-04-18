@@ -8,7 +8,8 @@ parameters.
 __author__ = 'Heiner Tholen'
 
 import ROOT
-from UserCode.RWTH3b.cmsRunController.classes.CRRootStyle import root_style
+from UserCode.RWTH3b.cmsRunController.classes.CRRootStyle import CRRootStyle
+root_style = CRRootStyle()
 
 if __name__ == '__main__':
 
