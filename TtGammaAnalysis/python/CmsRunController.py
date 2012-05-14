@@ -58,17 +58,21 @@ if __name__ == '__main__':
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoOverflow import CRHistoOverflow
     from UserCode.RWTH3b.cmsRunController.tools.CRCutflowParser import CRCutflowParser
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
+    from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
     tools.append(CRHistoOverflow)
     tools.append(CRCutflowParser)
     tools.append(CRHistoStacker)
+    tools.append(MyTTGammaAnalysisTool)
 
     # decorators for CRHistoStacker
     decs_stacker = []
-    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRLegend
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRLegend, CRLegendLeft,CRLegendRight
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRSaveLogScaleY
+    from UserCode.RWTH3b.cmsRunController.examples.BottomPlots import RatioPlotOverlayMcByMc
     from UserCode.RWTH3b.cmsRunController.examples.HistoCosmetics import MyHistoCosmetics
-    decs_stacker.append(CRSaveLogScaleY)
-    decs_stacker.append(MyHistoCosmetics)
+    #decs_stacker.append(CRSaveLogScaleY)
+    decs_stacker.append(RatioPlotOverlayMcByMc)
+    #decs_stacker.append(MyHistoCosmetics)
     decs_stacker.append(CRLegend)
     # assign to the _class_ which should be decorated:
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRSingleStacker
