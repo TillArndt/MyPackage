@@ -37,7 +37,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.341.2.2 $'),
+    version = cms.untracked.string('$Revision: 1.1 $'),
     annotation = cms.untracked.string('MyPackage/TtGammaAnalysis/python/myGenFragmentPythia8NoMatch_cff.py nevts:10000'),
     name = cms.untracked.string('PyReleaseValidation')
 )
@@ -67,7 +67,7 @@ process.HLTEndSequence = cms.Sequence(process.reconstructionWithFamos)
 process.Realistic7TeV2011CollisionVtxSmearingParameters.type = cms.string("BetaFunc")
 process.famosSimHits.VertexGenerator = process.Realistic7TeV2011CollisionVtxSmearingParameters
 process.famosPileUp.VertexGenerator = process.Realistic7TeV2011CollisionVtxSmearingParameters
-process.GlobalTag.globaltag = 'START44_V10::All'
+process.GlobalTag.globaltag = 'START42_V13::All'
 
 process.generator = cms.EDFilter("Pythia8HadronizerFilter",
     pythiaPylistVerbosity = cms.untracked.int32(1),
