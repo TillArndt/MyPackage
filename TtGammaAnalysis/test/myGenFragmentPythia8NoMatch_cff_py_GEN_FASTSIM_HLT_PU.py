@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.341.2.2 
 # Source: /local/reps/CMSSW.admin/CMSSW/Configuration/PyReleaseValidation/python/ConfigBuilder.py,v 
-# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragmentPythia8noMatch.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START44_V10::All --pileup=E7TeV_Fall2011_Reprocess_inTimeOnly --eventcontent=RECOSIM --filetype=LHE --filein=file:/net/data_cms/institut_3b/tholen/lhef/tt_nodecay/tt_nodecay_0.lhe --fileout=file:/netdata_cms/institut_3b/tholen/test/tt_nodecay.root -n 10000 --no_exec
+# with command line options: MyPackage/TtGammaAnalysis/python/myGenFragmentPythia8NoMatch_cff.py -s GEN,FASTSIM,HLT:GRun --conditions=FrontierConditions_GlobalTag,START44_V10::All --pileup=E7TeV_Fall2011_Reprocess_inTimeOnly --eventcontent=AODSIM --filetype=LHE --filein=file:/net/data_cms/institut_3b/tholen/lhef/tt_nodecay/tt_nodecay_0.lhe --fileout=file:/netdata_cms/institut_3b/tholen/test/tt_nodecay.root -n 10000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('HLT')
@@ -38,16 +38,15 @@ process.options = cms.untracked.PSet(
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
     version = cms.untracked.string('$Revision: 1.341.2.2 $'),
-    annotation = cms.untracked.string('MyPackage/TtGammaAnalysis/python/myGenFragmentPythia8noMatch.py nevts:10000'),
+    annotation = cms.untracked.string('MyPackage/TtGammaAnalysis/python/myGenFragmentPythia8NoMatch_cff.py nevts:10000'),
     name = cms.untracked.string('PyReleaseValidation')
 )
 
 # Output definition
 
-process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
-    splitLevel = cms.untracked.int32(0),
-    eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
-    outputCommands = process.RECOSIMEventContent.outputCommands,
+process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
+    eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
+    outputCommands = process.AODSIMEventContent.outputCommands,
     fileName = cms.untracked.string('file:/netdata_cms/institut_3b/tholen/test/tt_nodecay.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
@@ -70,14 +69,34 @@ process.famosSimHits.VertexGenerator = process.Realistic7TeV2011CollisionVtxSmea
 process.famosPileUp.VertexGenerator = process.Realistic7TeV2011CollisionVtxSmearingParameters
 process.GlobalTag.globaltag = 'START44_V10::All'
 
+process.generator = cms.EDFilter("Pythia8HadronizerFilter",
+    pythiaPylistVerbosity = cms.untracked.int32(1),
+    filterEfficiency = cms.untracked.double(1.0),
+    pythiaHepMCVerbosity = cms.untracked.bool(False),
+    comEnergy = cms.double(7000.0),
+    maxEventsToPrint = cms.untracked.int32(1),
+    PythiaParameters = cms.PSet(
+        processParameters = cms.vstring('Main:timesAllowErrors    = 10000', 
+            'ParticleDecays:limitTau0 = on', 
+            'ParticleDecays:tauMax = 10', 
+            'Tune:ee 3', 
+            'Tune:pp 5'),
+        parameterSets = cms.vstring('processParameters')
+    )
+)
+
+
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen_genonly)
 process.reconstruction = cms.Path(process.reconstructionWithFamos)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
-process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
+process.AODSIMoutput_step = cms.EndPath(process.AODSIMoutput)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step)
 process.schedule.extend(process.HLTSchedule)
-process.schedule.extend([process.reconstruction,process.RECOSIMoutput_step])
+process.schedule.extend([process.reconstruction,process.AODSIMoutput_step])
+# filter all path with the production filter sequence
+for path in process.paths:
+	getattr(process,path)._seq = process.generator * getattr(process,path)._seq 
 
