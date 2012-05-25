@@ -8,10 +8,15 @@ parameters.
 __author__ = 'Heiner Tholen'
 
 import ROOT
+from UserCode.RWTH3b.cmsRunController.classes.CRUtilities import CRShellUtility
 from UserCode.RWTH3b.cmsRunController.classes.CRRootStyle import CRRootStyle
 root_style = CRRootStyle()
 
 if __name__ == '__main__':
+
+    if CRShellUtility().do_utility_stuff():
+        import sys
+        sys.exit()
 
     # colors
     colors = dict()
@@ -60,23 +65,16 @@ if __name__ == '__main__':
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
     tools.append(CRHistoOverflow)
-    tools.append(CRCutflowParser)
+    #tools.append(CRCutflowParser)
     tools.append(CRHistoStacker)
     tools.append(MyTTGammaAnalysisTool)
 
-    # decorators for CRHistoStacker
-    decs_stacker = []
-    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRLegend, CRLegendLeft,CRLegendRight
-    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators import CRSaveLogScaleY
-    from UserCode.RWTH3b.cmsRunController.examples.BottomPlots import RatioPlotOverlayMcByMc
-    from UserCode.RWTH3b.cmsRunController.examples.HistoCosmetics import MyHistoCosmetics
-    #decs_stacker.append(CRSaveLogScaleY)
-    decs_stacker.append(RatioPlotOverlayMcByMc)
-    #decs_stacker.append(MyHistoCosmetics)
-    decs_stacker.append(CRLegend)
-    # assign to the _class_ which should be decorated:
-    from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRSingleStacker
-    CRSingleStacker.decorators = decs_stacker
+    # search paths for decorators
+    modules = []
+    modules.append("UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators")
+    modules.append("UserCode.RWTH3b.cmsRunController.examples.BottomPlots")
+    modules.append("UserCode.RWTH3b.cmsRunController.examples.HistoCosmetics")
+    root_style.decorator_search_paths = modules
 
     # start working
     import UserCode.RWTH3b.cmsRunController.classes.CRController as controller

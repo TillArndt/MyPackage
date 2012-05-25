@@ -22,7 +22,7 @@ analyzer_PT = cms.EDAnalyzer(
 myLargePtPhotons = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonInputDummy"),
             cut = cms.string('\
-    pt > 30 \
+    pt > 20 \
     && abs(eta) < 2.1 \
                               '),
             filter = cms.bool(True)

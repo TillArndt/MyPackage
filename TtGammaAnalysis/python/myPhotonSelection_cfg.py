@@ -1,22 +1,21 @@
 import FWCore.ParameterSet.Config as cms
-import MyPackage.TtGammaAnalysis.MyUtility as util
 
 process = cms.Process('myPhoSel')
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring( '' )
+  fileNames = cms.untracked.vstring( 'file:/net/data_cms/institut_3b/tholen/subsamples_Background/semiMuonBG.root' )
 )
 
-util.addFileService(process)
+process.TFileService = cms.Service("TFileService",
+    fileName = cms.string('TFILESERVICEmyPhotonSelection.root')
+)
 
 import FWCore.MessageService.MessageLogger_cfi as logger
 logger.MessageLogger.cerr.FwkReport.reportEvery = 100
 logger.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.extend(logger)
 
-
 #max num of events processed
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
-
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # input dummy
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
@@ -47,9 +46,13 @@ process.selectionPath = cms.Path(
 
 # other paths
 process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
+process.load("MyPackage.TtGammaAnalysis.sequenceTtgammaMerging_cff")
 
 # schedule
 process.schedule = cms.Schedule(
     process.selectionPath,
     process.overlapsPath
 )
+
+# for testing
+#process.selectionPath.insert(0, process.ttgammaMergingSequence)

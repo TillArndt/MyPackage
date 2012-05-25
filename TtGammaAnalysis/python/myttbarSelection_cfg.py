@@ -13,7 +13,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('output/myttbarSelection.root')
+  fileName = cms.string('TFILESERVICEmyttbarSelection.root')
 )
 
 import FWCore.MessageService.MessageLogger_cfi as logger
