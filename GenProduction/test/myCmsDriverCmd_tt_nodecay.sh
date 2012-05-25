@@ -2,9 +2,9 @@
 cmsDriver.py \
 MyPackage/GenProduction/python/myGenFragmentPythia8noMatch.py \
 -s GEN,FASTSIM,HLT:GRun \
---conditions=FrontierConditions_GlobalTag,START44_V10::All \
+--conditions=FrontierConditions_GlobalTag,START42_V13::All \
 --pileup=E7TeV_Fall2011_Reprocess_inTimeOnly \
---eventcontent=RECOSIM \
+--eventcontent=AODSIM \
 --filetype=LHE \
 --filein=file:/net/data_cms/institut_3b/tholen/lhef/tt_nodecay/tt_nodecay_0.lhe \
 --fileout=file:/net/data_cms/institut_3b/tholen/test/tt_nodecay.root \
