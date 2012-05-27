@@ -34,12 +34,8 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
 
 #add pileUpInfo
-import YKuessel.TopCharge.weights_cfi as weights
-weights.puWeight.weights = '/user/tholen/eventFiles/pileUpReweight/TopCharge/Weight3D_2.root'
-weights.puWeight.PUInputFileMC = '/user/tholen/eventFiles/pileUpReweight/MC_ReweightInput.root'
-weights.puWeight.PUInputFileData = '/user/tholen/eventFiles/pileUpReweight/pileupFiles4_6fb/Merged2_PileupTruth_FineBin_4_6_fb.root'
-weights.puWeight.PUInputFileDataBX1 = '/user/tholen/eventFiles/pileUpReweight/pileupFiles_1BXOption/Merged_Pileup_4_6_fb.root'
-process.extend(weights)
+from MyPackage.PatTupelizer.pileUpWeights_cfi import get_weights
+process.puWeight = get_weights("/net/data_cms/institut_3b/tholen/pileUpReweight/")
 process.p.replace(process.myHLTFilt, process.myHLTFilt * process.puWeight)
 process.out.outputCommands.append("keep *_addPileupInfo*_*_*")
 process.out.outputCommands.append("keep *_puWeight_*_*")
@@ -56,5 +52,5 @@ else:
     process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
 
 #require one b-tag
-process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
+process.load("MyPackage.PatTupelizer.myBTagRequirement_cfi")
 process.p.replace(process.myJetCounter, process.myJetCounter * process.myBTagRequirement)
