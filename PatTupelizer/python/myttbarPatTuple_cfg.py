@@ -12,7 +12,7 @@ print "<myttbarPatTuple_cfg>: Running On MC:", runOnMC
 
 
 
-from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
+from MyPackage.PatTupelizer.myttbarSelection_cfg import *
 
 #remove cleaning (later done in photon selection)
 from PhysicsTools.PatAlgos.tools.coreTools import *

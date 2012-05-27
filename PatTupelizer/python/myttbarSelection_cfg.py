@@ -51,8 +51,8 @@ process.patJetCorrFactors.useRho = True
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
 
 # Output
-process.load( "TopQuarkAnalysis.Configuration.patRefSel_outputModule_cff" )
-process.out.fileName = "file:/user/tholen/eventFiles/ttgammaRefSel_selected_tmp.root"
+process.load( "MyPackage.PatTupelizer.patTupleOutput_cfi" )
+process.out.fileName = "file:ttgammaRefSel_selected_tmp.root"
 process.out.outputCommands = ["keep *"]
 process.out.SelectEvents.SelectEvents = ["p"]
 
