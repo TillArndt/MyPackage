@@ -1,3 +1,17 @@
+
+try:
+    runOnMC = not crc_var["runOnData"]
+except NameError:
+    print "<myttbarSelection_cfg>: crc_var not in __builtin__!"
+    runOnMC = True
+except KeyError:
+    print "<myttbarSelection_cfg>: crc_var declared, but no key 'runOnData'"
+    runOnMC = True
+print "<myttbarSelection_cfg>: Running On MC:", runOnMC
+
+
+
+
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('myttbarSel')
@@ -58,7 +72,7 @@ process.goodOfflinePrimaryVertices = cms.EDFilter(
 
 import PhysicsTools.PatAlgos.tools.pfTools as pfTools
 postfix = "PFlow"
-pfTools.usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix)
+pfTools.usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=runOnMC, postfix=postfix)
 process.pfPileUpPFlow.Enable = True
 process.pfPileUpPFlow.Vertices = 'goodOfflinePrimaryVertices'
 process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)

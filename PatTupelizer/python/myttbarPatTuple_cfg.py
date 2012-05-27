@@ -1,8 +1,18 @@
 
-from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
+try:
+    runOnMC = not crc_var["runOnData"]
+except NameError:
+    print "<myttbarPatTuple_cfg>: crc_var not in __builtin__!"
+    runOnMC = True
+except KeyError:
+    print "<myttbarPatTuple_cfg>: crc_var declared, but no key 'runOnData'"
+    runOnMC = True
+print "<myttbarPatTuple_cfg>: Running On MC:", runOnMC
 
-import MyPackage.TtGammaAnalysis.MyUtility as util
-util.addFileService(process)
+
+
+
+from MyPackage.TtGammaAnalysis.myttbarSelection_cfg import *
 
 #remove cleaning (later done in photon selection)
 from PhysicsTools.PatAlgos.tools.coreTools import *
@@ -14,21 +24,14 @@ process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
 process.out.outputCommands.append("keep *_myGoodJets_*_*")
 process.out.outputCommands.append("drop *_*_*_PAT")
-process.out.outputCommands.append("keep *_*genParticle*_*_*")
+if runOnMC:
+    process.out.outputCommands.append("keep *_*genParticle*_*_*")
 
 #max num of events processed
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 #photonMatch resolve by best Quality
 process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
-
-#add userfunction for num of mothers
-#process.patPhotonsPFlow.userData.userFunctions = cms.vstring('genParticle.numberOfMothers')
-#process.patPhotonsPFlow.userData.userFunctionLabels = cms.vstring('numMothers')
-
-#add userfunction for pdgid of mother
-#process.patPhotonsPFlow.userData.userFunctions = cms.vstring('genParticle.mother.pdgId')
-#process.patPhotonsPFlow.userData.userFunctionLabels = cms.vstring('motherId')
 
 #add pileUpInfo
 import YKuessel.TopCharge.weights_cfi as weights
@@ -43,7 +46,14 @@ process.out.outputCommands.append("keep *_puWeight_*_*")
 
 #add patPhotons
 process.out.outputCommands.append("keep *_patPhotons*_*_*")
-process.p.replace(process.photonMatchPFlow, process.photonMatchPFlow * process.patPhotonsPFlow)
+if runOnMC:
+    process.p.replace(process.photonMatchPFlow, process.photonMatchPFlow * process.patPhotonsPFlow)
+else:
+    process.load("PhysicsTools.PatAlgos.producersLayer1.photonProducer_cfi")
+    process.patPhotonsPFlow = process.patPhotons.clone(
+        addGenMatch = cms.bool(False)
+    )
+    process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
 
 #require one b-tag
 process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
