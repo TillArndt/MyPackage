@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Fri Jan 13 23:02:34 CET 2012
-// $Id: MyPhotonAnalyzer.cc,v 1.2 2012/02/09 12:43:08 htholen Exp $
+// $Id: MyPhotonAnalyzer.cc,v 1.3 2012/05/23 14:18:20 htholen Exp $
 //
 //
 
@@ -65,6 +65,7 @@ class MyPhotonAnalyzer : public edm::EDAnalyzer {
       TH1D * overlapJetsNConst_; 
       TH1D * photonID_;
       edm::InputTag photons_;
+      edm::InputTag weights_;
 };
 
 //
@@ -79,7 +80,8 @@ class MyPhotonAnalyzer : public edm::EDAnalyzer {
 // constructors and destructor
 //
 MyPhotonAnalyzer::MyPhotonAnalyzer(const edm::ParameterSet& iConfig):
-  photons_(iConfig.getParameter<edm::InputTag>("src"))
+  photons_(iConfig.getParameter<edm::InputTag>("src")),
+  weights_(iConfig.getUntrackedParameter<edm::InputTag>("weights", edm::InputTag()))
 {
    //now do what ever initialization is needed
   edm::Service<TFileService> fs;
@@ -124,7 +126,7 @@ MyPhotonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     // Reweight Handle
     edm::Handle<double> puWeight1BX;
-    iEvent.getByLabel("puWeight","Reweight1BX", puWeight1BX);
+    iEvent.getByLabel(weights_, puWeight1BX);
     double pileUpWeight1BX = *puWeight1BX.product();
     if(iEvent.isRealData() || isnan(pileUpWeight1BX)){
         pileUpWeight1BX=1;

@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Wed May 23 20:38:31 CEST 2012
-// $Id$
+// $Id: Two2SevenMerger.cc,v 1.1 2012/05/25 21:35:47 htholen Exp $
 //
 //
 
@@ -36,6 +36,7 @@
 
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/Math/interface/deltaR.h"
 
 //
 // class declaration
@@ -59,6 +60,8 @@ class Two2SevenMerger : public edm::EDFilter {
       virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
       // ----------member data ---------------------------
+      const double ptCut;
+      const double drCut;
 };
 
 //
@@ -72,7 +75,9 @@ class Two2SevenMerger : public edm::EDFilter {
 //
 // constructors and destructor
 //
-Two2SevenMerger::Two2SevenMerger(const edm::ParameterSet& iConfig)
+Two2SevenMerger::Two2SevenMerger(const edm::ParameterSet& iConfig) :
+    ptCut(iConfig.getParameter<double>("ptCut")),
+    drCut(iConfig.getParameter<double>("drCut"))
 {
    //edm::Service<TFileService> fs;
 }
@@ -94,6 +99,7 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace edm;
     using namespace std;
     using reco::GenParticle;
+    using reco::deltaR;
 
     // Why all this?
     // I want to sort out events, that have been simulated with ttgamma matrix element.
@@ -108,7 +114,7 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (!ttGenEvent->isTtBar()) return true;
     if (!ttGenEvent->isSemiLeptonic(WDecay::kMuon)) return true;
 
-    // find legs and all particles
+    // find legs and all relevant particles
     vector<const GenParticle*> legs;
     vector<const GenParticle*> all;
     const GenParticle* gp = ttGenEvent->lepton();
@@ -134,19 +140,39 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     const GenParticle* thad = ttGenEvent->hadronicDecayTop();
     all.push_back(thad);
 
-    cout << "thad->numberOfDaughters() " << thad->numberOfDaughters() << endl;
-
-
-
-    // get interesting photons (where mom is quark)
-    vector<reco::GenParticle>::const_iterator genPart = genParticles->begin();
-    for ( ; genPart != genParticles->end(); ++genPart) {
-
-        if (genPart->pdgId() == 22) {}
-            //cout << genPart->pt() << endl;
-
-
+    // find relevant photons
+    vector<const GenParticle*> photons;
+    for (unsigned i = 0; i < all.size(); ++i) {
+        for (unsigned j = 0; j < all.at(i)->numberOfDaughters(); ++j) {
+            const GenParticle* daughter = (const GenParticle*) all.at(i)->daughter(j);
+            if (daughter->pdgId()*daughter->pdgId() == 22*22) {
+                 photons.push_back(daughter);
+            }
+        }
     }
+
+    // sort out fails (must fulfill both cuts)
+    for (unsigned i = 0; i < photons.size(); ++i) {
+        const GenParticle* photon = photons.at(i);
+        if (photon->pt() > ptCut) {
+            bool foundNoDrUnderCut = true;
+            for (unsigned j = 0; j < legs.size(); ++j) {
+                const GenParticle* leg = legs.at(j);
+                if (deltaR(*photon, *leg) < drCut) {
+                    foundNoDrUnderCut = false;
+                    break;
+                }
+            }
+
+            if (foundNoDrUnderCut) {
+                cout << "<Two2SevenMerger>: removing Event! " 
+                << "Photon pt < ptCut: (" << photon->pt() << " > " << ptCut 
+                << ") and no deltaR to a leg smaller than " << drCut << endl;
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
