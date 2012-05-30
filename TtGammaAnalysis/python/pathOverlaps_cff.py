@@ -13,7 +13,8 @@ widenedCocPatPhotons.checkOverlaps.muons.requireNoOverlaps = False
 
 analyzer_Photon = cms.EDAnalyzer(
     "MyPhotonAnalyzer",
-    src = cms.InputTag("widenedCocPatPhotons")
+    src = cms.InputTag("widenedCocPatPhotons"),
+    weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
 )
 
 overlapsPath = cms.Path(

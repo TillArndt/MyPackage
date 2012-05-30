@@ -5,7 +5,7 @@ import FWCore.ParameterSet.Config as cms
 analyzer_PT = cms.EDAnalyzer(
     "PATPhotonHistoAnalyzer",
     src = cms.InputTag("photonInputDummy"),
-    #weights = cms.untracked.InputTag("puWeight", "Reweight1BX"),
+    weights = cms.untracked.InputTag("puWeight", "Reweight1BX"),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(         0.),

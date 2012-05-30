@@ -21,12 +21,12 @@ if __name__ == '__main__':
     # colors
     colors = dict()
     colors["Signal"]            = ROOT.kRed + 1
-    colors["q_{top} = 4/3"]     = ROOT.kViolet + 8
     colors["Semi-#mu t#bart"]   = ROOT.kAzure + 7
     colors["W + Jets"]          = ROOT.kSpring + 8
     colors["Z + Jets"]          = ROOT.kSpring + 5
     colors["Single Top"]        = ROOT.kOrange + 2
     colors["QCD"]               = ROOT.kYellow + 2
+    colors["q_{top} = 4/3"]     = ROOT.kViolet + 8
     root_style.set_colors(colors)
 
     # Stacking Order (lowest first, also non-mc should be stated)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
     tools.append(CRHistoOverflow)
-    #tools.append(CRCutflowParser)
+    tools.append(CRCutflowParser)
     tools.append(CRHistoStacker)
     tools.append(MyTTGammaAnalysisTool)
 

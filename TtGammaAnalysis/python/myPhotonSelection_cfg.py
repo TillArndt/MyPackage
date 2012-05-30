@@ -1,3 +1,17 @@
+
+# fetch variables from CmsRunController
+runOnMC = True
+legend  = NameError
+try:
+    runOnMC = not crc_var["isData"]
+    legend  = crc_var["legend"]
+except NameError:
+    print "<myPhotonSelection_cfg>: crc_var not in __builtin__!"
+print "<myPhotonSelection_cfg>: Running On MC:", runOnMC
+print "<myPhotonSelection_cfg>: Samplename is:", legend
+
+
+
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('myPhoSel')
@@ -39,7 +53,7 @@ process.load("MyPackage.TtGammaAnalysis.analyzerBump_cfi")
 # Path declaration
 process.selectionPath = cms.Path(
       process.photonInputDummy
-    * process.analyzer_Bump
+#    * process.analyzer_Bump
     * process.hardPhotonSequence
     * process.cocPatPhotonSequence
 )
@@ -54,5 +68,7 @@ process.schedule = cms.Schedule(
     process.overlapsPath
 )
 
-# for testing
-#process.selectionPath.insert(0, process.ttgammaMergingSequence)
+# ttbar background
+if legend == "Semi-#mu t#bart":
+    process.selectionPath.insert(0, process.ttgammaMergingSequence)
+    process.overlapsPath.insert(0, process.ttgammaMergingSequence)
