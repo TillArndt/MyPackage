@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Fri Jan 13 23:02:34 CET 2012
-// $Id: MyPhotonAnalyzer.cc,v 1.4 2012/05/30 12:08:36 htholen Exp $
+// $Id: MyPhotonAnalyzer.cc,v 1.5 2012/05/31 12:42:55 htholen Exp $
 //
 //
 
@@ -21,6 +21,7 @@
 // system include files
 #include <memory>
 #include <iostream>
+#include <string>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -125,15 +126,15 @@ MyPhotonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     iEvent.getByLabel(photons_, photons);
 
     // Reweight Handle
-    edm::Handle<double> puWeight;
-    iEvent.getByLabel(weights_, puWeight);
-    double pileUpWeight = *puWeight.product();
-    if(iEvent.isRealData() || isnan(pileUpWeight)){
-        pileUpWeight=1;
+    double pileUpWeight = 1.;
+    if (weights_.encode().size() > 0) {
+        edm::Handle<double> puWeight;
+        iEvent.getByLabel(weights_, puWeight);
+        pileUpWeight = *puWeight.product();
+        if(iEvent.isRealData() || isnan(pileUpWeight)){
+            pileUpWeight=1.;
+        }
     }
-
-    //turn pile up reweight off:
-    pileUpWeight=1;
 
     // loop over photons
     std::vector<pat::Photon>::const_iterator photon = photons->begin();
