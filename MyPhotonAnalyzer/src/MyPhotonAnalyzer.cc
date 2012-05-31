@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Fri Jan 13 23:02:34 CET 2012
-// $Id: MyPhotonAnalyzer.cc,v 1.3 2012/05/23 14:18:20 htholen Exp $
+// $Id: MyPhotonAnalyzer.cc,v 1.4 2012/05/30 12:08:36 htholen Exp $
 //
 //
 
@@ -125,36 +125,36 @@ MyPhotonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     iEvent.getByLabel(photons_, photons);
 
     // Reweight Handle
-    edm::Handle<double> puWeight1BX;
-    iEvent.getByLabel(weights_, puWeight1BX);
-    double pileUpWeight1BX = *puWeight1BX.product();
-    if(iEvent.isRealData() || isnan(pileUpWeight1BX)){
-        pileUpWeight1BX=1;
+    edm::Handle<double> puWeight;
+    iEvent.getByLabel(weights_, puWeight);
+    double pileUpWeight = *puWeight.product();
+    if(iEvent.isRealData() || isnan(pileUpWeight)){
+        pileUpWeight=1;
     }
 
     //turn pile up reweight off:
-    pileUpWeight1BX=1;
+    pileUpWeight=1;
 
     // loop over photons
     std::vector<pat::Photon>::const_iterator photon = photons->begin();
     for( ; photon != photons->end(); ++photon) {
 
         if (photon->photonID("PhotonCutBasedIDTight")) {
-            photonID_->Fill("tight", pileUpWeight1BX);
+            photonID_->Fill("tight", pileUpWeight);
         } else if (photon->photonID("PhotonCutBasedIDLoose")) {
-            photonID_->Fill("loose", pileUpWeight1BX);
+            photonID_->Fill("loose", pileUpWeight);
         } else {
-            photonID_->Fill("none", pileUpWeight1BX);
+            photonID_->Fill("none", pileUpWeight);
         }
 
         reco::CandidatePtrVector::const_iterator overlap_it = photon->overlaps("jets").begin();
         for(; overlap_it != photon->overlaps("jets").end(); ++overlap_it) {
             const pat::Jet * overlap = dynamic_cast<const pat::Jet*>(overlap_it->get());
             // number of constituents
-            overlapJetsNConst_->Fill(overlap->getPFConstituents().size(), pileUpWeight1BX);
+            overlapJetsNConst_->Fill(overlap->getPFConstituents().size(), pileUpWeight);
             // deltaR to overlapCand
             float deltaR = reco::deltaR( overlap->eta(), overlap->phi(), photon->eta(), photon->phi() );
-            deltaRJets_->Fill( deltaR, pileUpWeight1BX );
+            deltaRJets_->Fill( deltaR, pileUpWeight );
         }
         overlap_it = photon->overlaps("muons").begin();
         for(; overlap_it != photon->overlaps("muons").end(); ++overlap_it) {
@@ -162,7 +162,7 @@ MyPhotonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             const pat::Muon * overlap = dynamic_cast<const pat::Muon*>(overlap_it->get());
             // deltaR to overlapCand
             float deltaR = reco::deltaR( overlap->eta(), overlap->phi(), photon->eta(), photon->phi() );
-            deltaRMuons_->Fill( deltaR ,pileUpWeight1BX );
+            deltaRMuons_->Fill( deltaR ,pileUpWeight );
         }
     }
 }
