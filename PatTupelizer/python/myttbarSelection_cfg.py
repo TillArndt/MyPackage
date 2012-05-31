@@ -1,12 +1,10 @@
 
+
+runOnMC = True
 try:
-    runOnMC = not crc_var["runOnData"]
+    runOnMC = not crc_var["isData"]
 except NameError:
     print "<myttbarSelection_cfg>: crc_var not in __builtin__!"
-    runOnMC = True
-except KeyError:
-    print "<myttbarSelection_cfg>: crc_var declared, but no key 'runOnData'"
-    runOnMC = True
 print "<myttbarSelection_cfg>: Running On MC:", runOnMC
 
 
@@ -24,10 +22,6 @@ process.source = cms.Source("PoolSource",
  #   'file:/user/tholen/eventFiles/ttgamma_whizard_firstShot.root'
  #   'file:/user/tholen/eventFiles/ttgamma_whizard_tmp.root'
  )
-)
-
-process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('output/myttbarSelection.root')
 )
 
 import FWCore.MessageService.MessageLogger_cfi as logger

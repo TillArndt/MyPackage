@@ -1,12 +1,9 @@
 
+runOnMC = True
 try:
-    runOnMC = not crc_var["runOnData"]
+    runOnMC = not crc_var["isData"]
 except NameError:
     print "<myttbarPatTuple_cfg>: crc_var not in __builtin__!"
-    runOnMC = True
-except KeyError:
-    print "<myttbarPatTuple_cfg>: crc_var declared, but no key 'runOnData'"
-    runOnMC = True
 print "<myttbarPatTuple_cfg>: Running On MC:", runOnMC
 
 
@@ -24,6 +21,7 @@ process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
 process.out.outputCommands.append("keep *_myGoodJets_*_*")
 process.out.outputCommands.append("drop *_*_*_PAT")
+process.out.outputCommands.append("keep *_*ffline*_*_*")
 if runOnMC:
     process.out.outputCommands.append("keep *_*genParticle*_*_*")
 
