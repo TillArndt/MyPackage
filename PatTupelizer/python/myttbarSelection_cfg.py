@@ -46,7 +46,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
 
 # Output
 process.load( "MyPackage.PatTupelizer.patTupleOutput_cfi" )
-process.out.fileName = "file:ttgammaRefSel_selected_tmp.root"
+process.out.fileName = "ttRefSel_selected.root"
 process.out.outputCommands = ["keep *"]
 process.out.SelectEvents.SelectEvents = ["p"]
 
