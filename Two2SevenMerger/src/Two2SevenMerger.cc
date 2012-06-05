@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Wed May 23 20:38:31 CEST 2012
-// $Id: Two2SevenMerger.cc,v 1.1 2012/05/25 21:35:47 htholen Exp $
+// $Id: Two2SevenMerger.cc,v 1.2 2012/05/30 12:08:37 htholen Exp $
 //
 //
 
@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <TH1D.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -60,8 +61,14 @@ class Two2SevenMerger : public edm::EDFilter {
       virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
       // ----------member data ---------------------------
-      const double ptCut;
-      const double drCut;
+
+      const double ptCut_;
+      const double drCut_;
+      const double legPtCut_;
+      const bool is2to7_;
+      TH1D *kickedPhotons_;
+      TH1D *survivingPhotons_;
+      TH1D *allPhotons_;
 };
 
 //
@@ -76,10 +83,15 @@ class Two2SevenMerger : public edm::EDFilter {
 // constructors and destructor
 //
 Two2SevenMerger::Two2SevenMerger(const edm::ParameterSet& iConfig) :
-    ptCut(iConfig.getParameter<double>("ptCut")),
-    drCut(iConfig.getParameter<double>("drCut"))
+    ptCut_(iConfig.getParameter<double>("ptCut")),
+    drCut_(iConfig.getParameter<double>("drCut")),
+    legPtCut_(iConfig.getUntrackedParameter<double>("legPtCut", 0.)),
+    is2to7_(iConfig.getUntrackedParameter<bool>("is2to7", false))
 {
-   //edm::Service<TFileService> fs;
+    edm::Service<TFileService> fs;
+    kickedPhotons_      = fs->make<TH1D>("kickedPhotons",    ";photon e_{T} / GeV;number of photons", 70, 0., 700.);
+    survivingPhotons_   = fs->make<TH1D>("survivingPhotons", ";photon e_{T} / GeV;number of photons", 70, 0., 700.);
+    allPhotons_         = fs->make<TH1D>("allPhotons",       ";photon e_{T} / GeV;number of photons", 70, 0., 700.);
 }
 
 
@@ -114,31 +126,45 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (!ttGenEvent->isTtBar()) return true;
     if (!ttGenEvent->isSemiLeptonic(WDecay::kMuon)) return true;
 
+
     // find legs and all relevant particles
     vector<const GenParticle*> legs;
     vector<const GenParticle*> all;
-    const GenParticle* gp = ttGenEvent->lepton();
-    if (!gp) gp = ttGenEvent->leptonBar();
-    legs.push_back(gp);
-    all.push_back(gp);
-    gp = ttGenEvent->leptonicDecayB();
-    legs.push_back(gp);
-    all.push_back(gp);
-    gp = ttGenEvent->hadronicDecayB();
-    legs.push_back(gp);
-    all.push_back(gp);
-    gp = ttGenEvent->hadronicDecayQuark();
-    legs.push_back(gp);
-    all.push_back(gp);
-    gp = ttGenEvent->hadronicDecayQuarkBar();
-    legs.push_back(gp);
-    all.push_back(gp);
-    all.push_back(ttGenEvent->leptonicDecayW());
-    all.push_back(ttGenEvent->hadronicDecayW());
     const GenParticle* tlep = ttGenEvent->leptonicDecayTop();
-    all.push_back(tlep);
     const GenParticle* thad = ttGenEvent->hadronicDecayTop();
+    if (is2to7_) {
+        const GenParticle* gp = ttGenEvent->lepton();
+        if (!gp) gp = ttGenEvent->leptonBar();
+        legs.push_back(gp);
+        all.push_back(gp);
+        gp = ttGenEvent->leptonicDecayB();
+        legs.push_back(gp);
+        all.push_back(gp);
+        gp = ttGenEvent->hadronicDecayB();
+        legs.push_back(gp);
+        all.push_back(gp);
+        gp = ttGenEvent->hadronicDecayQuark();
+        legs.push_back(gp);
+        all.push_back(gp);
+        gp = ttGenEvent->hadronicDecayQuarkBar();
+        legs.push_back(gp);
+        all.push_back(gp);
+        all.push_back(ttGenEvent->leptonicDecayW());
+        all.push_back(ttGenEvent->hadronicDecayW());
+    } else {
+        legs.push_back(tlep);
+        legs.push_back(thad);
+    }
+    all.push_back(tlep);
     all.push_back(thad);
+
+    // check legs pt cut (which is 0. by default)
+    if (legPtCut_ > 1e-43 && is2to7_) {
+        for (unsigned i = 0; i < legs.size(); ++i) {
+            if (legs.at(i)->pt() < legPtCut_)
+                return true;
+        }
+    }
 
     // find relevant photons
     vector<const GenParticle*> photons;
@@ -147,32 +173,37 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
             const GenParticle* daughter = (const GenParticle*) all.at(i)->daughter(j);
             if (daughter->pdgId()*daughter->pdgId() == 22*22) {
                  photons.push_back(daughter);
+                 allPhotons_->Fill(daughter->et());
             }
         }
     }
 
     // sort out fails (must fulfill both cuts)
+    bool foundNoDrUnderCut = true;
     for (unsigned i = 0; i < photons.size(); ++i) {
         const GenParticle* photon = photons.at(i);
-        if (photon->pt() > ptCut) {
-            bool foundNoDrUnderCut = true;
+        if (photon->pt() > ptCut_) {
             for (unsigned j = 0; j < legs.size(); ++j) {
                 const GenParticle* leg = legs.at(j);
-                if (deltaR(*photon, *leg) < drCut) {
+                if (deltaR(*photon, *leg) < drCut_) {
                     foundNoDrUnderCut = false;
+                    cout << "<Two2SevenMerger>: removing Event! "
+                         << "Photon pt < ptCut: (" << photon->pt() << " > " << ptCut_
+                         << ") and no deltaR to a leg smaller than " << drCut_ << endl;
                     break;
                 }
-            }
-
-            if (foundNoDrUnderCut) {
-                cout << "<Two2SevenMerger>: removing Event! " 
-                << "Photon pt < ptCut: (" << photon->pt() << " > " << ptCut 
-                << ") and no deltaR to a leg smaller than " << drCut << endl;
-                return false;
             }
         }
     }
 
+    if (photons.size() && foundNoDrUnderCut) {
+        for (unsigned i = 0; i < photons.size(); ++i)
+            kickedPhotons_->Fill(photons.at(i)->et());
+        return false;
+    } else {
+        for (unsigned i = 0; i < photons.size(); ++i)
+            survivingPhotons_->Fill(photons.at(i)->et());
+    }
     return true;
 }
 

@@ -3,6 +3,7 @@
 <use name="FWCore/ParameterSet"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="AnalysisDataFormats/TopObjects"/>
+<use name="CommonTools/UtilAlgos"/>
 <flags EDM_PLUGIN="1"/>
 <export>
    <lib name="1"/>
