@@ -25,7 +25,7 @@ process.source = cms.Source("PoolSource",
 )
 
 import FWCore.MessageService.MessageLogger_cfi as logger
-logger.MessageLogger.cerr.FwkReport.reportEvery = 100
+logger.MessageLogger.cerr.FwkReport.reportEvery = 1
 logger.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.extend(logger)
 #do filtering
@@ -73,7 +73,8 @@ process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
 process.pfNoTauPFlow.enable = cms.bool(False)
-process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJets", "rho")
+PurBTag/ylimits=0,1.2
+process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
 
 from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
 process.kt6PFJetsPFlow = kt4PFJets.clone(
