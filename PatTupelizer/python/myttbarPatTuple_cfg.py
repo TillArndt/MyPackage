@@ -32,11 +32,11 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
 
 #add pileUpInfo
-#from MyPackage.PatTupelizer.pileUpWeights_cfi import get_weights
-#process.puWeight = get_weights("/net/data_cms/institut_3b/tholen/pileUpReweight/")
-#process.p.replace(process.myHLTFilt, process.myHLTFilt * process.puWeight)
+from MyPackage.PatTupelizer.pileUpWeights_cfi import get_weights
+process.puWeight = get_weights("/net/data_cms/institut_3b/tholen/pileUpReweight/")
+process.p.replace(process.myHLTFilt, process.myHLTFilt * process.puWeight)
 process.out.outputCommands.append("keep *_*ddPileupInfo*_*_*")
-process.out.outputCommands.append("keep *_puWeight_*_*")
+process.out.outputCommands.append("keep *_*eight*_*_*")
 
 #add patPhotons
 process.out.outputCommands.append("keep *_patPhotons*_*_*")

@@ -73,7 +73,7 @@ process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
 process.pfNoTauPFlow.enable = cms.bool(False)
-process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
+process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJets", "rho")
 
 from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
 process.kt6PFJetsPFlow = kt4PFJets.clone(
