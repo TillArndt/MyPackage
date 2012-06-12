@@ -48,7 +48,3 @@ else:
         addGenMatch = cms.bool(False)
     )
     process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
-
-#require one b-tag
-process.load("MyPackage.PatTupelizer.myBTagRequirement_cfi")
-process.p.replace(process.myJetCounter, process.myJetCounter * process.myBTagRequirement)

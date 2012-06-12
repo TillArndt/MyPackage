@@ -1,13 +1,14 @@
 
-
-runOnMC = True
+isData = False
+noBTag = False
 try:
-    runOnMC = not crc_var["isData"]
+    isData = crc_var.get("isData", isData)
+    noBTag = crc_var.get("noBTag", noBTag)
 except NameError:
-    print "<myttbarSelection_cfg>: crc_var not in __builtin__!"
-print "<myttbarSelection_cfg>: Running On MC:", runOnMC
-
-
+    print "<" + __name__ + ">: crc_var not in __builtin__!"
+print "<" + __name__ + ">: isData: ", isData
+print "<" + __name__ + ">: noBTag: ", noBTag
+runOnMC = not isData
 
 
 import FWCore.ParameterSet.Config as cms
@@ -73,7 +74,6 @@ process.pfPileUpPFlow.checkClosestZVertex = cms.bool(False)
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
 process.pfNoTauPFlow.enable = cms.bool(False)
-PurBTag/ylimits=0,1.2
 process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
 
 from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
@@ -214,8 +214,15 @@ process.myJetCounter=cms.EDFilter("PATCandViewCountFilter",
                                   maxNumber = cms.uint32(99999)
                                   )
 
-
-process.load("MyPackage.TtGammaAnalysis.myBTagRequirement_cfi")
+# bTag
+process.oneBTagFilter = cms.EDFilter(
+    "PATJetRefSelector",
+    src = cms.InputTag("myGoodJets"),
+    cut = cms.string('bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679'),
+    filter = cms.bool(True)
+)
+if noBTag:
+	process.oneBTagFilter.filter = False
 
 process.p = cms.Path(  
                        process.myHLTFilt *
@@ -227,6 +234,7 @@ process.p = cms.Path(
                            process.myTightMuonCounter *
                            process.myLooseMuonCounter *
                            process.myElectronCounter *
-                           process.myJetCounter
+                           process.myJetCounter *
+                           process.oneBTagFilter
                        ) 
                      )
