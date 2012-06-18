@@ -1,8 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
+#PRODUCERS
 # cross object clean
 cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
-            src = cms.InputTag("photonsWithTightID"), 
+            src = cms.InputTag("largeEtPhotons"),
             preselection = cms.string(''),
             
             # overlap checking configurables
@@ -29,15 +30,11 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
             finalCut = cms.string(''),
 )
 
-# dummy to remove coc fails
-removeCocFails = cms.EDFilter(
-            "PATCandViewCountFilter",
-            src = cms.InputTag("cocPatPhotons"),
-            minNumber = cms.uint32(1),
-            maxNumber = cms.uint32(9999)
-)
 
-cocPatPhotonSequence = cms.Sequence(
-    cocPatPhotons
-    * removeCocFails
+#FILTERS
+cocFilter = cms.EDFilter(
+    "PATCandViewCountFilter",
+    src = cms.InputTag("cocPatPhotons"),
+    minNumber = cms.uint32(1),
+    maxNumber = cms.uint32(9999)
 )

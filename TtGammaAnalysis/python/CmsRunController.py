@@ -20,33 +20,45 @@ if __name__ == '__main__':
 
     # colors
     colors = dict()
-    colors["Signal"]            = ROOT.kRed + 1
-    colors["Semi-#mu t#bart"]   = ROOT.kAzure + 7
-    colors["W + Jets"]          = ROOT.kSpring + 8
-    colors["Z + Jets"]          = ROOT.kSpring + 5
-    colors["Single Top"]        = ROOT.kOrange + 2
-    colors["QCD"]               = ROOT.kYellow + 2
-    colors["q_{top} = 4/3"]     = ROOT.kViolet + 8
+    colors["t#bar{t}#gamma #mu+Jets (Signal)"]  = ROOT.kRed + 1
+    colors["t#bar{t} inclusive"]                = ROOT.kAzure + 7
+    colors["W + Jets"]                          = ROOT.kSpring + 8
+    colors["Z + Jets"]                          = ROOT.kSpring + 5
+    colors["Single Top"]                        = ROOT.kOrange + 2
+    colors["QCD"]                               = ROOT.kYellow + 2
+    colors["q_{top} = 4/3"]                     = ROOT.kViolet + 8
     root_style.set_colors(colors)
 
     # Stacking Order (lowest first, also non-mc should be stated)
     order = []
     order.append("Data")
     order.append("q_{top} = 4/3")
-    order.append("Signal")
+    order.append("t#bar{t}#gamma #mu+Jets (Signal)")
     order.append("QCD")
     order.append("Single Top")
     order.append("Z + Jets")
     order.append("W + Jets")
-    order.append("Semi-#mu t#bart")
+    order.append("t#bar{t} inclusive")
     root_style.set_stacking_order(order)
 
     # pretty names
+    # use it like this: name = root_style.get_pretty_name(name)
     pn = dict()
-    pn["photonInputDummy"]      = "preselected"
-    pn["myLargePtPhotons"]      = "large p_{T}"
-    pn["photonsWithTightID"]    = "tight photon ID"
-    pn["removeCocFails"]        = "#DeltaR(photon, jet)"
+    pn["photonInputDummy"]              = "preselected"
+    pn["largeEtFilter"]                 = "large e_{T}"
+    pn["cocFilter"]                     = "#DeltaR(photon, jet/#mu)"
+    pn["tightIDFilter"]                 = "tight photon ID"
+    pn["PhotonFilteta"]                 = "#eta"
+    pn["PhotonFiltjurassicecaliso"]     = "jurassic iso"
+    pn["PhotonFilthaspixelseeds"]       = "pixelseed"
+    pn["PhotonFilthcaliso"]             = "hcal iso"
+    pn["PhotonFiltetcut"]               = "E_{T}"
+    pn["PhotonFiltsigmaietaieta"]       = "#sigma_{i #eta i #eta}"
+    pn["PhotonFilthollowconetrackiso"]  = "hollow cone"
+    pn["PhotonFiltetawidth"]            = "#eta witdh"
+    pn["PhotonFilthadronicoverem"]      = "H/E"
+    pn["PhotonFiltdrjet"]               = "#DeltaR(photon, jet)"
+    pn["PhotonFiltdrmuon"]              = "#DeltaR(photon, #mu)"
     root_style.set_pretty_names(pn)
 
     # change directory names
@@ -61,17 +73,20 @@ if __name__ == '__main__':
     # list of post processing tools
     tools = []
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoOverflow import CRHistoOverflow
-    from UserCode.RWTH3b.cmsRunController.tools.CRCutflowParser import CRCutflowParser
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoPlotter import CRHistoPlotter
+    from UserCode.RWTH3b.cmsRunController.tools.CRHistoEfficiencies import CRHistoEfficiencies
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
     tools.append(CRHistoOverflow)
-    tools.append(CRCutflowParser)
     tools.append(CRHistoStacker)
-    tools.append(MyTTGammaAnalysisTool)
+    #tools.append(CRHistoPlotter)
+    #tools.append(CRHistoEfficiencies)
+    #tools.append(MyTTGammaAnalysisTool)
 
     # search paths for decorators
     modules = []
     modules.append("UserCode.RWTH3b.cmsRunController.tools.CRHistoStackerDecorators")
+    modules.append("UserCode.RWTH3b.cmsRunController.tools.CRHistoPlotterDecorators")
     modules.append("UserCode.RWTH3b.cmsRunController.examples.BottomPlots")
     modules.append("UserCode.RWTH3b.cmsRunController.examples.HistoCosmetics")
     root_style.decorator_search_paths = modules
@@ -80,3 +95,4 @@ if __name__ == '__main__':
     import UserCode.RWTH3b.cmsRunController.classes.CRController as controller
     controller.main(tools)
 
+#TODO: read list of tools from ini file

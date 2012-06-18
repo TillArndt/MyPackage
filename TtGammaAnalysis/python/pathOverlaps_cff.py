@@ -2,22 +2,40 @@
 import FWCore.ParameterSet.Config as cms
 import MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi as cocPhot
 
+puReweight  = ""
+try:
+    puReweight  = crc_var.get("puReweight", puReweight)
+except NameError:
+    print "<"+__name__+">: crc_var not in __builtin__!"
+
 
 widenedCocPatPhotons = cocPhot.cocPatPhotons.clone(
-    src = "photonInputDummy"
+    src = "patPhotonsPFlow"
 )
-widenedCocPatPhotons.checkOverlaps.jets.deltaR = 5.0
-widenedCocPatPhotons.checkOverlaps.muons.deltaR = 5.0
+widenedCocPatPhotons.checkOverlaps.jets.deltaR = 50000.0
+widenedCocPatPhotons.checkOverlaps.muons.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.jets.requireNoOverlaps = False
 widenedCocPatPhotons.checkOverlaps.muons.requireNoOverlaps = False
 
 analyzer_Photon = cms.EDAnalyzer(
     "MyPhotonAnalyzer",
     src = cms.InputTag("widenedCocPatPhotons"),
-    weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
+    weights = cms.untracked.InputTag("puWeight", puReweight)
 )
 
-overlapsPath = cms.Path(
-      widenedCocPatPhotons
-    * analyzer_Photon
+# record pt before cutting
+analyzer_ET = cms.EDAnalyzer(
+    "PATPhotonHistoAnalyzer",
+    src = cms.InputTag("photonInputDummy"),
+    weights = cms.untracked.InputTag("puWeight", puReweight),
+    histograms = cms.VPSet(
+        cms.PSet(
+            min          = cms.untracked.double(         0.),
+            max          = cms.untracked.double(       550.),
+            nbins        = cms.untracked.int32 (         55),
+            name         = cms.untracked.string( 'photonET'),
+            description  = cms.untracked.string(';photon E_{T} / GeV;number of photons'),
+            plotquantity = cms.untracked.string('et'),
+        )
+    )
 )

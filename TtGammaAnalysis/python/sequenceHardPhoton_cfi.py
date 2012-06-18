@@ -1,42 +1,47 @@
 import FWCore.ParameterSet.Config as cms
 
 
-# record pt before cutting
-analyzer_PT = cms.EDAnalyzer(
-    "PATPhotonHistoAnalyzer",
-    src = cms.InputTag("photonInputDummy"),
-    weights = cms.untracked.InputTag("puWeight", "Reweight1BX"),
-    histograms = cms.VPSet(
-        cms.PSet(
-            min          = cms.untracked.double(         0.),
-            max          = cms.untracked.double(        500),
-            nbins        = cms.untracked.int32 (         50),
-            name         = cms.untracked.string( 'photonPT'),
-            description  = cms.untracked.string(';photon p_{T} / GeV;number of photons'),
-            plotquantity = cms.untracked.string('pt'),
-        )
-    )
-)
+puReweight  = ""
+try:
+    puReweight  = crc_var.get("puReweight", puReweight)
+except NameError:
+    print "<"+__name__+">: crc_var not in __builtin__!"
 
+
+# PRODUCERS
 # large pt ...
-myLargePtPhotons = cms.EDFilter("PATPhotonSelector",
+largeEtPhotons = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonInputDummy"),
             cut = cms.string('\
-    pt > 20 \
+    et > 20 \
     && abs(eta) < 2.1 \
-                              '),
-            filter = cms.bool(True)
+    '),
+            filter = cms.bool(False)
 )
 
 # require tight Photon ID
 photonsWithTightID = cms.EDFilter("PATPhotonSelector",
-            src = cms.InputTag("myLargePtPhotons"),
+            src = cms.InputTag("largeEtPhotons"),
             cut = cms.string('photonID("PhotonCutBasedIDTight")'),
-            filter = cms.bool(True)
+            filter = cms.bool(False)
 )
 
-hardPhotonSequence = cms.Sequence(
-      analyzer_PT
-    * myLargePtPhotons
-    * photonsWithTightID
+
+
+# FILTERS
+largeEtFilter = cms.EDFilter(
+    "PATCandViewCountFilter",
+    src = cms.InputTag("largeEtPhotons"),
+    minNumber = cms.uint32(1),
+    maxNumber = cms.uint32(9999)
 )
+
+tightIDFilter = largeEtFilter.clone(
+    src = cms.InputTag("photonsWithTightID")
+)
+
+hardPhotonFilters = cms.Sequence(
+      largeEtFilter
+    * tightIDFilter
+)
+
