@@ -48,3 +48,60 @@ else:
         addGenMatch = cms.bool(False)
     )
     process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
+
+#some extra matching
+process.photonMatchOthersPFlow = process.photonMatchPFlow.clone(
+    mcPdgId     = cms.vint32(13, 21, 11, 1,2,3,4,5,6,
+                            221,                        # eta 
+                            211,                        # pion 
+                             15,                        # tau       
+                            311,                        # K 0
+                            421,                        # D 0      
+                            411,                        # D         
+                            113,                        # rho 
+                            223,                        # omega
+                            333,                        # phi       
+                            423,                        # D*(2007)  
+                            111),                       # pion 0
+    mcStatus    = cms.vint32(1,2,3),
+    checkCharge = cms.bool(False),
+    resolveAmbiguities = cms.bool(True), 
+    resolveByMatchQuality = cms.bool(True),
+    maxDeltaR = cms.double(0.2), 
+    maxDPtRel = cms.double(1)
+)
+
+
+process.photonMatchAllPFlow = process.photonMatchOthersPFlow.clone(
+    mcPdgId     = cms.vint32(22,
+                            13, 21, 11, 1,2,3,4,5,6,
+                            221,                        # eta 
+                            211,                        # pion 
+                             15,                        # tau       
+                            311,                        # K 0
+                            421,                        # D 0      
+                            411,                        # D         
+                            113,                        # rho 
+                            223,                        # omega
+                            333,                        # phi       
+                            423,                        # D*(2007)  
+                            111),                       # pion 0
+)
+
+process.patPhotonsOthersMatchPFlow = process.patPhotonsPFlow.clone(
+    genParticleMatch = cms.InputTag("photonMatchOthersPFlow")
+)
+
+process.patPhotonsAllMatchPFlow = process.patPhotonsPFlow.clone(
+    genParticleMatch = cms.InputTag("photonMatchAllPFlow")
+)
+
+if runOnMC:
+    process.p.replace(
+        process.patPhotonsPFlow, 
+        process.patPhotonsPFlow 
+        * process.photonMatchOthersPFlow 
+        * process.photonMatchAllPFlow
+        * process.patPhotonsOthersMatchPFlow 
+        * process.patPhotonsAllMatchPFlow
+    )
