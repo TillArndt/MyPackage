@@ -35,9 +35,9 @@ if __name__ == '__main__':
     order.append("q_{top} = 4/3")
     order.append("t#bar{t}#gamma #mu+Jets (Signal)")
     order.append("QCD")
-    order.append("Single Top")
     order.append("Z + Jets")
     order.append("W + Jets")
+    order.append("Single Top")
     order.append("t#bar{t} inclusive")
     root_style.set_stacking_order(order)
 
@@ -62,16 +62,17 @@ if __name__ == '__main__':
     root_style.set_pretty_names(pn)
 
     # change directory names
-    #root_style.DIR_FILESERVICE  = "outputFileService"
-    #root_style.DIR_LOGS         = "outputLogs"
-    #root_style.DIR_CONFS        = "outputConfs"
-    #root_style.DIR_PLOTS        = "outputPlots"
+    #root_style.DIR_FILESERVICE  = "outputFileService/"
+    #root_style.DIR_LOGS         = "outputLogs/"
+    #root_style.DIR_CONFS        = "outputConfs/"
+    #root_style.DIR_PLOTS        = "outputPlots/"
 
     # add postfixes for canvas saving
     root_style.canvas_postfixes.append('.png')
 
     # list of post processing tools
     tools = []
+    from UserCode.RWTH3b.cmsRunController.tools.CRCutflowParser import CRCutflowParser
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoOverflow import CRHistoOverflow
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoPlotter import CRHistoPlotter
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     tools.append(CRHistoStacker)
     #tools.append(CRHistoPlotter)
     #tools.append(CRHistoEfficiencies)
-    #tools.append(MyTTGammaAnalysisTool)
+    tools.append(MyTTGammaAnalysisTool)
 
     # search paths for decorators
     modules = []
