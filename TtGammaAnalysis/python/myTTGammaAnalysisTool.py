@@ -36,24 +36,6 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         self.N_tt_data_sel      = 0.
         self.N_ttgamma_data_sel = 0.
 
-        # two2three
-#        self.R_whiz_23          = 0.00285
-#        self.err_R_whiz_23      = 0.0002
-#        self.R_whiz_43          = 0.00732
-#        self.err_R_whiz_43      = 0.0007
-
-        # two2seven
-        sigma_tt        = 165800.
-        relerr_sigma_tt = 0.0802
-        sigma_23        = 73.384
-        relerr_sigma_23 = 0.0109
-        sigma_43        = 88.09
-        relerr_sigma_43 = 0.013
-        self.R_whiz_23          = sigma_23 / sigma_tt
-        self.err_R_whiz_23      = self.R_whiz_23 * relerr_sigma_tt
-        self.R_whiz_43          = sigma_43 / sigma_tt
-        self.err_R_whiz_43      = self.R_whiz_43 * relerr_sigma_tt
-
         self.only_folders = ["analyzeSelection"]
 
         # constants
@@ -68,10 +50,43 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         if type(process) != list:
             CRSimpleHistoTool.start(self, process)
         else:
-            self.do_final_calculation()
-            self.make_sqrt_R_plot()
-            self.make_R_plot()
-            #self.make_RN_plot()
+            #self.do_final_calculation()
+            #self.make_sqrt_R_plot()
+
+            # tt cross section
+            sigma_tt        = 165800.
+            relerr_sigma_tt = 0.0802
+
+            # two2three
+            self.R_whiz_23          = 0.00285
+            self.err_R_whiz_23      = 0.0002
+            self.R_whiz_43          = 0.00732
+            self.err_R_whiz_43      = 0.0007
+            self.make_R_plot("two2three")
+
+            # two2five
+            sigma_23        = 1052.2275
+            relerr_sigma_23 = 0.0024
+            sigma_43        = 1436.1663
+            relerr_sigma_43 = 0.002
+            # calc R
+            self.R_whiz_23          = sigma_23 / sigma_tt
+            self.err_R_whiz_23      = self.R_whiz_23 * relerr_sigma_tt
+            self.R_whiz_43          = sigma_43 / sigma_tt
+            self.err_R_whiz_43      = self.R_whiz_43 * relerr_sigma_tt
+            self.make_R_plot("two2five")
+
+            # two2seven
+            sigma_23        = 73.384
+            relerr_sigma_23 = 0.0109
+            sigma_43        = 88.09
+            relerr_sigma_43 = 0.013
+            # calc R
+            self.R_whiz_23          = sigma_23 / sigma_tt
+            self.err_R_whiz_23      = self.R_whiz_23 * relerr_sigma_tt
+            self.R_whiz_43          = sigma_43 / sigma_tt
+            self.err_R_whiz_43      = self.R_whiz_43 * relerr_sigma_tt
+            self.make_R_plot("two2seven")
 
 
     def work(self, histo):
@@ -150,12 +165,12 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         self.message.emit(self, "INFO: R_data               = "
                                 + str(self.R_data) + " +- " + str(self.err_R_data) + "(stat)"
         )
-        self.message.emit(self, "INFO: R_EmCee              = "
-                                + str(self.R_whiz_23) + " +- " + str(self.err_R_whiz_23)
-        )
-        self.message.emit(self, "INFO: R_mc43               = "
-                                + str(self.R_whiz_43) + " +- " + str(self.err_R_whiz_43)
-        )
+#        self.message.emit(self, "INFO: R_EmCee              = "
+#                                + str(self.R_whiz_23) + " +- " + str(self.err_R_whiz_23)
+#        )
+#        self.message.emit(self, "INFO: R_mc43               = "
+#                                + str(self.R_whiz_43) + " +- " + str(self.err_R_whiz_43)
+#        )
 
         # compare only numbers
         self.N_ratio_mc   = self.N_ttgamma_mc_sel   / self.N_tt_mc_sel
@@ -245,16 +260,19 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         canvas.SaveAs(root_style.DIR_PLOTS + "/sqrt_R_ratio.png")
 
 
-    def make_R_plot(self):
+    def make_R_plot(self, name):
         """
         """
+
+        root_style.DIR_PLOTS_R = root_style.DIR_PLOTS + "R-Plots/"
+        root_style.create_folders()
 
         para_str = "[0]*x*x + [1]"
         inve_str = "sqrt( (x-[1])/[0] )"
         # ttgamma crosssections taken from whizard calculation
         graph_mc = TGraphErrors(3)
-        graph_mc.SetPoint(0, -.05 , 0.0014)
-        graph_mc.SetPointError(0, 0., 0.002)
+        graph_mc.SetPoint(0, -.05 , 0.01)
+        graph_mc.SetPointError(0, 0., 0.02)
         graph_mc.SetPoint(1, 2./3., self.R_whiz_23)
         graph_mc.SetPointError(1, 0., self.err_R_whiz_23)
         graph_mc.SetPoint(2, 4./3., self.R_whiz_43)
@@ -294,26 +312,28 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         inve_p = TF1("inverse_p", inve_str, 0.001, 1.)
         inve_p.SetParameter(0, a+err_a)
         inve_p.SetParameter(1, c+err_a)
-        q_top       = inve.Eval(self.R_data)
-        err_m_q_top =   q_top - inve_p.Eval(self.R_data - self.err_R_data)
-        err_p_q_top = - q_top + inve_m.Eval(self.R_data + self.err_R_data)
+        #q_top       = inve.Eval(self.R_data)
+        #err_m_q_top =   q_top - inve_p.Eval(self.R_data - self.err_R_data)
+        #err_p_q_top = - q_top + inve_m.Eval(self.R_data + self.err_R_data)
 
-        graph_data = TGraphAsymmErrors(2)
-        graph_data.SetPoint(0, 0.03, self.R_data)
-        graph_data.SetPointError(0, 0., 0., self.err_R_data, self.err_R_data)
-        graph_data.SetPoint(1, q_top, 0.0004)
-        graph_data.SetPointError(1, err_m_q_top, err_p_q_top, 0., 0.)
-        graph_data.SetLineWidth(2)
-        graph_data.SetMarkerSize(1.3)
-        graph_data.SetMarkerStyle(20)
-        graph_data.SetLineColor(kRed + 2)
-        graph_data.SetMarkerColor(kRed + 2)
+#        graph_data = TGraphAsymmErrors(2)
+#        graph_data.SetPoint(0, 0.03, self.R_data)
+#        graph_data.SetPointError(0, 0., 0., self.err_R_data, self.err_R_data)
+#        graph_data.SetPoint(1, q_top, 0.0004)
+#        graph_data.SetPointError(1, err_m_q_top, err_p_q_top, 0., 0.)
+#        graph_data.SetLineWidth(2)
+#        graph_data.SetMarkerSize(1.3)
+#        graph_data.SetMarkerStyle(20)
+#        graph_data.SetLineColor(kRed + 2)
+#        graph_data.SetMarkerColor(kRed + 2)
 
         frame = TGraph(2)
-        frame.SetPoint(0, 0., 0.0002)
-        frame.SetPoint(1, 1.4, 0.001)
+        dy = self.R_whiz_43 - self.R_whiz_23
+        frame.SetPoint(0, 0., self.R_whiz_43 + dy)
+        frame.SetPoint(1, 1.4, self.R_whiz_23 - dy)
         frame.SetMarkerColor(kWhite)
-        frame.SetTitle("R_{MC} vs. q_{top};q_top / e;R")
+        frame.SetTitle("")#R_{MC} vs. q_{top};q_top / e;R")
+        frame.GetYaxis().SetNoExponent()
 
         canvas = TCanvas("R_ratio", "R_ratio")
         frame.Draw("AP")
@@ -321,7 +341,7 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
         func_m.Draw("FCsame")
         func.Draw("same")
         graph_mc.Draw("P")
-        graph_data.Draw("P")
+        #graph_data.Draw("P")
 
 #        pl2 = TPaveLabel(0.05,0.00425,0.65,0.0055,
 #            "R_{Data} = ( %.2f"%(self.R_data*1000) + " #pm %.2f"%(self.err_R_data*1000) + " )#upoint10^{-3}" ,"br")
@@ -337,7 +357,7 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
 #        pl1.SetTextSize(0.4)
 #        pl1.Draw()
 
-        pt = TPaveText(1.109795,0.0008117579,1.585046,0.00105,"br")
+        pt = TPaveText(0.2,0.6,0.5,0.80,"brNDC")
         pt.SetBorderSize(1)
         pt.SetTextAlign(12)
         pt.SetTextSize(0.04)
@@ -366,125 +386,9 @@ class MyTTGammaAnalysisTool(CRSimpleHistoTool):
 
         canvas.Modified()
         canvas.Update()
-        canvas.SaveAs(root_style.DIR_PLOTS + "/R_ratio.root")
-        canvas.SaveAs(root_style.DIR_PLOTS + "/R_ratio.png")
-
-
-    def make_RN_plot(self):
-        """
-        """
-
-        # get all numbers _with errors_ from cutflow
-        file_cutflow = TFile(
-            root_style.DIR_PLOTS
-            + "/HistogramStacks/allStacks/stacks/analyzeSelection_cutflow.root",
-            "READ"
-        )
-
-        stackmc = file_cutflow.GetKey("analyzeSelection_cutflow_mc").ReadObj()
-        stack43 = file_cutflow.GetKey("analyzeSelection_cutflow_overlay_mc").ReadObj()
-        stackda = file_cutflow.GetKey("analyzeSelection_cutflow_data").ReadObj()
-
-        histo_23 = None
-        histo_bg = None
-        for histo in stackmc.GetHists():
-            if histo.GetTitle() == "Signal":
-                histo_23 = histo.Clone()
-            else:
-                if not histo_bg:
-                    histo_bg = histo.Clone()
-                else:
-                    histo_bg.Add(histo)
-
-        histo_43 = stack43.GetHists()[0].Clone()
-        histo_da = stackda.GetHists()[0].Clone()
-
-        histo_full_23 = histo_bg.Clone()
-        histo_full_23.Add(histo_23)
-        histo_full_43 = histo_bg.Clone()
-        histo_full_43.Add(histo_43)
-
-        # interesting bins
-        delta_R_bin = histo_23.GetXaxis().FindBin(self.ENDSEL_BIN)
-        presel_bin  = histo_23.GetXaxis().FindBin(self.PRESEL_BIN)
-
-        # Get 2/3 ratio with error
-        N_23_sel        = histo_full_23.GetBinContent(delta_R_bin)
-        err_N_23_sel    = histo_full_23.GetBinError(delta_R_bin)
-        N_23_all        = histo_full_23.GetBinContent(presel_bin)
-        err_N_23_all    = histo_full_23.GetBinError(presel_bin)
-        RN_23 = N_23_sel / N_23_all
-        err_RN_23 = RN_23 * ( (err_N_23_sel/N_23_sel)**2
-                              + (err_N_23_all/N_23_all)**2 )**.5
-
-        # Get 4/3 ratio with error
-        N_43_sel        = histo_full_43.GetBinContent(delta_R_bin)
-        err_N_43_sel    = histo_full_43.GetBinError(delta_R_bin)
-        N_43_all        = histo_full_43.GetBinContent(presel_bin)
-        err_N_43_all    = histo_full_43.GetBinError(presel_bin)
-        RN_43 = N_43_sel / N_43_all
-        err_RN_43 = RN_43 * ( (err_N_43_sel/N_43_sel)**2
-                              + (err_N_43_all/N_43_all)**2 )**.5
-
-        # Get data ratio with error
-        N_da_sel        = histo_da.GetBinContent(delta_R_bin)
-        err_N_da_sel    = histo_da.GetBinError(delta_R_bin)
-        N_da_all        = histo_da.GetBinContent(presel_bin)
-        err_N_da_all    = histo_da.GetBinError(presel_bin)
-        RN_da = N_da_sel / N_da_all
-        err_RN_da = RN_da * ( (err_N_da_sel/N_da_sel)**2
-                              + (err_N_da_all/N_da_all)**2 )**.5
-
-        graph_mc = TGraphErrors(2)
-        graph_mc.SetPoint(0, 2./3., RN_23)
-        graph_mc.SetPointError(0, 0., err_RN_23)
-        graph_mc.SetPoint(1, 4./3., RN_43)
-        graph_mc.SetPointError(1, 0., err_RN_43)
-        graph_mc.SetMarkerStyle(5)
-        graph_mc.SetMarkerSize(1.3)
-
-        # R = a*q**2 + c
-        a = 9./12.*(RN_43 - RN_23)
-        c = RN_23 - a*4./9.
-        func = TF1("parabola", "[0]*x*x + [1]", -0.1, 1.5)
-        func.SetParameter(0, a)
-        func.SetParameter(1, c)
-        inve = TF1("inverse", "sqrt( (x-[1])/[0] )", 0.001, 1.)
-        inve.SetParameter(0, a)
-        inve.SetParameter(1, c)
-        q_top       = inve.Eval(RN_da)
-        err_m_q_top =   q_top - inve.Eval(RN_da - err_RN_da)
-        err_p_q_top = - q_top + inve.Eval(RN_da + err_RN_da)
-
-        graph_data = TGraphAsymmErrors(2)
-        graph_data.SetPoint(0, 0.03, RN_da)
-        graph_data.SetPointError(0, 0., 0., err_RN_da, err_RN_da)
-        graph_data.SetPoint(1, q_top, 0.0004)
-        graph_data.SetPointError(1, err_m_q_top, err_p_q_top, 0., 0.)
-        graph_data.SetLineWidth(2)
-        graph_data.SetMarkerSize(1.3)
-        graph_data.SetMarkerStyle(20)
-        graph_data.SetLineColor(kRed + 2)
-        graph_data.SetMarkerColor(kRed + 2)
-
-        frame = TGraph(2)
-        frame.SetPoint(0, 0., 0.)
-        frame.SetPoint(1, 1.4, 0.025)
-        frame.SetMarkerColor(kWhite)
-        frame.SetTitle("R_{MC} vs. q_{top}")
-
-        canvas = TCanvas("RN_ratio", "RN_ratio")
-        frame.Draw("AP")
-        func.Draw("same")
-        graph_mc.Draw("P")
-        graph_data.Draw("P")
-
-        canvas.Modified()
-        canvas.Update()
-        canvas.SaveAs(root_style.DIR_PLOTS + "/RN_ratio.root")
-        canvas.SaveAs(root_style.DIR_PLOTS + "/RN_ratio.png")
-
-
+        canvas.SaveAs(root_style.DIR_PLOTS_R + "/R_ratio_" + name + ".root")
+        canvas.SaveAs(root_style.DIR_PLOTS_R + "/R_ratio_" + name + ".eps")
+        canvas.SaveAs(root_style.DIR_PLOTS_R + "/R_ratio_" + name + ".png")
 
 
 

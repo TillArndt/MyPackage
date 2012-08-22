@@ -7,6 +7,10 @@ import FWCore.ParameterSet.Config as cms
 
 cuts = {
     "drjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.5',0.,5.,100,"deltaRjet", ";#DeltaR(photon, jet);Number of photons", 1,'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'),
+    "ptrelDrjet02" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.02;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.02)? pt / overlaps("jets")[0].pt: -0.01'),
+    "ptrelDrjet10" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.1;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.10)? pt / overlaps("jets")[0].pt: -0.01'),
+    "ptrelDrjet30" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.3;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.30)? pt / overlaps("jets")[0].pt: -0.01'),
+    "ptrelDrjet99" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 5.0;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 5.)? pt / overlaps("jets")[0].pt: -0.01'),
     "drmuon" : ('deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.3',0.,5.,100,"deltaRjet", ";#DeltaR(photon, muon);Number of photons", 1,'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'),
     "etcut" : ("et>20", 0, 500, 100, "TransversalEnergy", ";E_{T} / 5 GeV;Number of photons", 1, "et"),
     "eta" : ("(abs(eta)<1.4442 || 1.556<abs(eta)<2.5)", -4, 4, 80, "Eta", ";#eta;Number of photons", 1, "eta"),
@@ -23,7 +27,22 @@ cuts = {
     "hcaliso" : ("hcalTowerSumEtConeDR04<2.2+0.0025*et", 0, 8, 40, "TowerbasedHcalIsolation", ";Towerbased HCAL iso / 0.2 GeV;Number of photons", 1, "hcalTowerSumEtConeDR04"),
     }
 #,"etawidth"
-cut_key_list = ["eta","etcut","drmuon","drjet","haspixelseeds","hadronicoverem","sigmaietaieta","hollowconetrackiso","jurassicecaliso","hcaliso"]
+cut_key_list = [
+    "eta",
+    "etcut",
+    "drmuon",
+#    "ptrelDrjet99",
+#    "drjet",
+    "haspixelseeds",
+    "hadronicoverem",
+    "sigmaietaieta",
+    "ptrelDrjet02",
+    "ptrelDrjet10",
+    "ptrelDrjet30",
+    "hollowconetrackiso",
+    "jurassicecaliso",
+    "hcaliso"
+]
 all_cuts = ""
 for key in cuts:
     all_cuts += cuts[key][0] + " && "

@@ -12,3 +12,4 @@ two2sevenMerger = cms.EDFilter(
 )
 
 ttgammaMergingSequence = cms.Sequence(makeGenEvt * two2sevenMerger)
+

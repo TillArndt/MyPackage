@@ -21,6 +21,7 @@ if __name__ == '__main__':
     # colors
     colors = dict()
     colors["t#bar{t}#gamma #mu+Jets (Signal)"]  = ROOT.kRed + 1
+    colors["t#bar{t}#gamma (Signal)"]           = ROOT.kRed + 1
     colors["t#bar{t} inclusive"]                = ROOT.kAzure + 7
     colors["W + Jets"]                          = ROOT.kSpring + 8
     colors["Z + Jets"]                          = ROOT.kSpring + 5
@@ -34,6 +35,7 @@ if __name__ == '__main__':
     order.append("Data")
     order.append("q_{top} = 4/3")
     order.append("t#bar{t}#gamma #mu+Jets (Signal)")
+    order.append("t#bar{t}#gamma (Signal)")
     order.append("QCD")
     order.append("Z + Jets")
     order.append("W + Jets")
@@ -68,6 +70,7 @@ if __name__ == '__main__':
     #root_style.DIR_PLOTS        = "outputPlots/"
 
     # add postfixes for canvas saving
+    #root_style.canvas_postfixes.append('.eps')
     root_style.canvas_postfixes.append('.png')
 
     # list of post processing tools
@@ -77,12 +80,16 @@ if __name__ == '__main__':
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoStacker import CRHistoStacker
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoPlotter import CRHistoPlotter
     from UserCode.RWTH3b.cmsRunController.tools.CRHistoEfficiencies import CRHistoEfficiencies
+    from UserCode.RWTH3b.cmsRunController.tools.CRTemplateHisto import CRTemplateHisto
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
-    tools.append(CRHistoOverflow)
-    tools.append(CRHistoStacker)
+    from MyPackage.TtGammaAnalysis.myTTGammaAnalysisToolV2 import MyTTGammaAnalysisToolV2
+    #tools.append(CRHistoOverflow)
+    #tools.append(CRHistoStacker)
     #tools.append(CRHistoPlotter)
     #tools.append(CRHistoEfficiencies)
-    tools.append(MyTTGammaAnalysisTool)
+    tools.append(CRTemplateHisto)
+    #tools.append(MyTTGammaAnalysisTool)
+    #tools.append(MyTTGammaAnalysisToolV2)
 
     # search paths for decorators
     modules = []
