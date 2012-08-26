@@ -2,12 +2,11 @@
 import FWCore.ParameterSet.Config as cms
 import MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi as cocPhot
 
-puReweight  = ""
+puWeight = None
 try:
-    puReweight  = crc_var.get("puReweight", puReweight)
+    puWeight  = crc_var.get("puWeight", puWeight)
 except NameError:
     print "<"+__name__+">: crc_var not in __builtin__!"
-
 
 widenedCocPatPhotons = cocPhot.cocPatPhotons.clone(
     src = "patPhotonsPFlow"
@@ -20,14 +19,12 @@ widenedCocPatPhotons.checkOverlaps.muons.requireNoOverlaps = False
 analyzer_Photon = cms.EDAnalyzer(
     "MyPhotonAnalyzer",
     src = cms.InputTag("widenedCocPatPhotons"),
-    weights = cms.untracked.InputTag("puWeight", puReweight)
 )
 
 # record pt before cutting
 analyzer_ET = cms.EDAnalyzer(
     "PATPhotonHistoAnalyzer",
     src = cms.InputTag("photonInputDummy"),
-    weights = cms.untracked.InputTag("puWeight", puReweight),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(         0.),
@@ -39,3 +36,7 @@ analyzer_ET = cms.EDAnalyzer(
         )
     )
 )
+
+if puWeight:
+    analyzer_Photon.weights = puWeight
+    analyzer_ET.weights = puWeight

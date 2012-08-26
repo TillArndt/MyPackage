@@ -84,10 +84,10 @@ if __name__ == '__main__':
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisTool import MyTTGammaAnalysisTool
     from MyPackage.TtGammaAnalysis.myTTGammaAnalysisToolV2 import MyTTGammaAnalysisToolV2
     #tools.append(CRHistoOverflow)
-    #tools.append(CRHistoStacker)
+    tools.append(CRHistoStacker)
     #tools.append(CRHistoPlotter)
     #tools.append(CRHistoEfficiencies)
-    tools.append(CRTemplateHisto)
+    #tools.append(CRTemplateHisto)
     #tools.append(MyTTGammaAnalysisTool)
     #tools.append(MyTTGammaAnalysisToolV2)
 
@@ -103,4 +103,16 @@ if __name__ == '__main__':
     import UserCode.RWTH3b.cmsRunController.classes.CRController as controller
     controller.main(tools)
 
+#TODO: for Version 2.0
 #TODO: read list of tools from ini file
+#TODO: transform ini file to mini language (like for template histos)
+#TODO: HistoWorker: unify get_min_max_values
+#TODO: HistoWorker: do not put final plots in 'final' directory
+#TODO: HistoWorker: use get_canvas_name everywhere
+#TODO: HistoWorker: think about conventions for directories and names
+#TODO: HistoWorker: think about id, which could be a string
+#TODO: HistoWrapper: extra variable for stacks, histo could then be stacksum
+#TODO: Decorators: Identification with HistoWorker id
+#TODO: Decorators: Prepare parameter stuff for GUI!
+#TODO: log file peeker! perhaps shell opener with tail -f
+#TODO: rename TemplateHisto to HistoPlots

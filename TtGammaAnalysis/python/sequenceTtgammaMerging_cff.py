@@ -10,6 +10,14 @@ two2sevenMerger = cms.EDFilter(
     legPtCut = cms.untracked.double(10.),
     filter = cms.bool(True)
 )
+two2sevenMergingSequence = cms.Sequence(makeGenEvt * two2sevenMerger)
 
-ttgammaMergingSequence = cms.Sequence(makeGenEvt * two2sevenMerger)
-
+two2fiveMerger = cms.EDFilter(
+    "Two2FiveMerger",
+    ptCut = cms.double(10.),
+    drCut = cms.double(0.1),
+    is2to5 = cms.untracked.bool(True),
+    legPtCut = cms.untracked.double(10.),
+    filter = cms.bool(True)
+)
+two2fiveMergingSequence = cms.Sequence(makeGenEvt * two2fiveMerger)

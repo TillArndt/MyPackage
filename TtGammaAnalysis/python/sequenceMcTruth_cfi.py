@@ -11,7 +11,7 @@ photonsSignal = cms.EDFilter(
         abs(genParticle.mother.pdgId) = 6 \
         ||\
         (\
-            abs(genParticle.mother.pdgId) = 22 \
+            abs(genParticle.mother.pdgId) =  22 \
             && \
             (\
                 abs(genParticle.mother.mother.daughter(0).pdgId) == 6 \

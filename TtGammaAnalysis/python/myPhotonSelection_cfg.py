@@ -2,25 +2,32 @@
 # fetch variables from CmsRunController
 runOnMC     = True
 legend      = NameError
-useMerging  = False
+useMerging  = ""
 go4Signal   = False
 go4Noise    = False
 on2to3whiz  = False
-puReweight  = ""
+puWeight    = None
+sample      = ""
+makeTemplate= False
 try:
     runOnMC     = not crc_var["isData"]
     legend      = crc_var["legend"]
     useMerging  = crc_var.get("useMerging", useMerging)
     go4Signal   = crc_var.get("go4Signal",go4Signal)
     go4Noise    = crc_var.get("go4Noise",go4Noise)
-    puReweight  = crc_var.get("puReweight", puReweight)
-    sample      = crc_var.get("sample")
-    if sample == "ttgamma_whizard" or sample == "ttgamma_whizard_43":
-        on2to3whiz = True
+    puReweight  = crc_var.get("puWeight", puWeight)
+    sample      = crc_var.get("sample", sample)
+    makeTemplate= crc_var.get("makeTemplate", makeTemplate)
 except NameError:
     print "<"+__name__+">: crc_var not in __builtin__!"
 print "<"+__name__+">: Running On MC:", runOnMC
 print "<"+__name__+">: Samplename is:", legend
+if puWeight:
+    puWeight = cms.untracked.InputTag("puWeight", puWeight)
+    crc_var["puWeight"] = puWeight
+if sample == "two2three" or sample == "two2three_43":
+    puWeight = None
+    on2to3whiz = True
 
 
 import FWCore.ParameterSet.Config as cms
@@ -47,6 +54,7 @@ process.load("MyPackage.TtGammaAnalysis.sequenceHardPhoton_cfi")
 process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
 process.load("MyPackage.PatTupelizer.myBTagRequirement_cfi")
+process.myBTagRequirement.filter = False
 process.load('MyPackage.TtGammaAnalysis.sequenceMcTruth_cfi')
 process.load("MyPackage.TtGammaAnalysis.sequenceTtgammaMerging_cff")
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
@@ -59,12 +67,21 @@ if go4Signal:
     process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * process.photonsSignal)
 if go4Noise:
     process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * ~process.photonsSignal)
-if useMerging:
-    process.preSel.insert(0, process.ttgammaMergingSequence)
+if useMerging == "two2five":
+    process.preSel.insert(0, process.two2fiveMergingSequence)
+if useMerging == "two2seven":
+    process.preSel.insert(0, process.two2sevenMergingSequence)
 
 
 
 # Number of Vertices
+process.vertexHisto = cms.EDAnalyzer(
+    "MyVertexCountHisto",
+    src = cms.InputTag("offlinePrimaryVertices"),
+)
+process.vertexHistoGood = process.vertexHisto.clone(
+    src = cms.InputTag("goodOfflinePrimaryVertices"),
+)
 process.vertexHisto1BX = cms.EDAnalyzer(
     "MyVertexCountHisto",
     src = cms.InputTag("offlinePrimaryVertices"),
@@ -79,7 +96,6 @@ process.vertexHistoGood1BX  = process.vertexHisto1BX.clone(
 process.vertexHistoGood3D   = process.vertexHistoGood1BX.clone(
     weights = cms.untracked.InputTag("puWeight", "Reweight3D")
 )
-
 
 # Path declarations
 process.producerPath = cms.Path(
@@ -103,6 +119,8 @@ process.overlapsPath = cms.Path(
 
 process.vtxMultPath = cms.Path(
     process.preSel
+    * process.vertexHisto
+    * process.vertexHistoGood
     * process.vertexHisto1BX
     * process.vertexHisto3D
     * process.vertexHistoGood1BX
@@ -121,9 +139,10 @@ nMinusOnePaths = add_photon_cuts(process)
 process.analyzeSelection=cms.EDAnalyzer(
     "CheckSelection",
     processName=cms.string("myPhoSel"),
-    pathNames=cms.vstring("selectionPath"),
-    weights=cms.untracked.InputTag("puWeight", puReweight)
+    pathNames=cms.vstring("selectionPath")
 )
+if puWeight:
+    process.analyzeSelection.weights = puWeight
 
 from MyPackage.TtGammaAnalysis.selectionTool import runSelectionTool
 names=cms.vstring()
@@ -146,8 +165,9 @@ process.selAnalyze = cms.EndPath(process.analyzeSelection)
 process.schedule = cms.Schedule(
     process.producerPath,
     process.selectionPath,
-    process.overlapsPath,
+    process.overlapsPath
 )
+
 if not on2to3whiz:
     process.schedule.append(process.vtxMultPath)
 
@@ -167,4 +187,17 @@ if not runOnMC:
         process.cocFilter,
         process.cocFilter * process.eventIDPrinter
     )
+
+# TEMPLATE FIT TEMPLATE CREATION
+if makeTemplate:
+    process.load("MyPackage.TtGammaAnalysis.TemplateCreator")
+    process.templatePath.insert(0, process.preSel)
+    process.schedule.append(process.templatePath)
+if not runOnMC:
+    process.load("MyPackage.TtGammaAnalysis.TemplateCreator")
+    process.templatePathData.insert(0, process.preSel)
+    process.schedule.append(process.templatePathData)
+
+
+
 

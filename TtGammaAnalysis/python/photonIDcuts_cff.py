@@ -1,5 +1,13 @@
 
+puWeight = None
+try:
+    puWeight  = crc_var.get("puWeight", puWeight)
+except NameError:
+    print "<"+__name__+">: crc_var not in __builtin__!"
+
+
 import FWCore.ParameterSet.Config as cms
+
 
 ################## n-1 Cuts
 
@@ -35,13 +43,13 @@ cut_key_list = [
 #    "drjet",
     "haspixelseeds",
     "hadronicoverem",
-    "sigmaietaieta",
-    "ptrelDrjet02",
-    "ptrelDrjet10",
-    "ptrelDrjet30",
-    "hollowconetrackiso",
     "jurassicecaliso",
-    "hcaliso"
+    "hcaliso",
+    "sigmaietaieta",
+    "hollowconetrackiso",
+#    "ptrelDrjet02",
+#    "ptrelDrjet10",
+#    "ptrelDrjet30",
 ]
 all_cuts = ""
 for key in cuts:
@@ -49,7 +57,7 @@ for key in cuts:
 print "\nALL CUTS:\n" + str(all_cuts) + "\n\n"
 
 def make_plot(src, key):
-    ControlPlot=cms.EDAnalyzer(
+    histoAnalyzer=cms.EDAnalyzer(
         "CandViewHistoAnalyzer",
         src = cms.InputTag(src),
         histograms = cms.VPSet(
@@ -64,7 +72,9 @@ def make_plot(src, key):
             )
         )
     )
-    return ControlPlot
+    if puWeight:
+        histoAnalyzer.weights = puWeight
+    return histoAnalyzer
 
 def add_photon_cuts(process):
 
