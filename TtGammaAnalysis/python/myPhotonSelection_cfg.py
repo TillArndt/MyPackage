@@ -8,7 +8,6 @@ go4Noise    = False
 on2to3whiz  = False
 puWeight    = None
 sample      = ""
-makeTemplate= False
 try:
     runOnMC     = not crc_var["isData"]
     legend      = crc_var["legend"]
@@ -17,7 +16,6 @@ try:
     go4Noise    = crc_var.get("go4Noise",go4Noise)
     puReweight  = crc_var.get("puWeight", puWeight)
     sample      = crc_var.get("sample", sample)
-    makeTemplate= crc_var.get("makeTemplate", makeTemplate)
 except NameError:
     print "<"+__name__+">: crc_var not in __builtin__!"
 print "<"+__name__+">: Running On MC:", runOnMC
@@ -34,7 +32,8 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('myPhoSel')
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring( 'file:/net/data_cms/institut_3b/tholen/subsamples_Background/semiMuonBG.root' )
+    fileNames = cms.untracked.vstring( '' ),
+    eventsToSkip = cms.untracked.VEventRange('1:9672902-1:9672902')
 )
 
 process.TFileService = cms.Service("TFileService",
@@ -54,7 +53,7 @@ process.load("MyPackage.TtGammaAnalysis.sequenceHardPhoton_cfi")
 process.load("MyPackage.TtGammaAnalysis.sequenceCocPatPhoton_cfi")
 process.load("MyPackage.TtGammaAnalysis.pathOverlaps_cff")
 process.load("MyPackage.PatTupelizer.myBTagRequirement_cfi")
-process.myBTagRequirement.filter = False
+process.myBTagRequirement.filter = True
 process.load('MyPackage.TtGammaAnalysis.sequenceMcTruth_cfi')
 process.load("MyPackage.TtGammaAnalysis.sequenceTtgammaMerging_cff")
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
@@ -67,10 +66,14 @@ if go4Signal:
     process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * process.photonsSignal)
 if go4Noise:
     process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * ~process.photonsSignal)
+if useMerging == "two2three":
+    process.preSel.insert(0, process.two2threeMergingSequence)
 if useMerging == "two2five":
     process.preSel.insert(0, process.two2fiveMergingSequence)
 if useMerging == "two2seven":
     process.preSel.insert(0, process.two2sevenMergingSequence)
+if sample == "semiMuonSigTwo2Three" or sample == "semiMuonSigTwo2Five":
+    process.preSel.replace(process.photonsSignal, process.photonsSignalTwo2Seven)
 
 
 
@@ -87,7 +90,7 @@ process.vertexHisto1BX = cms.EDAnalyzer(
     src = cms.InputTag("offlinePrimaryVertices"),
     weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
 )
-process.vertexHisto3D       = process.vertexHisto1BX.clone(
+process.vertexHisto3D = process.vertexHisto1BX.clone(
     weights = cms.untracked.InputTag("puWeight", "Reweight3D")
 )
 process.vertexHistoGood1BX  = process.vertexHisto1BX.clone(
@@ -168,7 +171,7 @@ process.schedule = cms.Schedule(
     process.overlapsPath
 )
 
-if not on2to3whiz:
+if puWeight:
     process.schedule.append(process.vtxMultPath)
 
 for path in nMinusOnePaths:
@@ -189,15 +192,17 @@ if not runOnMC:
     )
 
 # TEMPLATE FIT TEMPLATE CREATION
-if makeTemplate:
+if runOnMC:
     process.load("MyPackage.TtGammaAnalysis.TemplateCreator")
     process.templatePath.insert(0, process.preSel)
     process.schedule.append(process.templatePath)
-if not runOnMC:
+else:
     process.load("MyPackage.TtGammaAnalysis.TemplateCreator")
     process.templatePathData.insert(0, process.preSel)
     process.schedule.append(process.templatePathData)
 
-
+# disable duplicateCheckMode
+if sample == "two2three":
+    process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
 
 

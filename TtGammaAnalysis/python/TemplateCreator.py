@@ -7,7 +7,7 @@ except NameError:
     print "<"+__name__+">: crc_var not in __builtin__!"
 
 
-templateBase = "PhotonProducerhcaliso"
+templateBase = "PhotonProducerhollowconetrackiso"
 import FWCore.ParameterSet.Config as cms
 
 matched = 'genParticlesSize>0'
@@ -43,7 +43,7 @@ matchedTemplate = cms.EDAnalyzer(
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(0.09),
+            max          = cms.untracked.double(0.08),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('sihih'),
             description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons'),
@@ -52,13 +52,22 @@ matchedTemplate = cms.EDAnalyzer(
         ),
         cms.PSet(
             min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(40.),
+            max          = cms.untracked.double(0.08),
             nbins        = cms.untracked.int32 (80),
-            name         = cms.untracked.string('HoCoTrkIso'),
-            description  = cms.untracked.string(';hollow cone track isolation / GeV;number of photons'),
+            name         = cms.untracked.string('sihihEE'),
+            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons (endcap)'),
             lazyParsing  = cms.untracked.bool(True),
-            plotquantity = cms.untracked.string('trkSumPtHollowConeDR04')
-        )
+            plotquantity = cms.untracked.string('?abs(eta) > 1.5? sigmaIetaIeta: -0.1')
+        ),
+        cms.PSet(
+            min          = cms.untracked.double(0.),
+            max          = cms.untracked.double(0.08),
+            nbins        = cms.untracked.int32 (80),
+            name         = cms.untracked.string('sihihEB'),
+            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons (barrel)'),
+            lazyParsing  = cms.untracked.bool(True),
+            plotquantity = cms.untracked.string('?abs(eta) < 1.5? sigmaIetaIeta: -0.1')
+        ),
     )
 )
 if puWeight:

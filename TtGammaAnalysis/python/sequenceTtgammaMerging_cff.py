@@ -21,3 +21,8 @@ two2fiveMerger = cms.EDFilter(
     filter = cms.bool(True)
 )
 two2fiveMergingSequence = cms.Sequence(makeGenEvt * two2fiveMerger)
+
+two2threeMerger = two2fiveMerger.clone(
+    is2to5 = cms.untracked.bool(False)
+)
+two2threeMergingSequence = cms.Sequence(makeGenEvt * two2threeMerger)
