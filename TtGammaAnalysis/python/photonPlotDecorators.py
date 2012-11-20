@@ -64,20 +64,20 @@ class CRSingleStacker_cutflow_analyzeSelection_cutflow(CRDecorator):
         rp.dec_par["y_min"] = 0.5
         rp.dec_par["y_max"] = 1.8
 
-        ar = self.insert_decorator("CRAxisRangeX")
-        ar.dec_par["low"] = 0
-        ar.dec_par["high"] = 10
+#        ar = self.insert_decorator("CRAxisRangeX")
+#        ar.dec_par["low"] = 0
+#        ar.dec_par["high"] = 10
 
         self.decoratee.configure()
 
 
 class CRSingleTemplateHistoWorker_compare357_NoShower_analyzeSelection_cutflow(CRDecorator):
 
-    def configure(self):
-        ar = self.insert_decorator("CRAxisRangeX")
-        ar.dec_par["low"] = 0
-        ar.dec_par["high"] = 10
-        self.decoratee.configure()
+#    def configure(self):
+#        ar = self.insert_decorator("CRAxisRangeX")
+#        ar.dec_par["low"] = 0
+#        ar.dec_par["high"] = 10
+#        self.decoratee.configure()
 
     def do_final_cosmetics(self):
         self.decoratee.do_final_cosmetics()
@@ -88,4 +88,29 @@ class CRSingleTemplateHistoWorker_compare357_NoShower_analyzeSelection_cutflow(C
 class CRSingleTemplateHistoWorker_compare357_YesShower_analyzeSelection_cutflow(
     CRSingleTemplateHistoWorker_compare357_NoShower_analyzeSelection_cutflow
 ): pass
+
+
+from ROOT import TCanvas
+
+class AdjustRatioInShowerThree(CRDecorator):
+
+    def configure(self):
+        canvas_name = self.get_canvas_name()
+        if canvas_name.count("ShowerThree"):
+            ratio_dec = self.get_decorator("CRRatioHistoPlotter")
+            if canvas_name.count("cutflow"):
+                ratio_dec.dec_par["y_min"] = 1.5
+                ratio_dec.dec_par["y_max"] = 4.5
+            else:
+                ratio_dec.dec_par["y_min"] = 1.
+                ratio_dec.dec_par["y_max"] = 5.5
+
+        self.decoratee.configure()
+
+
+    def draw_full_plot(self):
+        name = self.get_canvas_name()
+        self.canvas = TCanvas(name, name, 500, 500)
+        self.main_pad = self.canvas
+        self.decoratee.draw_full_plot()
 

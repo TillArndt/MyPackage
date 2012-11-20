@@ -61,7 +61,7 @@ if __name__ == '__main__':
     pn["PhotonFilthadronicoverem"]      = "H/E"
     pn["PhotonFiltdrjet"]               = "#DeltaR(photon, jet)"
     pn["PhotonFiltdrmuon"]              = "#DeltaR(photon, #mu)"
-    pn["PhotonFiltptrelDrjet"]          = "p_{T,photon} / p_{T,jet}"
+    pn["PhotonFiltptrelDrjet"]          = "E_{T,photon} / p_{T,jet}"
     root_style.set_pretty_names(pn)
 
     # change directory names

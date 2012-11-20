@@ -18,10 +18,10 @@ cuts = {
     #"ptrelDrjet30" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.3;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.30)? pt / overlaps("jets")[0].pt: -0.01'),
     #"ptrelDrjet99" : ('1.<2.',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 5.0;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 5.)? pt / overlaps("jets")[0].pt: -0.01'),
     "eta" : ("abs(eta)<1.4442 || 1.556<abs(eta)<2.5", -4, 4, 80, "Eta", ";#eta;Number of photons", 1, "eta"), # PLUS SPIKE CLEANING
-    "etcut" : ("et>20", 0, 500, 100, "TransversalEnergy", ";E_{T} / 5 GeV;Number of photons", 1, "et"),
+    "etcut" : ("et>20", 0, 500, 100, "TransversalEnergy", ";E_{T} / GeV;Number of photons", 1, "et"),
     "drmuon" : ('deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.3',0.,5.,100,"deltaRjet", ";#DeltaR(photon, muon);Number of photons", 1,'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'),
     "drjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.5 || deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15',0.,5.,100,"deltaRjet", ";#DeltaR(photon, jet);Number of photons", 1,'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'),
-    "ptrelDrjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15 && pt / overlaps("jets")[0].pt > 0.7',0.,1.1,100,"ptreldeltaRjet05", ";p_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'),
+    "ptrelDrjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15 && pt / overlaps("jets")[0].pt > 0.75',0.,1.1,100,"ptreldeltaRjet05", ";E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15;Number of photons", 1,'?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'),
     "etabarrel" : ("abs(eta)<1.4442", -4, 4, 80, "EtaBarrel", "Eta;#eta;Number of photons", 1, "eta"),
     "etaendcap" : ("1.556<abs(eta)<2.5",-4, 4, 80, "EtaEndcap", "Eta;#eta;Number of photons", 1, "eta"),
     "hadronicoverem" : ("hadronicOverEm<0.05", 0, 0.2, 80, "HadronicOverEm", ";H/E;Number of photons", 1, "hadronicOverEm"),
@@ -32,9 +32,9 @@ cuts = {
     "sigmaietaieta" : ("(sigmaIetaIeta<0.011 || (abs(eta)>1.5 && sigmaIetaIeta<0.03))",0, 0.09,40,"SigmaIetaIeta", ";#sigma_{i #eta i #eta}; Number of photons", 1, "sigmaIetaIeta"),
     "sigmaietaietaEE" : ("1<2",0, 0.09,40,"SigmaIetaIeta", ";#sigma_{i #eta i #eta}; Number of photons in Endcap", 1, "?abs(eta) > 1.5? sigmaIetaIeta: -0.1"),
     "sigmaietaietaEB" : ("1<2",0, 0.09,40,"SigmaIetaIeta", ";#sigma_{i #eta i #eta}; Number of photons in Barrel", 1, "?abs(eta) < 1.5? sigmaIetaIeta: -0.1"),
-    "hollowconetrackiso" : ("trkSumPtHollowConeDR04<2+0.001*et", 0, 30, 60, "HollowConeTrackIso", ";Hollow cone track iso / 0.5 GeV;Number of photons", 1, "trkSumPtHollowConeDR04"),
-    "jurassicecaliso" : ("ecalRecHitSumEtConeDR04<4.2+0.006*et", 0, 30, 60 , "JurassicECALIso", ";Jurassic ECAL iso / 0.5 GeV;Number of photons", 1, "ecalRecHitSumEtConeDR04"),
-    "hcaliso" : ("hcalTowerSumEtConeDR04<2.2+0.0025*et", 0, 16, 80, "TowerbasedHcalIsolation", ";Towerbased HCAL iso / 0.2 GeV;Number of photons", 1, "hcalTowerSumEtConeDR04"),
+    "hollowconetrackiso" : ("trkSumPtHollowConeDR04<2+0.001*et", 0, 30, 60, "HollowConeTrackIso", ";Hollow cone track iso / GeV;Number of photons", 1, "trkSumPtHollowConeDR04"),
+    "jurassicecaliso" : ("ecalRecHitSumEtConeDR04<4.2+0.006*et", 0, 30, 60 , "JurassicECALIso", ";Jurassic ECAL iso / GeV;Number of photons", 1, "ecalRecHitSumEtConeDR04"),
+    "hcaliso" : ("hcalTowerSumEtConeDR04<2.2+0.0025*et", 0, 16, 80, "TowerbasedHcalIsolation", ";Towerbased HCAL iso / GeV;Number of photons", 1, "hcalTowerSumEtConeDR04"),
     }
 #,"etawidth"
 cut_key_list = [
