@@ -32,38 +32,10 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
 
 #add pileUpInfo
-#from MyPackage.PatTupelizer.pileUpWeights_cfi import get_weights
-#process.puWeight = get_weights("/net/data_cms/institut_3b/tholen/pileUpReweight/")
-#process.p.replace(process.myHLTFilt, process.myHLTFilt * process.puWeight)
 process.out.outputCommands.append("keep *_*ddPileupInfo*_*_*")
+process.out.outputCommands.append("keep *_*ertex*_*_*")
 process.out.outputCommands.append("keep *_*eight*_*_*")
 
-# Number of Vertices test
-process.vertexHisto1BX = cms.EDAnalyzer(
-    "MyVertexCountHisto",
-    src = cms.InputTag("offlinePrimaryVertices"),
-    weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
-)
-process.vertexHisto3D       = process.vertexHisto1BX.clone(
-   weights = cms.untracked.InputTag("puWeight", "Reweight3D")
-)
-process.vertexHistoGood1BX  = process.vertexHisto1BX.clone(
-    src = cms.InputTag("goodOfflinePrimaryVertices"),
-)
-process.vertexHistoGood3D   = process.vertexHistoGood1BX.clone(
-    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
-)
-
-process.vtxMultSeq = cms.Sequence(
-    process.vertexHisto1BX
-    * process.vertexHisto3D
-    * process.vertexHistoGood1BX
-    * process.vertexHistoGood3D
-)
-#process.p += process.vtxMultSeq
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('TFILESERVICEmyPatTupelizer.root')
-)
 
 #add patPhotons
 process.out.outputCommands.append("keep *_patPhotons*_*_*")
@@ -134,5 +106,3 @@ if runOnMC:
     )
 
 #process.schedule = cms.Schedule(process.p, process.vtxMultPath)
-
-process.p.remove(process.patMETsPFlow)

@@ -1,6 +1,6 @@
 
 isData = False
-noBTag = False
+noBTag = True
 try:
     isData = crc_var.get("isData", isData)
     noBTag = crc_var.get("noBTag", noBTag)
