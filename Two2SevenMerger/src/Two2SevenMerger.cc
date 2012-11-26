@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Wed May 23 20:38:31 CEST 2012
-// $Id: Two2SevenMerger.cc,v 1.2 2012/05/30 12:08:37 htholen Exp $
+// $Id: Two2SevenMerger.cc,v 1.3 2012/06/05 22:09:46 htholen Exp $
 //
 //
 
@@ -122,7 +122,7 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     Handle<TtGenEvent> ttGenEvent;
     iEvent.getByLabel(InputTag("genEvt"), ttGenEvent);
 
-    // if not semimuonic, this is surely not simulated in ttgamma ME
+    // if not semimuonic, this is surely not simulated in ttgamma 2 to 7 ME
     if (!ttGenEvent->isTtBar()) return true;
     if (!ttGenEvent->isSemiLeptonic(WDecay::kMuon)) return true;
 
@@ -157,6 +157,11 @@ Two2SevenMerger::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     all.push_back(tlep);
     all.push_back(thad);
+    for (unsigned i = 0; i < tlep->numberOfMothers(); ++i)
+        all.push_back((GenParticle*)tlep->mother(i));
+    for (unsigned i = 0; i < thad->numberOfMothers(); ++i)
+        all.push_back((GenParticle*) thad->mother(i));
+
 
     // check legs pt cut (which is 0. by default)
     if (legPtCut_ > 1e-43 && is2to7_) {
