@@ -37,12 +37,13 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.2 $'),
+    version = cms.untracked.string('$Revision: 1.303.2.7 $'),
     annotation = cms.untracked.string('MyPackage/GenProduction/python/Hadronizer_MgmMatchTune4C_7TeV_madgraph_pythia8_cff.py nevts:-1'),
     name = cms.untracked.string('PyReleaseValidation')
 )
 
 # Output definition
+
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
     outputCommands = process.AODSIMEventContent.outputCommands,
@@ -55,6 +56,8 @@ process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
         SelectEvents = cms.vstring('generation_step')
     )
 )
+
+# Additional output definition
 
 # Other statements
 process.famosSimHits.SimulateCalorimetry = True
@@ -88,17 +91,6 @@ process.generation_step = cms.Path(process.pgen_genonly)
 process.reconstruction = cms.Path(process.reconstructionWithFamos)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.AODSIMoutput_step = cms.EndPath(process.AODSIMoutput)
-
-# Additional output definition
-import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt
-process.myHLTFilt = hlt.hltHighLevel.clone(TriggerResultsTag = "TriggerResults::HLT",
-                                           HLTPaths = cms.vstring('HLT_IsoMu24_*'))
-#Doesn't really work HLT info not present at this point.
-#process.reconstruction.insert(0, process.myHLTFilt)
-
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('TFILESERVICEmyGenProduction.root')
-)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step)
