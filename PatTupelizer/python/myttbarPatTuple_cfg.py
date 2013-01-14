@@ -9,7 +9,7 @@ print "<myttbarPatTuple_cfg>: Running On MC:", runOnMC
 
 
 
-from MyPackage.PatTupelizer.myttbarSelection_cfg import *
+from MyPackage.PatTupelizer.patRefSel_muJets_cfg import *
 
 #remove cleaning (later done in photon selection)
 from PhysicsTools.PatAlgos.tools.coreTools import *
@@ -19,8 +19,6 @@ removeCleaning(process)
 process.out.outputCommands.append("keep *_*hoton*_*_*")
 process.out.outputCommands.append("keep *_*Pat*_*_*")
 process.out.outputCommands.append("keep *_*pat*_*_*")
-process.out.outputCommands.append("keep *_myGoodJets_*_*")
-process.out.outputCommands.append("drop *_*_*_PAT")
 process.out.outputCommands.append("keep *_*ffline*_*_*")
 if runOnMC:
     process.out.outputCommands.append("keep *_*genParticle*_*_*")
@@ -45,7 +43,7 @@ process.vertexHisto1BX = cms.EDAnalyzer(
     weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
 )
 process.vertexHisto3D       = process.vertexHisto1BX.clone(
-   weights = cms.untracked.InputTag("puWeight", "Reweight3D")
+    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
 )
 process.vertexHistoGood1BX  = process.vertexHisto1BX.clone(
     src = cms.InputTag("goodOfflinePrimaryVertices"),
