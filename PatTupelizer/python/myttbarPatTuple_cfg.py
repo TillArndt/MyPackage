@@ -1,9 +1,11 @@
 
 runOnMC = True
+fastsim_workaround = False
 try:
-    runOnMC = not crc_var["isData"]
+    runOnMC            = not cms_var["is_data"]
+    fastsim_workaround = "two2seven" in cms_var.get("sample")
 except NameError:
-    print "<myttbarPatTuple_cfg>: crc_var not in __builtin__!"
+    print "<myttbarPatTuple_cfg>: cms_var not in __builtin__!"
 print "<myttbarPatTuple_cfg>: Running On MC:", runOnMC
 
 
@@ -27,7 +29,7 @@ if runOnMC:
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 #photonMatch resolve by best Quality
-process.photonMatchPFlow.resolveByMatchQuality = cms.bool(True)
+process.photonMatchPF.resolveByMatchQuality = cms.bool(True)
 
 #add pileUpInfo
 #from MyPackage.PatTupelizer.pileUpWeights_cfi import get_weights
@@ -66,16 +68,16 @@ process.TFileService = cms.Service("TFileService",
 #add patPhotons
 process.out.outputCommands.append("keep *_patPhotons*_*_*")
 if runOnMC:
-    process.p.replace(process.photonMatchPFlow, process.photonMatchPFlow * process.patPhotonsPFlow)
+    process.p.replace(process.photonMatchPF, process.photonMatchPF * process.patPhotonsPF)
 else:
     process.load("PhysicsTools.PatAlgos.producersLayer1.photonProducer_cfi")
-    process.patPhotonsPFlow = process.patPhotons.clone(
+    process.patPhotonsPF = process.patPhotons.clone(
         addGenMatch = cms.bool(False)
     )
-    process.p.replace(process.pfAllPhotonsPFlow, process.pfAllPhotonsPFlow * process.patPhotonsPFlow)
+    process.p.replace(process.pfAllPhotonsPF, process.pfAllPhotonsPF * process.patPhotonsPF)
 
 #some extra matching
-process.photonMatchOthersPFlow = process.photonMatchPFlow.clone(
+process.photonMatchOthersPF = process.photonMatchPF.clone(
     mcPdgId     = cms.vint32(13, 21, 11, 1,2,3,4,5,6,
                             221,                        # eta 
                             211,                        # pion 
@@ -97,7 +99,7 @@ process.photonMatchOthersPFlow = process.photonMatchPFlow.clone(
 )
 
 
-process.photonMatchAllPFlow = process.photonMatchOthersPFlow.clone(
+process.photonMatchAllPF = process.photonMatchOthersPF.clone(
     mcPdgId     = cms.vint32(22,
                             13, 21, 11, 1,2,3,4,5,6,
                             221,                        # eta 
@@ -113,24 +115,35 @@ process.photonMatchAllPFlow = process.photonMatchOthersPFlow.clone(
                             111),                       # pion 0
 )
 
-process.patPhotonsOthersMatchPFlow = process.patPhotonsPFlow.clone(
-    genParticleMatch = cms.InputTag("photonMatchOthersPFlow")
+process.patPhotonsOthersMatchPF = process.patPhotonsPF.clone(
+    genParticleMatch = cms.InputTag("photonMatchOthersPF")
 )
 
-process.patPhotonsAllMatchPFlow = process.patPhotonsPFlow.clone(
-    genParticleMatch = cms.InputTag("photonMatchAllPFlow")
+process.patPhotonsAllMatchPF = process.patPhotonsPF.clone(
+    genParticleMatch = cms.InputTag("photonMatchAllPF")
 )
 
 if runOnMC:
     process.p.replace(
-        process.patPhotonsPFlow, 
-        process.patPhotonsPFlow 
-        * process.photonMatchOthersPFlow 
-        * process.photonMatchAllPFlow
-        * process.patPhotonsOthersMatchPFlow 
-        * process.patPhotonsAllMatchPFlow
+        process.patPhotonsPF, 
+        process.patPhotonsPF 
+        * process.photonMatchOthersPF 
+        * process.photonMatchAllPF
+        * process.patPhotonsOthersMatchPF 
+        * process.patPhotonsAllMatchPF
     )
 
 #process.schedule = cms.Schedule(process.p, process.vtxMultPath)
+ 
+process.p.remove(process.patMETsPF)
 
-process.p.remove(process.patMETsPFlow)
+
+# temporary workaround (NEED BETTER FASTSIM):
+if fastsim_workaround:
+    # original: HLT_IsoMu20_eta2p1_TriCentralPFJet30_v2
+    process.step0a.triggerConditions = ["HLT_IsoMu20_eta2p1_v7"]
+    # remove HCAL noise filter
+    process.p.remove(process.HBHENoiseFilter)
+
+
+
