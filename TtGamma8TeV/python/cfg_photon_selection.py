@@ -50,12 +50,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # input and presel
 process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
-process.BTagRequirement = cms.EDFilter(
-    "PATJetRefSelector",
-    src = cms.InputTag("selectedPatJetsPF"),
-    cut = cms.string('bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679'),
-    filter = cms.bool(True)
-)
+process.load("MyPackage.TtGamma8TeV.cfi_bTagRequirement")
 process.load('MyPackage.TtGamma8TeV.cfi_mcTruth')
 #process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",

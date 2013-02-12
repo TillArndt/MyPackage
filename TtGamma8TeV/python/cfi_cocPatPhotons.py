@@ -5,7 +5,7 @@ import FWCore.ParameterSet.Config as cms
 #PRODUCERS
 # cross object clean
 cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
-    src = cms.InputTag("largeEtPhotons"),
+    src = cms.InputTag(""),
     preselection = cms.string(''),
 
     # overlap checking configurables
@@ -33,7 +33,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
 )
 
 widenedCocPatPhotons = cocPatPhotons.clone(
-    src = "patPhotonsPF"
+    src = "PhotonUserData"
 )
 widenedCocPatPhotons.checkOverlaps.jets.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.muons.deltaR = 50000.0
