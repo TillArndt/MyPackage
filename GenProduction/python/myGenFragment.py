@@ -5,7 +5,7 @@ generator = cms.EDFilter("Pythia6HadronizerFilter",
     maxEventsToPrint = cms.untracked.int32(0),
     pythiaPylistVerbosity = cms.untracked.int32(0),
     filterEfficiency = cms.untracked.double(0.254),
-    comEnergy = cms.double(7000.0),
+    comEnergy = cms.double(8000.0),
     PythiaParameters = cms.PSet(
         pythiaUESettingsBlock,
         processParameters = cms.vstring('MSEL=0         ! User defined processes',

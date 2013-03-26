@@ -594,7 +594,7 @@ process.selectedPatElectronsPF.cut = 'pt > 20. && abs(eta) < 2.5 && electronID("
 
 from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
 runMEtUncertainties(process, 
-  electronCollection = cms.InputTag("selectedPatElectronsPF"), 
+  electronCollection = cms.InputTag("selectedPatElectronsPF"),
   jetCollection="patJetsPF", 
   muonCollection = cms.InputTag("selectedPatMuonsPF"), 
   tauCollection = cms.InputTag("selectedPatTausPF") 

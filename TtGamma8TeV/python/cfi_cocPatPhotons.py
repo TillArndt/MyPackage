@@ -33,7 +33,8 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
 )
 
 widenedCocPatPhotons = cocPatPhotons.clone(
-    src = "PhotonUserData"
+#    src = "photonUserData"
+    src = "patPhotonsPF"
 )
 widenedCocPatPhotons.checkOverlaps.jets.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.muons.deltaR = 50000.0

@@ -3,11 +3,19 @@ import cmstoolsac3b.sample as smp
 
 path = "file:/disk1/tholen/eventFiles/fromGrid20130117/"
 
-class TTbar(smp.Sample):
+class TTbarSig(smp.Sample):
+    legend = "t#bar{t}#gamma #mu+Jets (Signal)"
+    x_sec  = 225.197
+    n_events = 6736135
+    input_files = path + "TTbar.root"
+    cfg_builtin = {"preSelOpt":"go4Signal"}
+
+class TTbarBG(smp.Sample):
     legend = "t#bar{t} inclusive"
     x_sec  = 225.197
     n_events = 6736135
     input_files = path + "TTbar.root"
+    cfg_builtin = {"preSelOpt":"go4Noise"}
 
 class WJets(smp.Sample):
     legend = "W + Jets"

@@ -20,7 +20,8 @@ cuts = {
     "PREdrmuon" : ('1<2',0.,5.,100, "#DeltaR(photon, muon)",'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'),
     "PREdrjet" : ('1<2',0.,5.,100, "#DeltaR(photon, jet)", 'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'),
     "PREptrelDrjet" : ('1<2',0.,1.1,100, "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15", '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'),
-    "POSTet" : ("1<2", 0, 700, 140, "E_{T} / GeV", "et"),
+    "POSTet" : ("1<2", 0, 700, 35, "E_{T} / GeV", "et"),
+    "POSTeta" : ("1<2", -4., 4., 40, "#eta", "eta"),
     "POSTdrmuon" : ('1<2',0.,5.,100, "#DeltaR(photon, muon)",'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'),
     "POSTdrjet" : ('1<2',0.,5.,100, "#DeltaR(photon, jet)", 'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'),
     "POSTptrelDrjet" : ('1<2',0.,1.1,100, "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15", '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'),
@@ -35,19 +36,17 @@ cuts = {
     "etcut" : ("et>15", 0, 700, 140, "E_{T} / GeV", "et"),
 
 # ZE OFFICIAL PHOTON ID
-    # CONVERSION SAFE: bool passelectronveto = !ConversionTools::hasMatchedPromptElectron(ph->superCluster(), hElectrons, hConversions, beamspot.position());
-    # CONVERSION SAFE: bool passelectronveto = !ConversionTools::hasMatchedPromptElectron(ph->superCluster(), hElectrons, hConversions, beamspot.position());
-    # CONVERSION SAFE: bool passelectronveto = !ConversionTools::hasMatchedPromptElectron(ph->superCluster(), hElectrons, hConversions, beamspot.position());
-    # CONVERSION SAFE: bool passelectronveto = !ConversionTools::hasMatchedPromptElectron(ph->superCluster(), hElectrons, hConversions, beamspot.position());
-    # CONVERSION SAFE: bool passelectronveto = !ConversionTools::hasMatchedPromptElectron(ph->superCluster(), hElectrons, hConversions, beamspot.position());
+    "passEleVeto" : ("userFloat('passEleVeto') > 0.5", -.5, 1.5, 2, "passes conv. ele. veto", "userFloat('passEleVeto')"),
 	"hadTowOverEm" : ("hadTowOverEm<0.05", 0., 4., 80, "H/E", "hadTowOverEm"),
 	"sihihEB" : ("sigmaIetaIeta<0.011", 0., 10., 80, "#sigma_{i #eta i #eta}", "sigmaIetaIeta"), # EE: 0.031
 	"chargedHadronIsoEB" : ("chargedHadronIso<0.7", 0., 10., 80, "PF charged hadron isolation", "chargedHadronIso"), # EE: 0.5
 	"neutralHadronIsoEB" : ("neutralHadronIso<(0.4 + 0.04*pt)", 0., 10., 80, "PF neutral hadron isolation", "neutralHadronIso"), # EE: 1.5 + 0.04*pt
 	"photonIsoEB" : ("photonIso<(0.5 + 0.005*pt)", 0., 10., 80, "PF photon isolation", "photonIso"), # EE: 1.0 + 0.005*pt
-# ARE THE ISOLATIONS RHO CORRECTED BY PF2PAT???
+
+# ARE THE ISOLATIONS RHO CORRECTED BY PF2PAT??? NO!!
 # PU !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # OVERLAP REMOVAL
+# PLOTTING: *LEGEND *LOGSCALE
     }
 
 cut_key_list = [
@@ -60,12 +59,14 @@ cut_key_list = [
     #"drmuon",
     #"drjet",
     #"ptrelDrjet",
+    #"passEleVeto",
     "hadTowOverEm",
     "sihihEB",
     "chargedHadronIsoEB",
     "neutralHadronIsoEB",
     "photonIsoEB",
     "POSTet",
+    "POSTeta",
     "POSTdrmuon",
     "POSTdrjet",
     "POSTptrelDrjet",

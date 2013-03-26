@@ -1,8 +1,8 @@
 
 cmsDriver.py \
 MyPackage/GenProduction/python/MyHadronizer8TeV_cff.py \
--s GEN,FASTSIM,HLT:7E33v4 \
---conditions auto:startup_7E33v4 \
+-s GEN,FASTSIM,HLT:8E33v1 \
+--conditions auto:startup_8E33v1 \
 --pileup=2012_Summer_inTimeOnly \
 --eventcontent=AODSIM \
 --filetype=LHE \

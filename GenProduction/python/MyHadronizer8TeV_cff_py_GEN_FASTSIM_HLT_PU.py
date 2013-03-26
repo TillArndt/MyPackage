@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.381.2.13 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/PyReleaseValidation/python/ConfigBuilder.py,v 
-# with command line options: MyPackage/GenProduction/python/MyHadronizer8TeV_cff.py -s GEN,FASTSIM,HLT:7E33v4 --conditions auto:startup_7E33v4 --pileup=2012_Summer_inTimeOnly --eventcontent=AODSIM --filetype=LHE --filein=file:/NON_EXISTENT --fileout=file:/NON_EXISTENT -n -1 --no_exec
+# with command line options: MyPackage/GenProduction/python/MyHadronizer8TeV_cff.py -s GEN,FASTSIM,HLT:8E33v1 --conditions auto:startup_8E33v1 --pileup=2012_Summer_inTimeOnly --eventcontent=AODSIM --filetype=LHE --filein=file:/NON_EXISTENT --fileout=file:/NON_EXISTENT -n -1 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('HLT')
@@ -19,7 +19,7 @@ process.load('Configuration.StandardSequences.Generator_cff')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('FastSimulation.Configuration.FamosSequences_cff')
 process.load('IOMC.EventVertexGenerators.VtxSmearedParameters_cfi')
-process.load('HLTrigger.Configuration.HLT_7E33v4_Famos_cff')
+process.load('HLTrigger.Configuration.HLT_8E33v1_Famos_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
@@ -69,7 +69,7 @@ process.Realistic8TeVCollisionVtxSmearingParameters.type = cms.string("BetaFunc"
 process.famosSimHits.VertexGenerator = process.Realistic8TeVCollisionVtxSmearingParameters
 process.famosPileUp.VertexGenerator = process.Realistic8TeVCollisionVtxSmearingParameters
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:startup_7E33v4', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:startup_8E33v1', '')
 
 process.generator = cms.EDFilter("Pythia8HadronizerFilter",
     pythiaPylistVerbosity = cms.untracked.int32(1),

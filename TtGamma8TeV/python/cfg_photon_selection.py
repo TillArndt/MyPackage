@@ -3,33 +3,32 @@
 runOnMC     = True
 legend      = NameError
 useMerging  = ""
-go4Signal   = False
-go4Noise    = False
+preSelOpt   = None
 puWeight    = None
 sample      = ""
 try:
     runOnMC     = not cms_var["isData"]
     legend      = cms_var["legend"]
     useMerging  = cms_var.get("useMerging", useMerging)
-    go4Signal   = cms_var.get("go4Signal",go4Signal)
-    go4Noise    = cms_var.get("go4Noise",go4Noise)
+    preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
     puReweight  = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 print "<"+__name__+">: Running On MC:", runOnMC
 print "<"+__name__+">: Samplename is:", legend
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
-
 
 
 # Regular Config starting here
 import FWCore.ParameterSet.Config as cms
 
+if puWeight:
+    puWeight = cms.untracked.InputTag("puWeight", puWeight)
+
 process = cms.Process('PhotonSelection')
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring( '' )
+    fileNames = cms.untracked.vstring( '' ),
+    skipEvents = cms.untracked.uint32(114901),
 )
 # disable duplicateCheckMode on two2seven
 if "two2seven" in sample:
@@ -51,19 +50,38 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 # input and presel
 process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
 process.load("MyPackage.TtGamma8TeV.cfi_bTagRequirement")
-process.load('MyPackage.TtGamma8TeV.cfi_mcTruth')
+process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
+process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
+#process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
 #process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
     cut = cms.string(""),
     filter = cms.bool(False)
 )
-process.preSel = cms.Sequence(process.BTagRequirement * process.photonInputDummy)
-if go4Signal:
-    process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * process.photonsSignal)
-if go4Noise:
-    process.preSel.replace(process.myBTagRequirement, process.myBTagRequirement * ~process.photonsSignal)
-
+process.preSel = cms.Sequence(process.bTagRequirement * process.photonInputDummy)
+if preSelOpt == "go4Signal":
+    process.preSel.replace(
+        process.bTagRequirement, 
+        process.bTagRequirement 
+        * process.ttgammaMerging
+        * process.photonsSignalTwo2Seven
+        * process.photonsSignalTwo2SevenCounter
+    )
+if preSelOpt == "go4Noise":
+    process.preSel.replace(
+        process.bTagRequirement, 
+        process.bTagRequirement 
+        * process.ttgammaMerging
+        * process.photonsSignalTwo2Seven
+        * ~process.photonsSignalTwo2SevenCounter
+    )
+if preSelOpt == "go4Whiz":
+    process.preSel.replace(
+        process.bTagRequirement,
+        process.bTagRequirement
+        * process.photonsSignalMEsequence
+    )
 
 # Number of Vertices
 #process.vertexHisto = cms.EDAnalyzer(
@@ -90,8 +108,9 @@ if go4Noise:
 
 # Path declarations
 process.producerPath = cms.Path(
-    process.widenedCocPatPhotons
-    * process.preSel
+#    process.photonUserData *
+    process.widenedCocPatPhotons *
+    process.preSel
 )
 
 process.selectionPath = cms.Path(
