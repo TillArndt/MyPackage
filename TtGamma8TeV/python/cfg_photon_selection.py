@@ -28,7 +28,6 @@ if puWeight:
 process = cms.Process('PhotonSelection')
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( '' ),
-    skipEvents = cms.untracked.uint32(114901),
 )
 # disable duplicateCheckMode on two2seven
 if "two2seven" in sample:
