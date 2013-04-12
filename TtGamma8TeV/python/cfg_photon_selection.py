@@ -6,6 +6,7 @@ useMerging  = ""
 preSelOpt   = None
 puWeight    = None
 sample      = ""
+
 try:
     runOnMC     = not cms_var["isData"]
     legend      = cms_var["legend"]
@@ -58,7 +59,14 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     cut = cms.string(""),
     filter = cms.bool(False)
 )
+
+process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
+process.dataMC=cms.Path(process.DataMCMuonCheck* process.DataMCJetCheck* process.DataMCPhotonCheck*  process.DataMCCompPhotons)
+
+
 process.preSel = cms.Sequence(process.bTagRequirement * process.photonInputDummy)
+
+
 if preSelOpt == "go4Signal":
     process.preSel.replace(
         process.bTagRequirement, 
@@ -124,8 +132,9 @@ process.selectionPath = cms.Path(
 
 # schedule
 process.schedule = cms.Schedule(
-    process.producerPath,
-    process.selectionPath,
+    process.dataMC,
+    #process.producerPath,
+    #process.selectionPath,
     #    process.overlapsPath
 )
 
@@ -145,8 +154,8 @@ process.schedule = cms.Schedule(
 ####################################################################### ID CUTS
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
 nMinusOnePaths = add_photon_cuts(process)
-for path in nMinusOnePaths:
-    process.schedule.append(path)
+#for path in nMinusOnePaths:
+#    process.schedule.append(path)
 
 
 ####################################################################### Cutflow
