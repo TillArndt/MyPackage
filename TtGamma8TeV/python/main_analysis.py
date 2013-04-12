@@ -7,13 +7,11 @@
 
 from cmstoolsac3b.sample import load_samples
 import cmstoolsac3b.settings as settings
-import samples_whizard
-import samples_other
+import samples_aachen
 samples = {}
-samples.update(load_samples(samples_other))
+samples.update(load_samples(samples_aachen))
 settings.samples_stack = samples.keys() # add all MC and data for stacking
-samples.update(load_samples(samples_whizard))
-settings.samples_stack.append("two2seven_27_m_8") #add main ttgam for stack
+
 
 import main_plot_tools
 
@@ -24,6 +22,7 @@ colors["t#bar{t}#gamma (Signal)"]           = ROOT.kRed + 1
 colors["t#bar{t} inclusive"]                = ROOT.kAzure + 7
 colors["W + Jets"]                          = ROOT.kSpring + 8
 colors["Z + Jets"]                          = ROOT.kSpring + 5
+colors["DY + Jets"]                          = ROOT.kSpring + 5
 colors["Single Top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
 
@@ -33,6 +32,7 @@ stacking_order = [
     "QCD",
     "Single Top",
     "Z + Jets",
+    "DY + Jets",
     "W + Jets",
     "t#bar{t} inclusive",
 ]
@@ -41,13 +41,12 @@ import cmstoolsac3b.main
 if __name__ == '__main__':
     cmstoolsac3b.main.main(
         post_proc_tools=[
-            main_plot_tools.CrtlFiltTool,
-            main_plot_tools.OverlapComparison,
+            main_plot_tools.DataMCComp
         ],
         max_num_processes=3,
         samples=samples,
         try_reuse_results=True,
-        #suppress_cmsRun_exec=True,
+        suppress_cmsRun_exec=True,
         colors = colors,
         stacking_order = stacking_order,
         rootfile_postfixes = [".root", ".png"],
