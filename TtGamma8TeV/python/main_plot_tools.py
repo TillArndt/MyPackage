@@ -6,6 +6,56 @@ import cmstoolsac3b.rendering as rnd
 import re
 import itertools
 
+class DataMCComp(pstprc.PostProcTool):
+    
+    def doMCCompsForRun(self, runLabel="AllRuns"):
+
+        def removeWildListItem(x): 
+            if "Run" not in x:
+                return x
+	samplelist=settings.samples_stack
+	if runLabel!="AllRuns":
+	        samplelist=filter(removeWildListItem, settings.samples_stack)
+		samplelist.append(runLabel)
+	
+        stream_stack1 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("DataMCCompPhotons")),
+            "sample": samplelist}
+        )
+        stream_stack2 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("DataMCJetCheck")),
+            "sample": samplelist}
+        )
+        stream_stack3 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("DataMCMuonCheck")),
+            "sample": samplelist}
+        )
+        stream_stack4 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("DataMCPhotonCheck")),
+            "sample": samplelist}
+        )
+        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4)
+
+        stream_stack = gen.pool_store_items(stream_stack)
+
+        stream_canvas = gen.canvas(
+            stream_stack,
+            [rnd.LegendRight]
+        )
+
+        stream_canvas = gen.save(
+            stream_canvas,
+            lambda wrp: self.plot_output_dir + wrp.name+runLabel,
+        )
+
+        count = gen.consume_n_count(stream_canvas)
+        self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
+
+    def run(self):        
+        self.doMCCompsForRun("Run2012Arecover06Aug2012")
+        self.doMCCompsForRun("Run2012B13Jul2012")
+	self.doMCCompsForRun()
+
 class CrtlFiltTool(pstprc.PostProcTool):
     def run(self):
 
