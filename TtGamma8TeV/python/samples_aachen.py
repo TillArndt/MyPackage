@@ -9,44 +9,49 @@ class SingleToptWChTbar(smp.Sample):
     x_sec = 11.1
     n_events=5083
     input_files='file:/net/scratch_cms/institut_3b/kuessel/skim/SingleTop-tWCh-TbarSynchSelMuJetsSkim.root'
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class SingleToptChTbar(smp.Sample):
     legend = "Single Top"
     x_sec  =  30.7
     n_events = 1935072
     input_files ='file:/net/scratch_cms/institut_3b/kuessel/skim/SingleTop-tCh-TbarSynchSelMuJetsSkim.root'
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class SingleToptChT(smp.Sample):
     legend = "Single Top"
     x_sec  =  56.4
     n_events = 99876
     input_files = 'file:/net/scratch_cms/institut_3b/kuessel/skim/SingleTop-tCh-TSynchSelMuJetsSkim.root'
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class SingleToptWChT(smp.Sample):
     legend = "Single Top"
     x_sec  =  11.1
     n_events = 497658
     input_files = 'file:/net/scratch_cms/institut_3b/kuessel/skim/SingleTop-tWCh-TSynchSelMuJetsSkim.root'
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class TTbarSig(smp.Sample):
     legend = "t#bar{t} inclusive"
     x_sec  = 234 # Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
     n_events = 6923750
     input_files ='file:/net/scratch_cms/institut_3b/kuessel/skim/TTbarSigSynchSelMuJetsSkim.root'
-    cfg_builtin = {"preSelOpt":"go4Signal"}
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis", "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class WJets(smp.Sample):
     legend = "W + Jets"
     x_sec = 37509.0
     n_events = 57709905
     input_files = 'file:/net/scratch_cms/institut_3b/kuessel/skim/WJetsSynchSelMuJetsSkim.root'
-
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class DYJets(smp.Sample):
     legend = "DY + Jets"
     x_sec = 3503.71
     n_events = 30459503
     input_files = 'file:/net/scratch_cms/institut_3b/kuessel/skim/DYJetsSynchSelMuJetsSkim.root'
+    cfg_builtin = {"preSelOpt":"go4Noise", "jetsource":"selectedPatJetsForAnalysis" , "photonsource":"patPhotons", "muonsource":"tightmuons"}
 
 class Run2012Arecover06Aug2012(smp.Sample):
     legend="Data"

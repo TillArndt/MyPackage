@@ -5,13 +5,13 @@ import FWCore.ParameterSet.Config as cms
 #PRODUCERS
 # cross object clean
 cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
-    src = cms.InputTag(""),
+    src = cms.InputTag(cms_var["photonsource"]),
     preselection = cms.string(''),
 
     # overlap checking configurables
     checkOverlaps = cms.PSet(
         jets = cms.PSet(
-            src                 = cms.InputTag("selectedPatJetsPF"),
+            src                 = cms.InputTag(cms_var["jetsource"]),
             algorithm           = cms.string("byDeltaR"),
             preselection        = cms.string(""),  # don't preselect the jets
             deltaR              = cms.double(0.5), # if > 0.5: make many jets overlapping
@@ -20,7 +20,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
             requireNoOverlaps   = cms.bool(True),
         ),
         muons = cms.PSet(
-            src                 = cms.InputTag("goodPatMuonsPF"),
+            src                 = cms.InputTag(cms_var["muonsource"]),
             algorithm           = cms.string("byDeltaR"),
             preselection        = cms.string(""),
             deltaR              = cms.double(0.5),
@@ -34,7 +34,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
 
 widenedCocPatPhotons = cocPatPhotons.clone(
 #    src = "photonUserData"
-    src = "patPhotonsPF"
+    src = cms_var["photonsource"]
 )
 widenedCocPatPhotons.checkOverlaps.jets.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.muons.deltaR = 50000.0
