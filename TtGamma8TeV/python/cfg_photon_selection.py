@@ -41,7 +41,9 @@ process.TFileService = cms.Service("TFileService",
 
 import FWCore.MessageService.MessageLogger_cfi as logger
 logger.MessageLogger.cerr.FwkReport.reportEvery = 100
-logger.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+#logger.MessageLogger.categories +=  (["checkCorrs"])
+#logger.MessageLogger.categories +=  (["EvtWeightPU"])
+logger.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.extend(logger)
 
 #max num of events processed
@@ -52,43 +54,39 @@ process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
 process.load("MyPackage.TtGamma8TeV.cfi_bTagRequirement")
 process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
-#process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
+process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
+process.load("Top.Tools.EvtWeightPU_cfi")
+process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 #process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
+
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
     cut = cms.string(""),
     filter = cms.bool(False)
 )
 
-process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
-process.dataMC=cms.Path(process.DataMCMuonCheck* process.DataMCJetCheck* process.DataMCPhotonCheck*  process.DataMCCompPhotons)
-
-
-process.preSel = cms.Sequence(process.bTagRequirement * process.photonInputDummy)
-
-
-if preSelOpt == "go4Signal":
-    process.preSel.replace(
-        process.bTagRequirement, 
-        process.bTagRequirement 
-        * process.ttgammaMerging
-        * process.photonsSignalTwo2Seven
-        * process.photonsSignalTwo2SevenCounter
-    )
-if preSelOpt == "go4Noise":
-    process.preSel.replace(
-        process.bTagRequirement, 
-        process.bTagRequirement 
-        * process.ttgammaMerging
-        * process.photonsSignalTwo2Seven
-        * ~process.photonsSignalTwo2SevenCounter
-    )
-if preSelOpt == "go4Whiz":
-    process.preSel.replace(
-        process.bTagRequirement,
-        process.bTagRequirement
-        * process.photonsSignalMEsequence
-    )
+#if preSelOpt == "go4Signal":
+#    process.preSel.replace(
+#        process.bTagRequirement, 
+#        process.bTagRequirement 
+#        * process.ttgammaMerging
+#        * process.photonsSignalTwo2Seven
+#        * process.photonsSignalTwo2SevenCounter
+#    )
+#if preSelOpt == "go4Noise":
+#    process.preSel.replace(
+#        process.bTagRequirement, 
+#        process.bTagRequirement 
+#        * process.ttgammaMerging
+#        * process.photonsSignalTwo2Seven
+#        * ~process.photonsSignalTwo2SevenCounter
+#    )
+#if preSelOpt == "go4Whiz":
+#    process.preSel.replace(
+#        process.bTagRequirement,
+#        process.bTagRequirement
+#        * process.photonsSignalMEsequence
+#    )
 
 # Number of Vertices
 #process.vertexHisto = cms.EDAnalyzer(
@@ -114,15 +112,32 @@ if preSelOpt == "go4Whiz":
 #)
 
 # Path declarations
+process.preSel = cms.Sequence(process.bTagRequirement)
+process.dataMC=cms.Path(
+    process.preSel *
+    process.WeightsCheck *
+    process.DataMCMuonCheck *
+    process.DataMCJetCheck *
+    process.DataMCPhotonCheck *
+    process.DataMCCompPhotons *
+    process.WeightsCheckTrue *
+    process.DataMCMuonCheckTrue *
+    process.DataMCJetCheckTrue *
+    process.DataMCPhotonCheckTrue *
+    process.DataMCCompPhotonsTrue
+    )
+
 process.producerPath = cms.Path(
-#    process.photonUserData *
+    process.preSel *
+    process.puWeight *
+    process.photonUserData *
     process.widenedCocPatPhotons *
-    process.preSel
-)
+    process.photonInputDummy
+    )
 
 process.selectionPath = cms.Path(
     process.preSel
-)
+    )
 
 #process.overlapsPath = cms.Path(
 #    process.preSel
@@ -132,8 +147,8 @@ process.selectionPath = cms.Path(
 
 # schedule
 process.schedule = cms.Schedule(
-    process.dataMC,
-    #process.producerPath,
+    process.producerPath,
+    process.dataMC,    
     #process.selectionPath,
     #    process.overlapsPath
 )
@@ -154,8 +169,8 @@ process.schedule = cms.Schedule(
 ####################################################################### ID CUTS
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
 nMinusOnePaths = add_photon_cuts(process)
-#for path in nMinusOnePaths:
-#    process.schedule.append(path)
+for path in nMinusOnePaths:
+    process.schedule.append(path)
 
 
 ####################################################################### Cutflow

@@ -2,9 +2,10 @@
 
 import FWCore.ParameterSet.Config as cms
 
-DataMCCompPhotons = cms.EDAnalyzer(
+DataMCCompPhotonsTrue = cms.EDAnalyzer(
     "CandViewHistoAnalyzer",
-    src = cms.InputTag(cms_var["photonsource"]),
+    src = cms.InputTag("widenedCocPatPhotons"),
+    weights=cms.untracked.InputTag("puWeight", "PUWeightTrue"),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(0.),
@@ -26,20 +27,37 @@ DataMCCompPhotons = cms.EDAnalyzer(
         )
     )
 )
-DataMCPhotonCheck=cms.EDAnalyzer("checkObject",
+DataMCCompPhotons=DataMCCompPhotonsTrue.clone(weights=cms.untracked.InputTag("puWeight", "PUWeight"))
+
+WeightsCheckTrue = cms.EDAnalyzer("checkCorrs",
+                              srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
+                              srcBTagWeight=cms.InputTag("dummy"),
+                              srcVertices=cms.InputTag("goodOfflinePrimaryVertices")
+                              )
+WeightsCheck = WeightsCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))
+
+DataMCPhotonCheckTrue=cms.EDAnalyzer("checkObject",
+        srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
 	bTagAlgorithm=cms.string("blabla"),
-	srcObjects=cms.InputTag(cms_var["photonsource"]), 
+	srcObjects=cms.InputTag("widenedCocPatPhotons"), 
 	objectType=cms.string("patPhoton")
 )
-DataMCJetCheck=cms.EDAnalyzer("checkObject",
-	bTagAlgorithm=cms.string("blabla"),
+DataMCPhotonCheck=DataMCPhotonCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))
+
+DataMCJetCheckTrue=cms.EDAnalyzer("checkObject",
+        srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
+	bTagAlgorithm=cms.string("combinedSecondaryVertexBJetTags"),
 	srcObjects=cms.InputTag(cms_var["jetsource"]), 
 	objectType=cms.string("patJet")
 )
-DataMCMuonCheck=cms.EDAnalyzer("checkObject",
+DataMCJetCheck=DataMCJetCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))
+
+DataMCMuonCheckTrue=cms.EDAnalyzer("checkObject",
+        srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
 	bTagAlgorithm=cms.string("blabla"),
 	srcObjects=cms.InputTag(cms_var["muonsource"]), 
 	objectType=cms.string("patMuon")
 )
+DataMCMuonCheck=DataMCMuonCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))
 
 

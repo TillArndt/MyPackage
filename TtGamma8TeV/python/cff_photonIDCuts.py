@@ -1,14 +1,14 @@
 
-puWeight = None
+puWeight  = None
 try:
     puWeight  = cms_var.get("puWeight", puWeight)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 
-
 import FWCore.ParameterSet.Config as cms
 
-
+if puWeight:
+    puWeight = cms.untracked.InputTag("puWeight", puWeight)
 ################## n-1 Cuts
 
 # examplecut : ("cut",min,max,nbins,"name","description", lazyparsing,"plotquantity")
@@ -37,11 +37,11 @@ cuts = {
 
 # ZE OFFICIAL PHOTON ID
     "passEleVeto" : ("userFloat('passEleVeto') > 0.5", -.5, 1.5, 2, "passes conv. ele. veto", "userFloat('passEleVeto')"),
-	"hadTowOverEm" : ("hadTowOverEm<0.05", 0., 4., 80, "H/E", "hadTowOverEm"),
-	"sihihEB" : ("sigmaIetaIeta<0.011", 0., 10., 80, "#sigma_{i #eta i #eta}", "sigmaIetaIeta"), # EE: 0.031
-	"chargedHadronIsoEB" : ("chargedHadronIso<0.7", 0., 10., 80, "PF charged hadron isolation", "chargedHadronIso"), # EE: 0.5
-	"neutralHadronIsoEB" : ("neutralHadronIso<(0.4 + 0.04*pt)", 0., 10., 80, "PF neutral hadron isolation", "neutralHadronIso"), # EE: 1.5 + 0.04*pt
-	"photonIsoEB" : ("photonIso<(0.5 + 0.005*pt)", 0., 10., 80, "PF photon isolation", "photonIso"), # EE: 1.0 + 0.005*pt
+    "hadTowOverEm" : ("hadTowOverEm<0.05", 0., 4., 80, "H/E", "hadTowOverEm"),
+    "sihihEB" : ("sigmaIetaIeta<0.011", 0., 10., 80, "#sigma_{i #eta i #eta}", "sigmaIetaIeta"), # EE: 0.031
+    "chargedHadronIsoEB" : ("chargedHadronIso<0.7", 0., 10., 80, "PF charged hadron isolation", "chargedHadronIso"), # EE: 0.5
+    "neutralHadronIsoEB" : ("neutralHadronIso<(0.4 + 0.04*pt)", 0., 10., 80, "PF neutral hadron isolation", "neutralHadronIso"), # EE: 1.5 + 0.04*pt
+    "photonIsoEB" : ("photonIso<(0.5 + 0.005*pt)", 0., 10., 80, "PF photon isolation", "photonIso"), # EE: 1.0 + 0.005*pt
 
 # ARE THE ISOLATIONS RHO CORRECTED BY PF2PAT??? NO!!
 # PU !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
