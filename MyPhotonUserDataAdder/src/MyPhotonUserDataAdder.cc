@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id$
+// $Id: MyPhotonUserDataAdder.cc,v 1.1 2013/03/26 21:16:00 htholen Exp $
 //
 //
 
@@ -39,6 +39,7 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "DataFormats/Provenance/interface/Provenance.h"
+#include "EGamma/EGammaAnalysisTools/src/PFIsolationEstimator.cc"
 
 class MyPhotonUserDataAdder : public edm::EDProducer {
    public:
@@ -58,7 +59,8 @@ class MyPhotonUserDataAdder : public edm::EDProducer {
       virtual void endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
       // ----------member data ---------------------------
-      edm::InputTag _srcPhoton, _srcJet4rho, _srcElectron, _srcConversion, _srcBeamSpot ;
+      edm::InputTag _srcPhoton, _srcJet4rho, _srcElectron, _srcConversion, _srcBeamSpot, _srcPFColl, _srcVertices ;
+      PFIsolationEstimator isolator;
 };
 
 MyPhotonUserDataAdder::MyPhotonUserDataAdder(const edm::ParameterSet& cfg) :
@@ -66,9 +68,12 @@ MyPhotonUserDataAdder::MyPhotonUserDataAdder(const edm::ParameterSet& cfg) :
     _srcJet4rho(cfg.getParameter<edm::InputTag>( "srcJet4rho" )),
     _srcElectron(cfg.getParameter<edm::InputTag>( "srcElectron" )),
     _srcConversion(cfg.getParameter<edm::InputTag>( "srcConversion" )),
-    _srcBeamSpot(cfg.getParameter<edm::InputTag>( "srcBeamSpot" ))
+    _srcBeamSpot(cfg.getParameter<edm::InputTag>( "srcBeamSpot" )),
+    _srcPFColl(cfg.getParameter<edm::InputTag>( "srcPFColl" )),
+    _srcVertices(cfg.getParameter<edm::InputTag>( "srcVertices" ))
 {
-    produces<std::vector<pat::Photon> >();
+  isolator.initializePhotonIsolation(kTRUE);
+  produces<std::vector<pat::Photon> >();
 }
 
 MyPhotonUserDataAdder::~MyPhotonUserDataAdder()
@@ -82,6 +87,12 @@ MyPhotonUserDataAdder::produce(edm::Event& evt, const edm::EventSetup&)
     using namespace std;
     Handle<vector<pat::Photon> > photons;
     evt.getByLabel(_srcPhoton, photons);
+
+    edm::Handle<vector<reco::PFCandidate> > pfColl;
+    evt.getByLabel(_srcPFColl, pfColl);
+
+    edm::Handle< reco::VertexCollection > vertices;
+    evt.getByLabel(_srcVertices, vertices);
 
 // TODO: get rho correction done
 //    Handle<vector<pat::Jet> > jet4rho;
@@ -116,6 +127,9 @@ MyPhotonUserDataAdder::produce(edm::Event& evt, const edm::EventSetup&)
         } else {
             ph.addUserFloat("passEleVeto", 0.);
         }
+	isolator.fGetIsolation( ph, &pfColl, (*vertices)[0], vertices);
+	cout<<"PF  charged:  "<<isolator.getIsolationCharged()<<" photon: "<<isolator.getIsolationPhoton()<<" neutral: "<<isolator.getIsolationNeutral()<<endl;
+	cout<<"PATPF  charged:  "<<ph.chargedHadronIso() <<" photon: "<<ph.photonIso()<<" neutral: "<<ph.neutralHadronIso()<<endl;
     }
     evt.put( photonColl);
 
