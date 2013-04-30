@@ -6,6 +6,106 @@ import cmstoolsac3b.rendering as rnd
 import re
 import itertools
 
+class DataMCCompPhotonID(pstprc.PostProcTool):
+    
+    def doMCCompPhotonIDForRun(self, runLabel="AllRuns"):
+
+        def removeWildListItem(x): 
+            if "Run" not in x:
+                return x
+	samplelist=settings.samples_stack
+	if runLabel!="AllRuns":
+	        samplelist=filter(removeWildListItem, settings.samples_stack)
+		samplelist.append(runLabel)
+
+        stream_stack1 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPREet")),
+            "sample": samplelist}
+        ) 
+        stream_stack2 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPREdrmuon")),
+            "sample": samplelist}
+        )
+        stream_stack3 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPREdrjet")),
+            "sample": samplelist}
+        )
+        stream_stack4 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPREptrelDrjet")),
+            "sample": samplelist}
+        )
+        stream_stack5 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaetaEB")),
+            "sample": samplelist}
+        )
+        stream_stack6 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaetcut")),
+            "sample": samplelist}
+        )
+        stream_stack7 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnahadTowOverEm")),
+            "sample": samplelist}
+        )        
+        stream_stack8 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnasihihEB")),
+            "sample": samplelist}
+        )
+        stream_stack9 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaneutralHadronIsoEB")),
+            "sample": samplelist}
+        )
+        stream_stack10 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaphotonIsoEB")),
+            "sample": samplelist}
+        )
+        stream_stack11 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPOSTet")),
+            "sample": samplelist}
+        )
+        stream_stack12 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPOSTeta")),
+            "sample": samplelist}
+        )
+        stream_stack13 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPOSTptrelDrjet")),
+            "sample": samplelist}
+        )
+        stream_stack14 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPOSTdrmuon")),
+            "sample": samplelist}
+        )
+        stream_stack15 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnachargedHadronIsoEB")),
+            "sample": samplelist}
+        )
+        stream_stack16 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("PhotonAnaPOSTdrjet")),
+            "sample": samplelist}
+        )
+    
+        
+        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4, stream_stack5, stream_stack6, stream_stack7, stream_stack8, stream_stack9, stream_stack10, stream_stack11, stream_stack12, stream_stack13, stream_stack14, stream_stack15, stream_stack16)
+
+        stream_stack = gen.pool_store_items(stream_stack)
+
+        stream_canvas = gen.canvas(
+            stream_stack,
+            [rnd.BottomPlotRatio, rnd.LegendRight]
+        )
+
+        stream_canvas = gen.save(
+            stream_canvas,
+            lambda wrp: self.plot_output_dir + wrp.name+runLabel,
+        )
+
+        count = gen.consume_n_count(stream_canvas)
+        self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
+
+    def run(self):        
+        self.doMCCompPhotonIDForRun("Run2012CPromptRecov2")
+
+
+
 class DataMCComp(pstprc.PostProcTool):
     
     def doMCCompsForRun(self, runLabel="AllRuns"):
@@ -34,13 +134,18 @@ class DataMCComp(pstprc.PostProcTool):
             {"analyzer":(re.compile("DataMCPhotonCheck")),
             "sample": samplelist}
         )
-        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4)
+        stream_stack5 = gen.fs_mc_stack_n_data_sum(
+            {"analyzer":(re.compile("WeightsCheck")),
+            "sample": samplelist}
+        )
+
+        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4, stream_stack5)
 
         stream_stack = gen.pool_store_items(stream_stack)
 
         stream_canvas = gen.canvas(
             stream_stack,
-            [rnd.LegendRight]
+            [rnd.BottomPlotRatio, rnd.LegendRight]
         )
 
         stream_canvas = gen.save(
@@ -52,9 +157,9 @@ class DataMCComp(pstprc.PostProcTool):
         self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
 
     def run(self):        
-        self.doMCCompsForRun("Run2012Arecover06Aug2012")
-        self.doMCCompsForRun("Run2012B13Jul2012")
-	self.doMCCompsForRun()
+        self.doMCCompsForRun("Run2012CPromptRecov2")
+#        self.doMCCompsForRun("Run2012B13Jul2012")
+#	self.doMCCompsForRun()
 
 class CrtlFiltTool(pstprc.PostProcTool):
     def run(self):

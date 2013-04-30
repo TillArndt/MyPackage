@@ -8,8 +8,10 @@
 from cmstoolsac3b.sample import load_samples
 import cmstoolsac3b.settings as settings
 import samples_aachen
+import samples_test
 samples = {}
-samples.update(load_samples(samples_aachen))
+#samples.update(load_samples(samples_aachen))
+samples.update(load_samples(samples_test))
 settings.samples_stack = samples.keys() # add all MC and data for stacking
 
 
@@ -41,7 +43,8 @@ import cmstoolsac3b.main
 if __name__ == '__main__':
     cmstoolsac3b.main.main(
         post_proc_tools=[
-            main_plot_tools.DataMCComp
+            main_plot_tools.DataMCComp,
+            main_plot_tools.DataMCCompPhotonID
         ],
         max_num_processes=3,
         samples=samples,
