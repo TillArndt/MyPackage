@@ -68,6 +68,7 @@ class checkObject : public edm::EDAnalyzer {
 
       std::string bTagAlgorithm_;
       const edm::InputTag srcObjects_;
+      edm::InputTag srcPUWeight_;
       std::string objectType_;
 
 };

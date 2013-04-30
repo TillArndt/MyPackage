@@ -44,6 +44,7 @@
 
 checkObject::checkObject(const edm::ParameterSet& conf):
   hists_(),
+  srcPUWeight_(conf.getParameter<edm::InputTag> ("srcPUWeight")),
   bTagAlgorithm_(conf.getParameter<std::string>("bTagAlgorithm")),
   srcObjects_(conf.getParameter<edm::InputTag>("srcObjects")),
   objectType_(conf.getParameter<std::string>("objectType"))
@@ -104,15 +105,18 @@ checkObject::analyze(const edm::Event& event, const edm::EventSetup& setup)
   edm::Handle<edm::View<pat::Photon> > photons;
   edm::Handle<edm::View<pat::Electron> > electrons;
   edm::Handle<edm::View<reco::GenParticle> > genparticles;
+  edm::Handle<double> puWeight;
+  event.getByLabel(srcPUWeight_, puWeight);
+  double weight= *puWeight.product();
+  edm::LogInfo("checkCorrs")<<"pileUpWeight="<<weight<<std::endl;
+  if(event.isRealData()){
+    weight=1;
+  }
   
   //***********************************************
   //  analyze the objects
   //***********************************************
 
-  double weight=1.;
-  if(!event.isRealData()){
-   // weight=myEvent->calcPUpInfo(event) * myEvent->calcBTagWeight(event);
-  }
   if(objectType_=="patJet"){
     event.getByLabel(srcObjects_, jets);   
     analyzeCollection(jets, weight);
