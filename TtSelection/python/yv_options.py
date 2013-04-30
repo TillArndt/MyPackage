@@ -9,7 +9,8 @@ def options() :
     
     print sys.argv
     options.register('isData', default = False, mytype = VP.varType.bool)
-    options.register('skim', default = True, mytype = VP.varType.bool)
+    options.register('skim', default = False, mytype = VP.varType.bool)
+    options.register('outputModule', default = False, mytype = VP.varType.bool)
     options.register('quiet', default = False, mytype = VP.varType.bool)
     options.register('requireLepton', default = True, mytype = VP.varType.bool)
     options.register('globalTag', mytype = VP.varType.string )

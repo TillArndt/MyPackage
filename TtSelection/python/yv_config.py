@@ -1,7 +1,7 @@
 import operator
 from FWCore.ParameterSet import Config as cms
 
-from TopQuarkAnalysis.TopRefTuple.yv_options import options
+from MyPackage.TtSelection.yv_options import options
 options = options()
 
 process = cms.Process( 'PAT2' )
@@ -16,8 +16,18 @@ process.load('EGamma.EGammaAnalysisTools.electronIsolatorFromEffectiveArea_cfi')
 process.load('TopQuarkAnalysis.TopRefTuple.vertex_cff')
 process.load('TopQuarkAnalysis.TopRefTuple.cleaning_cff')
 process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring(options.files) )
-process.out = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'drop *' ), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("SynchSelMuJets.root"))
-process.outskim = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'drop *',  'keep *_selectedPatJetsForAnalysis_*_*', 'keep *_patPhotons_*_*', 'keep *_tightmuons_*_*'), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("/net/scratch_cms/institut_3b/kuessel/skim/"+cms_var["sample"]+"SynchSelMuJetsSkim.root"))
+process.out = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'keep *' ), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("SynchSelMuJets.root"))
+process.outskim = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'drop *',
+                                                                                                'keep *_selectedPatJetsForAnalysis_*_*',
+                                                                                                'keep *_patPhotons_*_*', 'keep *_tightmuons_*_*',
+                                                                                                'keep *_addPileupInfo_*_*',
+                                                                                                'keep *_*OfflinePrimaryVertices*_*_*',
+                                                                                                'keep *_selectedPatElectronsTR_*_*',
+                                                                                                'keep *_patElectronsTR_*_*',
+                                                                                                'keep *_pfPhotonTranslator_*_*',
+                                                                                                'keep *_offlineBeamSpot_*_*'
+                                                                                                
+                                                                                                ), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("/net/scratch_cms/institut_3b/kuessel/skimPU/"+cms_var["sample"]+"SynchSelMuJetsSkim.root"))
 process.add_( cms.Service( "TFileService", fileName = cms.string( options.output ), closeFileFast = cms.untracked.bool(True) ) )
 
 from TopQuarkAnalysis.TopRefTuple.pf2pat import TopRefPF2PAT
@@ -42,6 +52,7 @@ process.load('TopQuarkAnalysis.TopRefTuple.lumi_cfi')
 #yvi changes
 
 #add volkers cuts
+ 
 process.tightmuons=process.selectedPatMuonsTR.clone(cut = cms.string('isPFMuon && isGlobalMuon && pt > 26. && abs(eta) < 2.1 && globalTrack.normalizedChi2 < 10. && track.hitPattern.trackerLayersWithMeasurement > 5 && globalTrack.hitPattern.numberOfValidMuonHits > 0 && abs(dB) < 0.2 && innerTrack.hitPattern.numberOfValidPixelHits > 0 && numberOfMatchedStations > 1 && (chargedHadronIso + max(0.,neutralHadronIso+photonIso-0.5*puChargedHadronIso))/pt < 0.12'))
 
 
@@ -58,6 +69,13 @@ process.MuonVeto = cms.EDFilter("PATCandViewCountFilter",
     minNumber = cms.uint32(1)
 )
 process.patreco += process.MuonVeto
+
+#
+# Test for Tau group
+process.load("MyPackage.ElecMuOverlap.elecmuoverlap_cfi")
+process.patreco +=process.elecMuOverlap
+#
+#
 process.ElectronVeto = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(0),
     src = cms.InputTag("selectedPatElectronsTR"),
@@ -107,34 +125,6 @@ if options.skim:
    process.patreco += process.BTagJet
 
 
-process.out.outputCommands.append( 'keep *_selectedPatJetsForAnalysis*_*_*' )
-process.out.outputCommands.append( 'keep *_selectedPatElectronsTR_*_*' )
-process.out.outputCommands.append( 'keep *_tightmuons*_*_*' )
-process.out.outputCommands.append( 'keep *_veryLoosePatJets*_*_*' )
-process.out.outputCommands.append( 'keep *_loosePatJets*_*_*' )
-process.out.outputCommands.append( 'keep *_tightPatJets*_*_*' )
-from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
-process.out.outputCommands += patEventContent
-process.out.outputCommands += [ 'keep edmTriggerResults_*_*_*'
-                              , 'keep *_hltTriggerSummaryAOD_*_*'
-                              # vertices and beam spot
-                              , 'keep *_offlineBeamSpot_*_*'
-                              , 'keep *_offlinePrimaryVertices*_*_*'
-                              , 'keep *_goodOfflinePrimaryVertices*_*_*'
-			      , 'keep *_*_*_HLT'
-                              , 'keep *_*_*_RECO'
-			      , 'keep *_genMetTrue_*_*'
-                              ]
-
-if not options.isData:
-  process.out.outputCommands += [ 'keep GenEventInfoProduct_*_*_*'
-                                , 'keep recoGenParticles_*_*_*'
-                                , 'keep *_addPileupInfo_*_*'
-                                ]
-
-
-#add patPhotons
-process.out.outputCommands.append("keep *_*hoton*_*_*")
 if not options.isData:
     process.patreco.replace(process.pfAllPhotonsTR, process.pfAllPhotonsTR * process.photonMatch * process.patPhotons)
 else:
@@ -197,12 +187,13 @@ if not options.isData:
         * process.patPhotonsOthersMatch
         * process.patPhotonsAllMatch
     )  
-
-
-if options.skim:
-    process.outPath=cms.EndPath(process.outskim)
-else:
-    process.outPath = cms.EndPath(process.out)
+process.outPath=cms.Path()
+if options.outputModule:
+   if options.skim:
+       process.outPath=cms.EndPath(process.outskim)
+   else:
+      process.out.outputCommands = cms.untracked.vstring( 'keep *' )
+      process.outPath = cms.EndPath(process.out)
 
 #end yvi changes
 

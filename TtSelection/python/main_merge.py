@@ -8,12 +8,13 @@
 from cmstoolsac3b.sample import load_samples
 import cmstoolsac3b.settings as settings
 import samples_merge
+import samples_test
 samples = {}
-samples.update(load_samples(samples_merge))
+#samples.update(load_samples(samples_merge))
+samples.update(load_samples(samples_test))
 settings.samples_stack = samples.keys() # add all MC and data for stacking
 
 
-import main_plot_tools
 
 import ROOT
 colors = dict()
@@ -40,9 +41,9 @@ if __name__ == '__main__':
     cmstoolsac3b.main.main(
         post_proc_tools=[           
         ],
-        max_num_processes=3,
+        max_num_processes=4,
         samples=samples,
-        try_reuse_results=True,
+        try_reuse_results=False,
         #suppress_cmsRun_exec=True,
         colors = colors,
         stacking_order = stacking_order,
