@@ -1,8 +1,11 @@
+
+
 import operator
 from FWCore.ParameterSet import Config as cms
 
 from MyPackage.TtSelection.yv_options import options
 options = options()
+options.isData = cms_var["is_data"]
 
 process = cms.Process( 'PAT2' )
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -13,22 +16,39 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('EGamma.EGammaAnalysisTools.electronIdMVAProducer_cfi')
 process.load('EGamma.EGammaAnalysisTools.electronIsolatorFromEffectiveArea_cfi')
+
+# from Burt Betchart:
+# https://twiki.cern.ch/twiki/bin/view/CMS/TwikiTopRefHermeticTopProjections
 process.load('TopQuarkAnalysis.TopRefTuple.vertex_cff')
 process.load('TopQuarkAnalysis.TopRefTuple.cleaning_cff')
-process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring(options.files) )
-process.out = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'keep *' ), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("SynchSelMuJets.root"))
-process.outskim = cms.OutputModule( "PoolOutputModule", outputCommands = cms.untracked.vstring( 'drop *',
-                                                                                                'keep *_selectedPatJetsForAnalysis_*_*',
-                                                                                                'keep *_patPhotons_*_*', 'keep *_tightmuons_*_*',
-                                                                                                'keep *_addPileupInfo_*_*',
-                                                                                                'keep *_*OfflinePrimaryVertices*_*_*',
-                                                                                                'keep *_selectedPatElectronsTR_*_*',
-                                                                                                'keep *_patElectronsTR_*_*',
-                                                                                                'keep *_pfPhotonTranslator_*_*',
-                                                                                                'keep *_offlineBeamSpot_*_*'
-                                                                                                
-                                                                                                ), SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), fileName=cms.untracked.string("/net/scratch_cms/institut_3b/kuessel/skimPU/"+cms_var["sample"]+"SynchSelMuJetsSkim.root"))
-process.add_( cms.Service( "TFileService", fileName = cms.string( options.output ), closeFileFast = cms.untracked.bool(True) ) )
+
+process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring("") )
+process.out = cms.OutputModule( "PoolOutputModule", 
+    outputCommands = cms.untracked.vstring( 'keep *' ), 
+    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), 
+    fileName=cms.untracked.string("SynchSelMuJets.root")
+)
+process.outskim = cms.OutputModule( "PoolOutputModule", 
+    outputCommands = cms.untracked.vstring( 
+        'drop *',
+        'keep *_selectedPatJetsForAnalysis_*_*',
+        'keep *_patPhotons_*_*', 'keep *_tightmuons_*_*',
+        'keep *_addPileupInfo_*_*',
+        'keep *_*OfflinePrimaryVertices*_*_*',
+        'keep *_selectedPatElectronsTR_*_*',
+        'keep *_patElectronsTR_*_*',
+        'keep *_pfPhotonTranslator_*_*',
+        'keep *_offlineBeamSpot_*_*'
+    ), 
+    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), 
+    fileName=cms.untracked.string("/net/scratch_cms/institut_3b/kuessel/skimPU/"+cms_var["sample"]+"SynchSelMuJetsSkim.root")
+)
+process.add_( 
+    cms.Service( "TFileService", 
+        fileName = cms.string( options.output ), 
+        closeFileFast = cms.untracked.bool(True) 
+    ) 
+)
 
 from TopQuarkAnalysis.TopRefTuple.pf2pat import TopRefPF2PAT
 topPF2PAT = TopRefPF2PAT(process,options) #configuration object for patPF2PATSequence
@@ -49,7 +69,7 @@ process.load('TopQuarkAnalysis.TopRefTuple.lumi_cfi')
 #from TopQuarkAnalysis.TopRefTuple.tuple import Tuple
 #process.tuple = Tuple(process, options).path()
 
-#yvi changes
+#begin yvi changes
 
 #add volkers cuts
  
@@ -71,9 +91,6 @@ process.MuonVeto = cms.EDFilter("PATCandViewCountFilter",
 process.patreco += process.MuonVeto
 
 #
-# Test for Tau group
-process.load("MyPackage.ElecMuOverlap.elecmuoverlap_cfi")
-process.patreco +=process.elecMuOverlap
 #
 #
 process.ElectronVeto = cms.EDFilter("PATCandViewCountFilter",
@@ -121,8 +138,8 @@ process.BTagJet = cms.EDFilter("PATCandViewCountFilter",
     src = cms.InputTag("selectedPatJetsForAnalysisBTag"),
     minNumber = cms.uint32(1)
 )
-if options.skim:
-   process.patreco += process.BTagJet
+#if options.skim:
+process.patreco += process.BTagJet
 
 
 if not options.isData:
@@ -188,12 +205,11 @@ if not options.isData:
         * process.patPhotonsAllMatch
     )  
 process.outPath=cms.Path()
-if options.outputModule:
-   if options.skim:
-       process.outPath=cms.EndPath(process.outskim)
-   else:
-      process.out.outputCommands = cms.untracked.vstring( 'keep *' )
-      process.outPath = cms.EndPath(process.out)
+#if options.outputModule:
+#   if options.skim:
+#       process.outPath=cms.EndPath(process.outskim)
+#   else:
+process.outPath = cms.EndPath(process.out)
 
 #end yvi changes
 
