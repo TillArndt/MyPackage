@@ -1,193 +1,54 @@
 
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.postprocessing as pstprc
+import cmstoolsac3b.postproctools as ppt
 import cmstoolsac3b.generators as gen
 import cmstoolsac3b.rendering as rnd
 import re
 import itertools
 
-class DataMCCompPhotonID(pstprc.PostProcTool):
-    
-    def doMCCompPhotonIDForRun(self, runLabel="AllRuns"):
+def generate_data_mc_comp_tools():
+    """
+    Generates postproctools by subclassing from ptt.FSStackPlotter.
+    Walks over all samples and specific analyzer tokens.
+    """
+    run_labels = settings.data_samples().keys()
+    run_labels.append(None) # all runs
+    analyzer_pats = [
+        re.compile("CrtlFilt"),
+        re.compile("PhotonAna"),
+        re.compile("DataMCCompPhotons"),
+        re.compile("DataMCJetCheck"),
+        re.compile("DataMCMuonCheck"),
+        re.compile("DataMCPhotonCheck"),
+        re.compile("WeightsCheck"),
+    ]
+    list_of_tools = []
+    for at in analyzer_pats:
+        for rl in run_labels:
+            sample_list = _make_stack_sample_list(rl)
+            tool = ppt.FSStackPlotter(
+                "DataMC_" + at.pattern + "_" + rl
+            )
+            tool.filter_dict = {
+                "analyzer":at,
+                "sample": sample_list
+            }
+            list_of_tools.append(tool)
+    return list_of_tools
 
-        def removeWildListItem(x): 
-            if "Run" not in x:
-                return x
-	samplelist=settings.samples_stack
-	if runLabel!="AllRuns":
-	        samplelist=filter(removeWildListItem, settings.samples_stack)
-		samplelist.append(runLabel)
-
-        stream_stack1 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPREet")),
-            "sample": samplelist}
-        ) 
-        stream_stack2 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPREdrmuon")),
-            "sample": samplelist}
+def _make_stack_sample_list(run_label = None):
+    """Returns list of sample names."""
+    sample_list = settings.samples_stack
+    # reject all non matching data samples.
+    if run_label:
+        data_sample_names = settings.data_samples().keys()
+        sample_list = filter(
+            lambda x: not (x in data_sample_names),
+            settings.samples_stack
         )
-        stream_stack3 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPREdrjet")),
-            "sample": samplelist}
-        )
-        stream_stack4 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPREptrelDrjet")),
-            "sample": samplelist}
-        )
-        stream_stack5 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaetaEB")),
-            "sample": samplelist}
-        )
-        stream_stack6 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaetcut")),
-            "sample": samplelist}
-        )
-        stream_stack7 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnahadTowOverEm")),
-            "sample": samplelist}
-        )        
-        stream_stack8 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnasihihEB")),
-            "sample": samplelist}
-        )
-        stream_stack9 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaneutralHadronIsoEB")),
-            "sample": samplelist}
-        )
-        stream_stack10 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaphotonIsoEB")),
-            "sample": samplelist}
-        )
-        stream_stack11 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPOSTet")),
-            "sample": samplelist}
-        )
-        stream_stack12 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPOSTeta")),
-            "sample": samplelist}
-        )
-        stream_stack13 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPOSTptrelDrjet")),
-            "sample": samplelist}
-        )
-        stream_stack14 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPOSTdrmuon")),
-            "sample": samplelist}
-        )
-        stream_stack15 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnachargedHadronIsoEB")),
-            "sample": samplelist}
-        )
-        stream_stack16 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("PhotonAnaPOSTdrjet")),
-            "sample": samplelist}
-        )
-    
-        
-        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4, stream_stack5, stream_stack6, stream_stack7, stream_stack8, stream_stack9, stream_stack10, stream_stack11, stream_stack12, stream_stack13, stream_stack14, stream_stack15, stream_stack16)
-
-        stream_stack = gen.pool_store_items(stream_stack)
-
-        stream_canvas = gen.canvas(
-            stream_stack,
-            [rnd.BottomPlotRatio, rnd.LegendRight]
-        )
-
-        stream_canvas = gen.save(
-            stream_canvas,
-            lambda wrp: self.plot_output_dir + wrp.name+runLabel,
-        )
-
-        count = gen.consume_n_count(stream_canvas)
-        self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
-
-    def run(self):        
-        self.doMCCompPhotonIDForRun("Run2012CPromptRecov2")
-
-
-
-class DataMCComp(pstprc.PostProcTool):
-    
-    def doMCCompsForRun(self, runLabel="AllRuns"):
-
-        def removeWildListItem(x): 
-            if "Run" not in x:
-                return x
-	samplelist=settings.samples_stack
-	if runLabel!="AllRuns":
-	        samplelist=filter(removeWildListItem, settings.samples_stack)
-		samplelist.append(runLabel)
-	
-        stream_stack1 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("DataMCCompPhotons")),
-            "sample": samplelist}
-        )
-        stream_stack2 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("DataMCJetCheck")),
-            "sample": samplelist}
-        )
-        stream_stack3 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("DataMCMuonCheck")),
-            "sample": samplelist}
-        )
-        stream_stack4 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("DataMCPhotonCheck")),
-            "sample": samplelist}
-        )
-        stream_stack5 = gen.fs_mc_stack_n_data_sum(
-            {"analyzer":(re.compile("WeightsCheck")),
-            "sample": samplelist}
-        )
-
-        stream_stack = itertools.chain(stream_stack1, stream_stack2, stream_stack3, stream_stack4, stream_stack5)
-
-        stream_stack = gen.pool_store_items(stream_stack)
-
-        stream_canvas = gen.canvas(
-            stream_stack,
-            [rnd.BottomPlotRatio, rnd.LegendRight]
-        )
-
-        stream_canvas = gen.save(
-            stream_canvas,
-            lambda wrp: self.plot_output_dir + wrp.name+runLabel,
-        )
-
-        count = gen.consume_n_count(stream_canvas)
-        self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
-
-    def run(self):        
-        self.doMCCompsForRun("Run2012CPromptRecov2")
-#        self.doMCCompsForRun("Run2012B13Jul2012")
-#	self.doMCCompsForRun()
-
-class CrtlFiltTool(pstprc.PostProcTool):
-    def run(self):
-
-        stream_stack1 = gen.fs_mc_stack(
-            {"analyzer":(re.compile("CrtlFilt*")),
-            "sample":settings.samples_stack}
-        )
-        stream_stack2 = gen.fs_mc_stack(
-                {"analyzer":(re.compile("PhotonAna*")),
-                "sample":settings.samples_stack}
-        )
-        stream_stack = itertools.chain(stream_stack1, stream_stack2)
-
-        stream_stack = gen.pool_store_items(stream_stack)
-
-        stream_canvas = gen.canvas(
-            stream_stack,
-            [rnd.LegendRight]
-        )
-
-        stream_canvas = gen.save(
-            stream_canvas,
-            lambda wrp: self.plot_output_dir + wrp.name,
-        )
-
-        count = gen.consume_n_count(stream_canvas)
-        self.message("INFO: "+self.name+" produced "+str(count)+" canvases.")
+        sample_list.append(run_label)
+    return sample_list
 
 
 class OverlapComparison(pstprc.PostProcTool):
