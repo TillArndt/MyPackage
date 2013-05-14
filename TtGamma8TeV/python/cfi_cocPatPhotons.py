@@ -39,3 +39,10 @@ widenedCocPatPhotons.checkOverlaps.jets.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.muons.deltaR = 50000.0
 widenedCocPatPhotons.checkOverlaps.jets.requireNoOverlaps = False
 widenedCocPatPhotons.checkOverlaps.muons.requireNoOverlaps = False
+
+
+#process.overlapsPath = cms.Path(
+#    process.preSel
+#    * process.analyzer_Photon
+#    * process.analyzer_ET
+#)

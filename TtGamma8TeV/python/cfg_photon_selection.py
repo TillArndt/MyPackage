@@ -20,7 +20,9 @@ print "<"+__name__+">: Running On MC:", runOnMC
 print "<"+__name__+">: Samplename is:", legend
 
 
-# Regular Config starting here
+############################################## Regular Config starting here ###
+###############################################################################
+
 import FWCore.ParameterSet.Config as cms
 
 if puWeight:
@@ -30,10 +32,6 @@ process = cms.Process('PhotonSelection')
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( '' ),
 )
-# disable duplicateCheckMode on two2seven
-if "two2seven" in sample:
-    process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
-
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('TFILESERVICEmyPhotonSelection.root')
@@ -43,7 +41,7 @@ import FWCore.MessageService.MessageLogger_cfi as logger
 logger.MessageLogger.cerr.FwkReport.reportEvery = 100
 #logger.MessageLogger.categories +=  (["checkCorrs"])
 #logger.MessageLogger.categories +=  (["EvtWeightPU"])
-logger.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+logger.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.extend(logger)
 
 #max num of events processed
@@ -51,13 +49,13 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # input and presel
 process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
-process.load("MyPackage.TtGamma8TeV.cfi_bTagRequirement")
 process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
 process.load("Top.Tools.EvtWeightPU_cfi")
 process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
-#process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
+process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
+process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
@@ -88,32 +86,8 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
 #        * process.photonsSignalMEsequence
 #    )
 
-# Number of Vertices
-#process.vertexHisto = cms.EDAnalyzer(
-#    "MyVertexCountHisto",
-#    src = cms.InputTag("offlinePrimaryVertices"),
-#)
-#process.vertexHistoGood = process.vertexHisto.clone(
-#    src = cms.InputTag("goodOfflinePrimaryVertices"),
-#)
-#process.vertexHisto1BX = cms.EDAnalyzer(
-#    "MyVertexCountHisto",
-#    src = cms.InputTag("offlinePrimaryVertices"),
-#    weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
-#)
-#process.vertexHisto3D = process.vertexHisto1BX.clone(
-#    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
-#)
-#process.vertexHistoGood1BX  = process.vertexHisto1BX.clone(
-#    src = cms.InputTag("goodOfflinePrimaryVertices"),
-#)
-#process.vertexHistoGood3D   = process.vertexHistoGood1BX.clone(
-#    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
-#)
-
 # Path declarations
-process.preSel = cms.Sequence(process.bTagRequirement)
-process.dataMC=cms.Path(
+process.dataMC = cms.Path(
     process.preSel *
     process.WeightsCheck *
     process.DataMCMuonCheck *
@@ -125,7 +99,7 @@ process.dataMC=cms.Path(
     process.DataMCJetCheckTrue *
     process.DataMCPhotonCheckTrue *
     process.DataMCCompPhotonsTrue
-    )
+)
 
 process.producerPath = cms.Path(
     process.preSel *
@@ -133,43 +107,29 @@ process.producerPath = cms.Path(
     process.photonUserData *
     process.widenedCocPatPhotons *
     process.photonInputDummy
-    )
+)
 
 process.selectionPath = cms.Path(
     process.preSel
-    )
-
-#process.overlapsPath = cms.Path(
-#    process.preSel
-#    * process.analyzer_Photon
-#    * process.analyzer_ET
-#)
+)
 
 # schedule
 process.schedule = cms.Schedule(
     process.producerPath,
     process.dataMC,    
     #process.selectionPath,
-    #    process.overlapsPath
+    #process.overlapsPath,
 )
 
-#process.vtxMultPath = cms.Path(
-#    process.preSel
-#    * process.vertexHisto
-#    * process.vertexHistoGood
-#    * process.vertexHisto1BX
-#    * process.vertexHisto3D
-#    * process.vertexHistoGood1BX
-#    * process.vertexHistoGood3D
-#)
+#process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
 #if puWeight:
 #    process.schedule.append(process.vtxMultPath)
 
 
 ####################################################################### ID CUTS
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
-nMinusOnePaths = add_photon_cuts(process)
-for path in nMinusOnePaths:
+paths = add_photon_cuts(process)
+for path in paths:
     process.schedule.append(path)
 
 
