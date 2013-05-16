@@ -39,9 +39,9 @@ if __name__ == '__main__':
     cmstoolsac3b.main.main(
         post_proc_tools=[           
         ],
-        max_num_processes=2,
+        max_num_processes=3,
         samples=samples,
-        try_reuse_results=False,
+        try_reuse_results=True,
         #suppress_cmsRun_exec=True,
         colors = colors,
         stacking_order = stacking_order,

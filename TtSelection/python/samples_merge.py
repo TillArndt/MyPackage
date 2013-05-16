@@ -27,7 +27,16 @@ def generate_das_samples():
                 + f[:-3]
                 + '")'
             ]
-        smpls[samplename] = sample_subclass()
+        sample_inst = sample_subclass() # instance
+        if "whiz" in samplename: # speciality for whizard / fastsim
+            sample_inst.cfg_add_lines += (
+                "process.patreco.remove(process.HBHENoiseFilter)",
+                "process.patreco.remove(process.CSCTightHaloFilter)",
+                "process.patreco.remove(process.manystripclus53X)",
+                "process.patreco.remove(process.toomanystripclus53X)",
+                "process.patreco.remove(process.logErrorTooManyClusters)",
+            )
+        smpls[samplename] = sample_inst
 
     # add single top sample that has no das entry
     smpls.update(smp._check_n_load(Tbar_tW))   
