@@ -1,4 +1,11 @@
 
+jetsource  = "selectedPatJetsForAnalysis"
+muonsource = "tightmuons"
+try:
+    jetsource = cms_var.get("jetsource", jetsource)
+    muonsource = cms_var.get("jetsource", muonsource)
+except NameError:
+    print "<"+__name__+">: cms_var not in __builtin__!"
 
 import FWCore.ParameterSet.Config as cms
 
@@ -11,7 +18,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
     # overlap checking configurables
     checkOverlaps = cms.PSet(
         jets = cms.PSet(
-            src                 = cms.InputTag(cms_var["jetsource"]),
+            src                 = cms.InputTag(jetsource),
             algorithm           = cms.string("byDeltaR"),
             preselection        = cms.string(""),  # don't preselect the jets
             deltaR              = cms.double(0.5), # if > 0.5: make many jets overlapping
@@ -20,7 +27,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
             requireNoOverlaps   = cms.bool(True),
         ),
         muons = cms.PSet(
-            src                 = cms.InputTag(cms_var["muonsource"]),
+            src                 = cms.InputTag(muonsource),
             algorithm           = cms.string("byDeltaR"),
             preselection        = cms.string(""),
             deltaR              = cms.double(0.5),

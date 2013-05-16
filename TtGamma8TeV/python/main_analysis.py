@@ -4,18 +4,14 @@
 #from pydev import pydevd
 #pydevd.settrace('localhost', port=22022, suspend=False)
 
-
+import cmstoolsac3b.main
 from cmstoolsac3b.sample import load_samples
 import cmstoolsac3b.settings as settings
-import samples_aachen
-import samples_test
+import samples_cern
 samples = {}
-#samples.update(load_samples(samples_aachen))
-samples.update(load_samples(samples_test))
+samples.update(load_samples(samples_cern))
 settings.samples_stack = samples.keys() # add all MC and data for stacking
 
-
-import main_plot_tools
 
 import ROOT
 colors = dict()
@@ -39,17 +35,16 @@ stacking_order = [
     "t#bar{t} inclusive",
 ]
 
-import cmstoolsac3b.main
+#import main_plot_tools
+#post_proc_tools = main_plot_tools.generate_data_mc_comp_tools()
+
 if __name__ == '__main__':
     cmstoolsac3b.main.main(
-        post_proc_tools=[
-            main_plot_tools.DataMCComp,
-            main_plot_tools.DataMCCompPhotonID
-        ],
+#        post_proc_tools = post_proc_tools,
         max_num_processes=3,
         samples=samples,
-        try_reuse_results=False,
-        suppress_cmsRun_exec=False,
+        try_reuse_results=True,
+#        suppress_cmsRun_exec=True,
         colors = colors,
         stacking_order = stacking_order,
         rootfile_postfixes = [".root", ".png"],

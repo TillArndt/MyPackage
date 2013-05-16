@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataAdder.cc,v 1.1 2013/03/26 21:16:00 htholen Exp $
+// $Id: MyPhotonUserDataAdder.cc,v 1.2 2013/04/30 08:57:36 kuessel Exp $
 //
 //
 
@@ -127,9 +127,9 @@ MyPhotonUserDataAdder::produce(edm::Event& evt, const edm::EventSetup&)
         } else {
             ph.addUserFloat("passEleVeto", 0.);
         }
-	isolator.fGetIsolation( ph, &pfColl, (*vertices)[0], vertices);
-	cout<<"PF  charged:  "<<isolator.getIsolationCharged()<<" photon: "<<isolator.getIsolationPhoton()<<" neutral: "<<isolator.getIsolationNeutral()<<endl;
-	cout<<"PATPF  charged:  "<<ph.chargedHadronIso() <<" photon: "<<ph.photonIso()<<" neutral: "<<ph.neutralHadronIso()<<endl;
+	//isolator.fGetIsolation( ph, &pfColl, (*vertices)[0], vertices);
+	//cout<<"PF  charged:  "<<isolator.getIsolationCharged()<<" photon: "<<isolator.getIsolationPhoton()<<" neutral: "<<isolator.getIsolationNeutral()<<endl;
+	//cout<<"PATPF  charged:  "<<ph.chargedHadronIso() <<" photon: "<<ph.photonIso()<<" neutral: "<<ph.neutralHadronIso()<<endl;
     }
     evt.put( photonColl);
 

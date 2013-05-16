@@ -1,5 +1,13 @@
 ### added by yvi
 
+jetsource  = "selectedPatJetsForAnalysis"
+muonsource = "tightmuons"
+try:
+    jetsource = cms_var.get("jetsource", jetsource)
+    muonsource = cms_var.get("jetsource", muonsource)
+except NameError:
+    print "<"+__name__+">: cms_var not in __builtin__!"
+
 import FWCore.ParameterSet.Config as cms
 
 DataMCCompPhotonsTrue = cms.EDAnalyzer(
@@ -47,7 +55,7 @@ DataMCPhotonCheck=DataMCPhotonCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight
 DataMCJetCheckTrue=cms.EDAnalyzer("checkObject",
         srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
 	bTagAlgorithm=cms.string("combinedSecondaryVertexBJetTags"),
-	srcObjects=cms.InputTag(cms_var["jetsource"]), 
+	srcObjects=cms.InputTag(jetsource), 
 	objectType=cms.string("patJet")
 )
 DataMCJetCheck=DataMCJetCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))
@@ -55,7 +63,7 @@ DataMCJetCheck=DataMCJetCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PU
 DataMCMuonCheckTrue=cms.EDAnalyzer("checkObject",
         srcPUWeight=cms.InputTag("puWeight", "PUWeightTrue"),
 	bTagAlgorithm=cms.string("blabla"),
-	srcObjects=cms.InputTag(cms_var["muonsource"]), 
+	srcObjects=cms.InputTag(muonsource), 
 	objectType=cms.string("patMuon")
 )
 DataMCMuonCheck=DataMCMuonCheckTrue.clone(srcPUWeight=cms.InputTag("puWeight", "PUWeight"))

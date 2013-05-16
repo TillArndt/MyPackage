@@ -192,7 +192,7 @@ def add_photon_cuts(process):
         last_filter, # put collection with exactly one item here
         ("",  -.5, num_cut_keys + .5, num_cut_keys, "preselected", "0.")
     )
-    setattr(process, cutflow_hist, "CutFlowpreselected")
+    setattr(process, "CutFlowpreselected", cutflow_hist)
     last_filt_obj = getattr(process, last_filter)
     process.selectionPath.replace(last_filt_obj, last_filt_obj * cutflow_hist)
 
@@ -239,7 +239,7 @@ def add_photon_cuts(process):
             new_filter,
             make_cutflow_token(cut_key)
         )
-        setattr(process, cutflow_hist, "CutFlow" + cut_key)
+        setattr(process, "CutFlow" + cut_key, cutflow_hist)
         process.selectionPath.replace(PhotonFiltTmp, PhotonFiltTmp * cutflow_hist)
 
         # Filter for n - 1 plot

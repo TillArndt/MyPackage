@@ -8,7 +8,7 @@ puWeight    = None
 sample      = ""
 
 try:
-    runOnMC     = not cms_var["isData"]
+    runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
     useMerging  = cms_var.get("useMerging", useMerging)
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
@@ -52,9 +52,9 @@ process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
 process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
-process.load("Top.Tools.EvtWeightPU_cfi")
-process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
-process.load("MyPackage.TtGamma8TeV.sequenceTtgammaMerging_cff")
+#process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
+#process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
+process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
@@ -87,23 +87,23 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
 #    )
 
 # Path declarations
-process.dataMC = cms.Path(
-    process.preSel *
-    process.WeightsCheck *
-    process.DataMCMuonCheck *
-    process.DataMCJetCheck *
-    process.DataMCPhotonCheck *
-    process.DataMCCompPhotons *
-    process.WeightsCheckTrue *
-    process.DataMCMuonCheckTrue *
-    process.DataMCJetCheckTrue *
-    process.DataMCPhotonCheckTrue *
-    process.DataMCCompPhotonsTrue
-)
+#process.dataMC = cms.Path(
+#    process.preSel *
+#    process.WeightsCheck *
+#    process.DataMCMuonCheck *
+#    process.DataMCJetCheck *
+#    process.DataMCPhotonCheck *
+#    process.DataMCCompPhotons *
+#    process.WeightsCheckTrue *
+#    process.DataMCMuonCheckTrue *
+#    process.DataMCJetCheckTrue *
+#    process.DataMCPhotonCheckTrue *
+#    process.DataMCCompPhotonsTrue
+#)
 
 process.producerPath = cms.Path(
     process.preSel *
-    process.puWeight *
+#    process.puWeight *
     process.photonUserData *
     process.widenedCocPatPhotons *
     process.photonInputDummy
@@ -116,8 +116,8 @@ process.selectionPath = cms.Path(
 # schedule
 process.schedule = cms.Schedule(
     process.producerPath,
-    process.dataMC,    
-    #process.selectionPath,
+    #process.dataMC,    
+    process.selectionPath,
     #process.overlapsPath,
 )
 
