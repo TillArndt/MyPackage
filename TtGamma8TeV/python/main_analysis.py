@@ -35,8 +35,8 @@ stacking_order = [
     "t#bar{t} inclusive",
 ]
 
-#import main_plot_tools
-#post_proc_tools = main_plot_tools.generate_data_mc_comp_tools()
+import main_plot_tools
+post_proc_tools = main_plot_tools.make_list_of_tools()
 
 if __name__ == '__main__':
     cmstoolsac3b.main.main(

@@ -7,12 +7,13 @@ Luminosity in inverse picobarns.
 import cmstoolsac3b.sample as smp
 
 # this is already set as default in the cmssw configs.
-#import cmstoolsac3b.settings as settings
-#settings.cfg_common_builtins.update({
-#    "jetsource":"selectedPatJetsForAnalysis",
-#    "photonsource":"patPhotons",
-#    "muonsource":"tightmuons"
-#})
+import cmstoolsac3b.settings as settings
+settings.cfg_common_builtins.update({
+#    "jetsource"    : "selectedPatJetsForAnalysis",
+#    "photonsource" : "patPhotons",
+#    "muonsource"   : "tightmuons",
+     "puWeight"     : "PUWeightTrue",
+})
 
 path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
 

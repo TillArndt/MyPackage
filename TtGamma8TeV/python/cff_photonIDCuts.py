@@ -184,17 +184,29 @@ def add_photon_cuts(process):
     """Produces cutflow modules (incl. histograms). Returns new paths."""
     last_producer = "photonInputDummy"
     last_filter   = "photonInputDummy"
-    new_paths = []
+    pre_paths = []
+    post_paths = []
 
     # TODO: break this long sequence in smaller functions
+
+    # CUTFLOW: use a one-object-collection as input for cutflow histo.
+    one_obj_collection = "tightmuons"  ## HACK-AROUND: the tightmuons collection has always exactly one muon for ttbar-selected events.
+    CheckOneObj = cms.EDFilter("CandViewCountFilter",
+        src = cms.InputTag(one_obj_collection),
+        minNumber = cms.uint32(1),
+        maxNumber = cms.uint32(1),
+    )
+    setattr(process, "CheckOneObj", CheckOneObj)
+    process.producerPath.insert(0,CheckOneObj)
+
     # cutflow bin zero: preselection
     cutflow_hist = make_histo_analyzer(
-        last_filter, # put collection with exactly one item here
+        one_obj_collection, # put collection with exactly one item here
         ("",  -.5, num_cut_keys + .5, num_cut_keys, "preselected", "0.")
     )
     setattr(process, "CutFlowpreselected", cutflow_hist)
     last_filt_obj = getattr(process, last_filter)
-    process.selectionPath.replace(last_filt_obj, last_filt_obj * cutflow_hist)
+    process.selectionPath.replace(last_filt_obj, cutflow_hist * last_filt_obj)
 
     #loop over cuts
     for cut_key in cut_key_order:
@@ -223,6 +235,7 @@ def add_photon_cuts(process):
 
         # Filter for selectionPath
         new_filter   = "PhotonFilt" + cut_key
+        new_cutflow_histo = "CutFlow" + cut_key
         PhotonFiltTmp = cms.EDFilter(
             "PATCandViewCountFilter",
             src = cms.InputTag(new_producer),
@@ -232,15 +245,14 @@ def add_photon_cuts(process):
         setattr(process, new_filter, PhotonFiltTmp)
         last_filt_obj = getattr(process, last_filter)
 
-        process.selectionPath.replace(last_filt_obj, last_filt_obj * PhotonFiltTmp)
-
         # After Cut: Histogram for cutflow
         cutflow_hist = make_histo_analyzer(
-            new_filter,
+            one_obj_collection,
             make_cutflow_token(cut_key)
         )
-        setattr(process, "CutFlow" + cut_key, cutflow_hist)
-        process.selectionPath.replace(PhotonFiltTmp, PhotonFiltTmp * cutflow_hist)
+        setattr(process, new_cutflow_histo, cutflow_hist)
+
+        process.selectionPath.replace(last_filt_obj, last_filt_obj * PhotonFiltTmp * cutflow_hist)
 
         # Filter for n - 1 plot
         PhotonFiltersMinusTmp = cms.EDFilter("PATPhotonSelector",
@@ -260,11 +272,11 @@ def add_photon_cuts(process):
             * getattr(process, "PhotonAna" + cut_key)
         )
         setattr(process, "path"+cut_key, pathTmp)
-        new_paths.append(pathTmp)
+        post_paths.append(pathTmp)
 
         #set for next round
         last_producer = new_producer
-        last_filter   = new_filter
+        last_filter   = new_cutflow_histo
 
-    return new_paths
+    return pre_paths, post_paths
 

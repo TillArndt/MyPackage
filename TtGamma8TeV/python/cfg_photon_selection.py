@@ -52,7 +52,7 @@ process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
 process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
-#process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
+process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
 #process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
@@ -103,22 +103,15 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
 
 process.producerPath = cms.Path(
     process.preSel *
-#    process.puWeight *
+    process.puWeight *
     process.photonUserData *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )
 
 process.selectionPath = cms.Path(
-    process.preSel
-)
-
-# schedule
-process.schedule = cms.Schedule(
-    process.producerPath,
-    #process.dataMC,    
-    process.selectionPath,
-    #process.overlapsPath,
+    process.preSel *
+    process.photonInputDummy
 )
 
 #process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
@@ -128,9 +121,20 @@ process.schedule = cms.Schedule(
 
 ####################################################################### ID CUTS
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
-paths = add_photon_cuts(process)
-for path in paths:
-    process.schedule.append(path)
+pre_paths, post_paths = add_photon_cuts(process)
+
+# schedule
+process.schedule = cms.Schedule(
+    *pre_paths
+)
+process.schedule += [
+    process.producerPath,
+#    process.dataMC,
+    process.selectionPath,
+#    process.overlapsPath,
+]
+process.schedule += post_paths
+
 
 
 ####################################################################### Cutflow
