@@ -6,6 +6,7 @@ useMerging  = ""
 preSelOpt   = None
 puWeight    = None
 sample      = ""
+skipChecks  = False
 
 try:
     runOnMC     = not cms_var["is_data"]
@@ -14,6 +15,7 @@ try:
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
     puReweight  = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
+    skipChecks  = cms_var.get("skipChecks", skipChecks)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 print "<"+__name__+">: Running On MC:", runOnMC
@@ -63,28 +65,34 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     filter = cms.bool(False)
 )
 
-#if preSelOpt == "go4Signal":
-#    process.preSel.replace(
-#        process.bTagRequirement, 
-#        process.bTagRequirement 
-#        * process.ttgammaMerging
-#        * process.photonsSignalTwo2Seven
-#        * process.photonsSignalTwo2SevenCounter
-#    )
-#if preSelOpt == "go4Noise":
-#    process.preSel.replace(
-#        process.bTagRequirement, 
-#        process.bTagRequirement 
-#        * process.ttgammaMerging
-#        * process.photonsSignalTwo2Seven
-#        * ~process.photonsSignalTwo2SevenCounter
-#    )
-#if preSelOpt == "go4Whiz":
-#    process.preSel.replace(
-#        process.bTagRequirement,
-#        process.bTagRequirement
-#        * process.photonsSignalMEsequence
-#    )
+if preSelOpt == "go4Signal":
+    process.preSel.replace(
+        process.bTagRequirement,
+        process.bTagRequirement
+        * process.ttgammaMerging
+        * process.photonsSignalTwo2Seven
+        * process.photonsSignalTwo2SevenCounter
+    )
+    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
+    process.OnlyBarrelPhotons.src = "photonsSignalTwo2Seven"
+
+if preSelOpt == "go4Noise":
+    process.preSel.replace(
+        process.bTagRequirement,
+        process.bTagRequirement
+        * process.ttgammaMerging
+        * process.photonsSignalTwo2Seven
+        * ~process.photonsSignalTwo2SevenCounter
+    )
+    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
+    process.OnlyBarrelPhotons.src = "photonsSignalTwo2Seven"
+
+if preSelOpt == "go4Whiz":
+    process.preSel.replace(
+        process.bTagRequirement,
+        process.bTagRequirement
+        * process.photonsSignalMEsequence
+    )
 
 # Path declarations
 #process.dataMC = cms.Path(
@@ -104,7 +112,7 @@ process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
 process.producerPath = cms.Path(
     process.preSel *
     process.puWeight *
-    process.photonUserData *
+    process.photonUserDataSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )
@@ -113,6 +121,13 @@ process.selectionPath = cms.Path(
     process.preSel *
     process.photonInputDummy
 )
+
+if preSelOpt == "go4Signal" or preSelOpt == "go4Noise":
+    process.selectionPath.replace(
+        process.ttbarPhotonMerger,
+        process.ttbarPhotonMergerSingleCall
+    )
+
 
 #process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
 #if puWeight:
@@ -135,6 +150,11 @@ process.schedule += [
 ]
 process.schedule += post_paths
 
+
+
+if skipChecks:
+    process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
+    process.producerPath.remove(process.CheckOneObj)
 
 
 ####################################################################### Cutflow

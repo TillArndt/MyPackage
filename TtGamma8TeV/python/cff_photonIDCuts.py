@@ -105,29 +105,26 @@ cuts = {
         "sigmaIetaIeta"
     ),
     "chargedHadronIsoEB" : (
-        "chargedHadronIso<0.7", # EE: 0.5
+        "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 80,
-        "PF charged hadron isolation",
-        "chargedHadronIso"
+        "PF charged hadron isolation (#rho corrected)",
+        "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ),
     "neutralHadronIsoEB" : (
-        "neutralHadronIso<(0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
+        "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.) < (0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
         0., 10., 80,
-        "PF neutral hadron isolation",
-        "neutralHadronIso"
+        "PF neutral hadron isolation (#rho corrected)",
+        "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
     ),
     "photonIsoEB" : (
-        "photonIso<(0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
+        "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.) < (0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
         0., 10., 80,
-        "PF photon isolation",
-        "photonIso"
+        "PF photon isolation (#rho corrected)",
+        "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
     ),
 
 # TODO:
 # ARE THE ISOLATIONS RHO CORRECTED BY PF2PAT??? NO!!
-# PU !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# OVERLAP REMOVAL
-# PLOTTING: *LEGEND *LOGSCALE
 }
 
 cut_key_order = [
@@ -152,7 +149,7 @@ print "\nALL CUTS:\n" + str(all_cuts) + "\n\n"
 
 def make_cutflow_token(cut):
     return (
-        "", -.5, num_cut_keys + .5, num_cut_keys,
+        "", -.5, num_cut_keys + .5, num_cut_keys + 1,
         cut,
         str(cut_key_order.index(cut) + 1) + "."
     )

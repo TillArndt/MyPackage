@@ -4,12 +4,14 @@ from TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff import *
 
 
 ttbarPhotonMerger = cms.EDFilter("TTGammaMerger",
-    ptCut = cms.double(8.),
+    ptCut = cms.double(20.),
     drCut = cms.double(.1),
 #    is2to7 = cms.untracked.bool(True),
     is2to5 = cms.untracked.bool(True),
     filter = cms.bool(True),
 )
+
+ttbarPhotonMergerSingleCall = ttbarPhotonMerger.clone()
 
 ttgammaMerging = cms.Sequence(makeGenEvt * ttbarPhotonMerger)
 

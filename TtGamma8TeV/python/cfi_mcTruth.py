@@ -41,7 +41,7 @@ photonsSignalMEsequence = cms.Sequence(
 # )
 
 photonsSignalTwo2Seven = cms.EDProducer("TTGammaMcSignalMatch",
-    src = cms.InputTag("widenedCocPatPhotons"),
+    src = cms.InputTag("patPhotons"),
     is2to5 = cms.untracked.bool(True)
 )
 
