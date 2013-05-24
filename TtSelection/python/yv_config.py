@@ -5,7 +5,11 @@ from FWCore.ParameterSet import Config as cms
 
 from MyPackage.TtSelection.yv_options import options
 options = options()
-options.isData = cms_var["is_data"]
+try:
+    options.isData = cms_var["is_data"]
+except NameError:
+    print "cms_var is not in __builtin__"
+
 
 process = cms.Process( 'PAT2' )
 process.load('FWCore.MessageService.MessageLogger_cfi')

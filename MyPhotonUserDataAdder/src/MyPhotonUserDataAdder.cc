@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataAdder.cc,v 1.3 2013/05/16 10:06:47 htholen Exp $
+// $Id: MyPhotonUserDataAdder.cc,v 1.4 2013/05/24 10:00:19 htholen Exp $
 //
 //
 
@@ -146,6 +146,39 @@ MyPhotonUserDataAdder::produce(edm::Event& evt, const edm::EventSetup&)
 
         // rho
         ph.addUserFloat("kt6pf_rho", *kt6pf_rho);
+
+        // effective areas for rho correction
+        // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonID2012#Effective_Areas_for_rho_correcti
+        float ph_eta = fabs(ph.eta());
+        if (ph_eta < 1.0) {
+            ph.addUserFloat("EA_charged", 0.012);
+            ph.addUserFloat("EA_neutral", 0.030);
+            ph.addUserFloat("EA_photons", 0.148);
+        } else if (ph_eta < 1.479) {
+            ph.addUserFloat("EA_charged", 0.010);
+            ph.addUserFloat("EA_neutral", 0.057);
+            ph.addUserFloat("EA_photons", 0.130);
+        } else if (ph_eta < 2.0) {
+            ph.addUserFloat("EA_charged", 0.014);
+            ph.addUserFloat("EA_neutral", 0.039);
+            ph.addUserFloat("EA_photons", 0.112);
+        } else if (ph_eta < 2.2) {
+            ph.addUserFloat("EA_charged", 0.012);
+            ph.addUserFloat("EA_neutral", 0.015);
+            ph.addUserFloat("EA_photons", 0.216);
+        } else if (ph_eta < 2.3) {
+            ph.addUserFloat("EA_charged", 0.016);
+            ph.addUserFloat("EA_neutral", 0.024);
+            ph.addUserFloat("EA_photons", 0.262);
+        } else if (ph_eta < 2.4) {
+            ph.addUserFloat("EA_charged", 0.020);
+            ph.addUserFloat("EA_neutral", 0.039);
+            ph.addUserFloat("EA_photons", 0.260);
+        } else {
+            ph.addUserFloat("EA_charged", 0.012);
+            ph.addUserFloat("EA_neutral", 0.072);
+            ph.addUserFloat("EA_photons", 0.266);
+        }
     }
     evt.put( photonColl);
 
