@@ -45,6 +45,11 @@ logger.MessageLogger.cerr.FwkReport.reportEvery = 100
 #logger.MessageLogger.categories +=  (["EvtWeightPU"])
 logger.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.extend(logger)
+process.options.fileMode = cms.untracked.string('NOMERGE')
+if runOnMC:
+    process.options.emptyRunLumiMode = cms.untracked.string(
+        'doNotHandleEmptyRunsAndLumis'
+    )
 
 #max num of events processed
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
@@ -73,8 +78,7 @@ if preSelOpt == "go4Signal":
         * process.photonsSignalTwo2Seven
         * process.photonsSignalTwo2SevenCounter
     )
-    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
-    process.OnlyBarrelPhotons.src = "photonsSignalTwo2Seven"
+#    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
 
 if preSelOpt == "go4Noise":
     process.preSel.replace(
@@ -84,8 +88,7 @@ if preSelOpt == "go4Noise":
         * process.photonsSignalTwo2Seven
         * ~process.photonsSignalTwo2SevenCounter
     )
-    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
-    process.OnlyBarrelPhotons.src = "photonsSignalTwo2Seven"
+#    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
 
 if preSelOpt == "go4Whiz":
     process.preSel.replace(
@@ -155,7 +158,8 @@ process.schedule += post_paths
 if skipChecks:
     process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
     process.producerPath.remove(process.CheckOneObj)
-
+    for p in process.schedule:
+        p.remove(process.bTagRequirement)
 
 ####################################################################### Cutflow
 

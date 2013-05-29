@@ -53,8 +53,8 @@ class MEOverlapComp(pstprc.PostProcTool):
             (gen.gen_norm_to_lumi(z) for z in zipped),
             "_lumi"
         )
-        save_canvas(
-            (gen.gen_norm_to_integral(z) for z in zipped),
-            "_int"
-        )
+#        save_canvas(
+#            (gen.gen_norm_to_integral(z) for z in zipped),
+#            "_int"
+#        )
 

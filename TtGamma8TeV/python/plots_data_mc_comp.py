@@ -27,7 +27,17 @@ def generate_data_mc_comp_tools():
         for rl in run_labels:
             sample_list = _make_stack_sample_list(rl)
             tool = ppt.FSStackPlotter(
-                "DataMC_" + at.pattern + "_" + rl
+                "DataMC_" + at.pattern + "_logscale" + rl
+            )
+            tool.filter_dict = {
+                "analyzer": at,
+                "sample": sample_list
+            }
+            tool.canvas_decorators.append(com.LumiTitleBox)
+            tool.save_log_scale = True
+            list_of_tools.append(tool)
+            tool = ppt.FSStackPlotter(
+                "DataMC_" + at.pattern + "_linscale" + rl
             )
             tool.filter_dict = {
                 "analyzer": at,

@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataAdder.cc,v 1.4 2013/05/24 10:00:19 htholen Exp $
+// $Id: MyPhotonUserDataAdder.cc,v 1.5 2013/05/24 13:19:22 htholen Exp $
 //
 //
 
@@ -98,22 +98,25 @@ MyPhotonUserDataAdder::produce(edm::Event& evt, const edm::EventSetup&)
     Handle<double> kt6pf_rho;
     evt.getByLabel(_srcKt6pfRho, kt6pf_rho);
 
-    Handle<vector<pat::Electron> > electrons;
-    evt.getByLabel(_srcElectron, electrons);
-
     Handle<vector<reco::Conversion> > conversions;
     evt.getByLabel(_srcConversion, conversions);
 
     Handle<reco::BeamSpot> beamSpot;
     evt.getByLabel(_srcBeamSpot, beamSpot);
-
-    auto_ptr<vector<pat::Photon> > photonColl( new vector<pat::Photon> (*photons) );
+/*
+    Handle<vector<pat::Electron> > electrons;
+    evt.getByLabel(_srcElectron, electrons);
     vector<reco::GsfElectron> gsfEleVec;
     Provenance prov;
     Handle<vector<reco::GsfElectron> > electronColl(&gsfEleVec, &prov);
     for (unsigned int i = 0; i< electrons->size();++i) {
         gsfEleVec.push_back((reco::GsfElectron) electrons->at(i));
     }
+*/
+    Handle<vector<reco::GsfElectron> > electronColl;
+    evt.getByLabel(_srcElectron, electronColl);
+
+    auto_ptr<vector<pat::Photon> > photonColl( new vector<pat::Photon> (*photons) );
     for (unsigned int i = 0; i< photonColl->size();++i) {
         pat::Photon & ph = (*photonColl)[i];
 

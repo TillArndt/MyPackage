@@ -148,11 +148,11 @@ for key in cuts:
 print "\nALL CUTS:\n" + str(all_cuts) + "\n\n"
 
 def make_cutflow_token(cut):
-    return (
-        "", -.5, num_cut_keys + .5, num_cut_keys + 1,
-        cut,
-        str(cut_key_order.index(cut) + 1) + "."
-    )
+    if cut in cut_key_order:
+        bin = str(cut_key_order.index(cut) + 1) + "."
+    else:
+        bin = "0."
+    return ("", -.5, num_cut_keys + .5, num_cut_keys + 1, cut, bin)
 
 def make_histo_analyzer(src, tokens):
     """tokens: (cut, low, high, n-bins, x-axis-label, plotquantity)"""
@@ -199,7 +199,7 @@ def add_photon_cuts(process):
     # cutflow bin zero: preselection
     cutflow_hist = make_histo_analyzer(
         one_obj_collection, # put collection with exactly one item here
-        ("",  -.5, num_cut_keys + .5, num_cut_keys, "preselected", "0.")
+        make_cutflow_token("preselected")
     )
     setattr(process, "CutFlowpreselected", cutflow_hist)
     last_filt_obj = getattr(process, last_filter)

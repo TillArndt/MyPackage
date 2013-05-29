@@ -59,12 +59,14 @@ settings.pretty_names = pn
 import plots_ME_overlap
 import plots_data_mc_comp
 import plots_cutflow
+import cmstoolsac3b.postproctools as ppt
 post_proc_tools = plots_data_mc_comp.generate_data_mc_comp_tools()
 post_proc_tools += [
     plots_ME_overlap.MEOverlapComp,
     plots_cutflow.CutflowHistos,
     plots_cutflow.CutflowStack,
     plots_cutflow.CutflowTable,
+    ppt.SimpleWebCreator,
 ]
 
 if __name__ == '__main__':

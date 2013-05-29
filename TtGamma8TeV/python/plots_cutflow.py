@@ -29,6 +29,7 @@ class CutflowHistos(pp.PostProcTool):
         wrp = gen.op.sum(grp)
         wrp.lumi = lumi
         for bin, label in bin_labels.iteritems():
+            print bin, label
             wrp.histo.GetXaxis().SetBinLabel(bin, label)
         return wrp
 
@@ -52,6 +53,7 @@ class CutflowStack(ppt.FSStackPlotter):
     """Reads cutflow histos from pool and stacks them up."""
     def configure(self):
         self.canvas_decorators.append(com.LumiTitleBox)
+        self.save_log_scale = True
 
     def set_up_stacking(self):
         wrps = gen.pool_content()
@@ -60,7 +62,10 @@ class CutflowStack(ppt.FSStackPlotter):
             {"analyzer": re.compile("CutFlow")}
         )
         wrps = gen.group(wrps)
-        self.stream_stack = gen.mc_stack_n_data_sum(wrps)
+        self.stream_stack = gen.mc_stack_n_data_sum(
+            wrps,
+            use_all_data_lumi=True
+        )
 
 
 class CutflowTable(pp.PostProcTool):
