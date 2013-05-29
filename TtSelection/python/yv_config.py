@@ -214,6 +214,9 @@ if not options.isData:
 #   else:
 process.outPath = cms.EndPath(process.out)
 
+process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
+process.patreco += process.photonUserDataSequence
+
 #end yvi changes
 
 process.schedule = cms.Schedule( process.patreco,
