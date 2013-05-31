@@ -11,7 +11,7 @@ except NameError:
     print "cms_var is not in __builtin__"
 
 
-process = cms.Process( 'PAT2' )
+process = cms.Process( options.procName )
 process.load('FWCore.MessageService.MessageLogger_cfi')
 #process.MessageLogger.categories+=(['EventInfo'])
 #process.MessageLogger.categories+=(['MuonInfo'])
@@ -32,21 +32,7 @@ process.out = cms.OutputModule( "PoolOutputModule",
     SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), 
     fileName=cms.untracked.string("SynchSelMuJets.root")
 )
-#process.outskim = cms.OutputModule( "PoolOutputModule", 
-#    outputCommands = cms.untracked.vstring( 
-#        'drop *',
-#        'keep *_selectedPatJetsForAnalysis_*_*',
-#        'keep *_patPhotons_*_*', 'keep *_tightmuons_*_*',
-#        'keep *_addPileupInfo_*_*',
-#        'keep *_*OfflinePrimaryVertices*_*_*',
-#        'keep *_selectedPatElectronsTR_*_*',
-#        'keep *_patElectronsTR_*_*',
-#        'keep *_pfPhotonTranslator_*_*',
-#        'keep *_offlineBeamSpot_*_*'
-#    ), 
-#    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('patreco') ), 
-#    fileName=cms.untracked.string("/net/scratch_cms/institut_3b/kuessel/skimPU/"+cms_var["sample"]+"SynchSelMuJetsSkim.root")
-#)
+
 process.add_( 
     cms.Service( "TFileService", 
         fileName = cms.string( options.output ), 
@@ -142,8 +128,8 @@ process.BTagJet = cms.EDFilter("PATCandViewCountFilter",
     src = cms.InputTag("selectedPatJetsForAnalysisBTag"),
     minNumber = cms.uint32(1)
 )
-#if options.skim:
-process.patreco += process.BTagJet
+if options.skim:
+    process.patreco += process.BTagJet
 
 
 if not options.isData:

@@ -8,6 +8,7 @@ def options() :
     options.maxEvents = -1
     
     print sys.argv
+    options.register('procName', default = "PAT2", mytype = VP.varType.string)
     options.register('isData', default = False, mytype = VP.varType.bool)
     options.register('skim', default = True, mytype = VP.varType.bool)
 #    options.register('outputModule', default = True, mytype = VP.varType.bool)
