@@ -318,8 +318,11 @@ process.out.outputCommands = [
     'keep *_*_*_PAT2',
 ]
 if options.skim:
-    from MyPackage.TtSelection.droped_collections import droped_collections
-    process.out.outputCommands += droped_collections
+    from MyPackage.TtSelection.kept_collections import kept_collections
+    process.out.outputCommands = [
+        'drop *',
+    ]
+    process.out.outputCommands += kept_collections
 
 
  

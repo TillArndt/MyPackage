@@ -21,7 +21,7 @@ def generate_das_samples():
             is_data = is_data_sample
             lumi = 1000.
             input_files = "dummy"
-            output_file = "/disk1/tholen/eventFiles/fromGrid20130502/"
+            output_file = "/disk1/tholen/eventFiles/fromGrid20130601/"
             cfg_add_lines = [
                 'process.load("MyPackage.TtSelection.'
                 + f[:-3]
