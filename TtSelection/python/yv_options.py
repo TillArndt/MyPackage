@@ -8,6 +8,11 @@ def options() :
     options.maxEvents = -1
     
     print sys.argv
+    opt_create = None
+    if "-create" in sys.argv:
+         opt_create = "-create"
+         sys.argv.remove(opt_create)
+
     options.register('procName', default = "PAT2", mytype = VP.varType.string)
     options.register('isData', default = False, mytype = VP.varType.bool)
     options.register('skim', default = True, mytype = VP.varType.bool)
@@ -21,6 +26,9 @@ def options() :
     options.parseArguments()
     options._tagOrder =[]
 
+    if opt_create:
+        sys.argv.append(opt_create)
+    print sys.argv
 
 
     defaultGT = ('GR_R_53_V18' if options.isData else 'START53_V15')

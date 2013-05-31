@@ -6,7 +6,9 @@ from FWCore.ParameterSet import Config as cms
 from MyPackage.TtSelection.yv_options import options
 options = options()
 try:
-    options.isData = cms_var["is_data"]
+    options.isData   = cms_var["is_data"]
+    options.skim     = cms_var.get("skim", options.skim)
+    options.procName = cms_var.get("procName", options.procName)
 except NameError:
     print "cms_var is not in __builtin__"
 
@@ -301,7 +303,7 @@ process.out.outputCommands = [
     'keep *_*_*_SIM',
     'keep *_*_*_HLT',
     'keep *_*_*_RECO',
-    'keep *_*_*_PAT2',
+    'keep *_*_*_PAT',
 ]
 if options.skim:
     from MyPackage.TtSelection.kept_collections import kept_collections
