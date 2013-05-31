@@ -29,7 +29,6 @@ class CutflowHistos(pp.PostProcTool):
         wrp = gen.op.sum(grp)
         wrp.lumi = lumi
         for bin, label in bin_labels.iteritems():
-            print bin, label
             wrp.histo.GetXaxis().SetBinLabel(bin, label)
         return wrp
 

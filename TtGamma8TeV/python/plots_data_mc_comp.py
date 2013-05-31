@@ -14,8 +14,8 @@ def generate_data_mc_comp_tools():
     #run_labels.append(None) # all runs
     run_labels = [""]
     analyzer_pats = [
-        re.compile("CrtlFilt"),
-        re.compile("PhotonAna"),
+        re.compile("CrtlPlot"),
+        re.compile("Nm1Filt"),
 #        re.compile("DataMCCompPhotons"),
 #        re.compile("DataMCJetCheck"),
 #        re.compile("DataMCMuonCheck"),

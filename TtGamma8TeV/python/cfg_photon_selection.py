@@ -33,6 +33,12 @@ if puWeight:
 process = cms.Process('PhotonSelection')
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( '' ),
+    noEventSort = cms.untracked.bool( True ),
+    inputCommands = cms.untracked.vstring(
+        'keep *',
+        'drop *_conditionsInEdm_*_*',
+        'drop *_logErrorTooManyClusters_*_*',
+    )
 )
 
 process.TFileService = cms.Service("TFileService",
@@ -137,7 +143,7 @@ if preSelOpt == "go4Signal" or preSelOpt == "go4Noise":
 #    process.schedule.append(process.vtxMultPath)
 
 
-####################################################################### ID CUTS
+################################################################### ID CUTS ###
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
 pre_paths, post_paths = add_photon_cuts(process)
 
@@ -154,52 +160,29 @@ process.schedule += [
 process.schedule += post_paths
 
 
+######################################################### template creation ###
+process.load("MyPackage.TtGamma8TeV.cff_templateCreation")
+if runOnMC:
+    process.templatePath.insert(0, process.preSel * process.Nm1FiltsihihEB)
+    process.schedule.append(process.templatePath)
+else:
+    process.templatePathData.insert(0, process.preSel * process.Nm1FiltsihihEB)
+    process.schedule.append(process.templatePathData)
 
+
+############################################################### skip checks ###
 if skipChecks:
     process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
     process.producerPath.remove(process.CheckOneObj)
     for p in process.schedule:
         p.remove(process.bTagRequirement)
 
-####################################################################### Cutflow
+############################################### output module for debugging ###
 
-#process.analyzeSelection=cms.EDAnalyzer(
-#    "CheckSelection",
-#    processName=cms.string("myPhoSel"),
-#    pathNames=cms.vstring("selectionPath")
+#process.out = cms.OutputModule( "PoolOutputModule",
+#    outputCommands  = cms.untracked.vstring( 'keep *_*hoton*_*_*' ),
+#    SelectEvents    = cms.untracked.PSet( SelectEvents = cms.vstring('producerPath') ),
+#    fileName        = cms.untracked.string("test_out.root"),
 #)
-#if puWeight:
-#    process.analyzeSelection.weights = puWeight
-#
-#from MyPackage.TtGamma8TeV.selectionTool import runSelectionTool
-#names=cms.vstring()
-#runSelectionTool(process, "selectionPath", names=names)
-##put them in correct order not automated yet
-#selPathMods = str(process.selectionPath).split("+")
-#names=cms.vstring()
-#while selPathMods[0] != "photonInputDummy":
-#    selPathMods.pop(0)
-#for mod in selPathMods:
-#    names.append("ModulePath" + mod)
-#process.analyzeSelection.pathNames=names
-#process.analyzeSelection.processName=cms.string(process.process)
-#process.selAnalyze = cms.EndPath(process.analyzeSelection)
-#
-#for name in names:
-#    process.schedule.append(getattr(process,name))
-#process.schedule.append(process.selAnalyze)
-
-
-
-# TEMPLATE FIT TEMPLATE CREATION
-#if runOnMC:
-#    process.load("MyPackage.TtGamma8TeV.TemplateCreator")
-#    process.templatePath.insert(0, process.preSel)
-#    process.schedule.append(process.templatePath)
-#else:
-#    process.load("MyPackage.TtGamma8TeV.TemplateCreator")
-#    process.templatePathData.insert(0, process.preSel)
-#    process.schedule.append(process.templatePathData)
-
-
-
+#process.outPath = cms.EndPath(process.out)
+#process.schedule.append(process.outPath)

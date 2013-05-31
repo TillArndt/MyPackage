@@ -100,7 +100,7 @@ cuts = {
     ),
     "sihihEB" : (
         "sigmaIetaIeta<0.011", # EE: 0.031
-        0., 10., 80,
+        0., 0.08, 80,
         "#sigma_{i #eta i #eta}",
         "sigmaIetaIeta"
     ),
@@ -133,12 +133,12 @@ cut_key_order = [
     #"drmuon",
     #"drjet",
     #"ptrelDrjet",
-    #"passEleVeto",
+    "passEleVeto",
     "hadTowOverEm",
-    "sihihEB",
     "chargedHadronIsoEB",
     "neutralHadronIsoEB",
     "photonIsoEB",
+    "sihihEB",
 ]
 num_cut_keys = len(cut_key_order)
 
@@ -205,30 +205,41 @@ def add_photon_cuts(process):
     last_filt_obj = getattr(process, last_filter)
     process.selectionPath.replace(last_filt_obj, cutflow_hist * last_filt_obj)
 
-    #loop over cuts
+    # pre_histos
+    for cut_key, tokens in histo_pre.iteritems():
+        new_filter   = "CrtlPlotPre" + cut_key
+        new_filter_obj = make_histo_analyzer(last_producer, tokens)
+        setattr(process, new_filter, new_filter_obj)
+        last_filt_obj = getattr(process, last_filter)
+        process.selectionPath.replace(
+            last_filt_obj,
+            last_filt_obj * new_filter_obj
+        )
+        last_filter   = new_filter
+
+    # photon cuts
     for cut_key in cut_key_order:
 
-        # prepare the not_cut and cuts_minus_one string
-        not_cut = cuts[cut_key][0]
-        cuts_minus_one = all_cuts.replace(not_cut + " && ", "")
-        cuts_minus_one = cuts_minus_one[:-4] # remove trailing &&
-        print "NOT_CUT", not_cut
-        #print "YES_CUT", cuts_minus_one
-
-        # Filter for producerPath
+        ###################################################### producerPath ###
         new_producer = "PhotonProducer" + cut_key
         PhotonProdTmp = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag(last_producer),
-            cut = cms.string(not_cut),
+            cut = cms.string(cuts[cut_key][0]),
             filter = cms.bool(False)
         )
         setattr(process, new_producer, PhotonProdTmp)
         last_prod_obj = getattr(process, last_producer)
 
+        # add to path
+        process.producerPath.replace(
+            last_prod_obj,
+            last_prod_obj * PhotonProdTmp
+        )
+
+        ##################################################### selectionPath ###
         # Before Cut: Control Plot for cut on actual distribution
         CrtlPlotTmp = make_histo_analyzer(last_producer, cuts[cut_key])
-        setattr(process, "CrtlFilt" + cut_key, CrtlPlotTmp)
-        process.producerPath.replace(last_prod_obj, last_prod_obj * CrtlPlotTmp * PhotonProdTmp)
+        setattr(process, "CrtlPlot" + cut_key, CrtlPlotTmp)
 
         # Filter for selectionPath
         new_filter   = "PhotonFilt" + cut_key
@@ -249,31 +260,56 @@ def add_photon_cuts(process):
         )
         setattr(process, new_cutflow_histo, cutflow_hist)
 
-        process.selectionPath.replace(last_filt_obj, last_filt_obj * PhotonFiltTmp * cutflow_hist)
-
-        # Filter for n - 1 plot
-        PhotonFiltersMinusTmp = cms.EDFilter("PATPhotonSelector",
-            src = cms.InputTag("photonInputDummy"),
-            cut = cms.string(cuts_minus_one),
-            filter = cms.bool(False)
+        # add to path
+        process.selectionPath.replace(
+            last_filt_obj,
+            last_filt_obj * CrtlPlotTmp * PhotonFiltTmp * cutflow_hist
         )
-        setattr(process, "PhotonFiltersMinus" + cut_key, PhotonFiltersMinusTmp)
-
-        # n - 1 Plot
-        PhotonAnaTmp = make_histo_analyzer("PhotonFiltersMinus" + cut_key, cuts[cut_key])
-        setattr(process, "PhotonAna" + cut_key, PhotonAnaTmp)
-
-        pathTmp = cms.Path(
-            process.preSel
-            * getattr(process, "PhotonFiltersMinus" + cut_key)
-            * getattr(process, "PhotonAna" + cut_key)
-        )
-        setattr(process, "path"+cut_key, pathTmp)
-        post_paths.append(pathTmp)
 
         #set for next round
         last_producer = new_producer
         last_filter   = new_cutflow_histo
+
+    # post_histos
+    for cut_key, tokens in histo_post.iteritems():
+        new_filter   = "CrtlPlotPost" + cut_key
+        new_filter_obj = make_histo_analyzer(last_producer, tokens)
+        setattr(process, new_filter, new_filter_obj)
+        last_filt_obj = getattr(process, last_filter)
+        process.selectionPath.replace(
+            last_filt_obj,
+            last_filt_obj * new_filter_obj
+        )
+        last_filter   = new_filter
+
+    # special paths for n-1 plots ###
+    for cut_key in cut_key_order:
+        # prepare the not_cut and cuts_minus_one string
+        not_cut = cuts[cut_key][0]
+        cuts_minus_one = all_cuts.replace(not_cut + " && ", "")
+        cuts_minus_one = cuts_minus_one[:-4] # remove trailing &&
+        print "NOT_CUT", not_cut
+        #print "YES_CUT", cuts_minus_one
+
+        # Filter for n - 1 plot
+        Nm1FiltTmp = cms.EDFilter("PATPhotonSelector",
+            src = cms.InputTag("photonInputDummy"),
+            cut = cms.string(cuts_minus_one),
+            filter = cms.bool(False)
+        )
+        setattr(process, "Nm1Filt" + cut_key, Nm1FiltTmp)
+
+        # n - 1 Plot
+        Nm1PlotTmp = make_histo_analyzer("Nm1Filt" + cut_key, cuts[cut_key])
+        setattr(process, "Nm1Plot" + cut_key, Nm1PlotTmp)
+
+        pathTmp = cms.Path(
+            process.preSel
+            * getattr(process, "Nm1Filt" + cut_key)
+            * getattr(process, "Nm1Plot" + cut_key)
+        )
+        setattr(process, "path"+cut_key, pathTmp)
+        post_paths.append(pathTmp)
 
     return pre_paths, post_paths
 

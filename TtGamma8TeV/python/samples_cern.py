@@ -42,6 +42,7 @@ class T_tW(smp.Sample):
     x_sec       = 11.1
     n_events    = 497658
     input_files = path_pc + 'T_tW.root'
+    cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:1085:325342-1:1085:325342")']
 
 class Tbar_tW(smp.Sample):
     legend      = "Single Top"

@@ -56,17 +56,19 @@ pn["PhotonFiltdrmuon"]              = "#DeltaR(photon, #mu)"
 pn["PhotonFiltptrelDrjet"]          = "E_{T,photon} / p_{T,jet}"
 settings.pretty_names = pn
 
+import cmstoolsac3b.postproctools as ppt
 import plots_ME_overlap
 import plots_data_mc_comp
 import plots_cutflow
-import cmstoolsac3b.postproctools as ppt
-post_proc_tools = plots_data_mc_comp.generate_data_mc_comp_tools()
+import plots_web_creator
+post_proc_tools = [ppt.UnfinishedSampleRemover]
+post_proc_tools += plots_data_mc_comp.generate_data_mc_comp_tools()
 post_proc_tools += [
     plots_ME_overlap.MEOverlapComp,
     plots_cutflow.CutflowHistos,
     plots_cutflow.CutflowStack,
     plots_cutflow.CutflowTable,
-    ppt.SimpleWebCreator,
+    plots_web_creator.WebCreator,
 ]
 
 if __name__ == '__main__':
