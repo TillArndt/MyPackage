@@ -6,9 +6,9 @@
 
 # DEAR PEDESTRIAN: http://github.com/heinzK1X/CMSToolsAC3b
 
-import cmstoolsac3b.main
-from cmstoolsac3b.sample import load_samples
+import cmstoolsac3b.main as main
 import cmstoolsac3b.settings as settings
+from cmstoolsac3b.sample import load_samples
 import samples_cern
 samples = {}
 samples.update(load_samples(samples_cern))
@@ -72,7 +72,7 @@ post_proc_tools += [
 ]
 
 if __name__ == '__main__':
-    cmstoolsac3b.main.main(
+    main.main(
         post_proc_tools = post_proc_tools,
         max_num_processes = 3,
         samples = samples,

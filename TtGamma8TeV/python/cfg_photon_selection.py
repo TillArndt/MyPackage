@@ -121,7 +121,7 @@ if preSelOpt == "go4Whiz":
 process.producerPath = cms.Path(
     process.preSel *
     process.puWeight *
-    process.photonUserDataSequence *
+#    process.photonUserDataSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )
@@ -177,8 +177,17 @@ if skipChecks:
     for p in process.schedule:
         p.remove(process.bTagRequirement)
 
-############################################### output module for debugging ###
 
+############################################################### event count ###
+process.InputEventCount = cms.EDProducer("EventCountProducer")
+process.OutputEventCount = cms.EDProducer("EventCountProducer")
+#process.out.outputCommands += ["keep *_*EventCount*_*_*"]
+
+process.selectionPath.insert(0, process.InputEventCount)
+process.selectionPath += process.OutputEventCount
+
+
+############################################### output module for debugging ###
 #process.out = cms.OutputModule( "PoolOutputModule",
 #    outputCommands  = cms.untracked.vstring( 'keep *_*hoton*_*_*' ),
 #    SelectEvents    = cms.untracked.PSet( SelectEvents = cms.vstring('producerPath') ),
@@ -186,3 +195,5 @@ if skipChecks:
 #)
 #process.outPath = cms.EndPath(process.out)
 #process.schedule.append(process.outPath)
+
+

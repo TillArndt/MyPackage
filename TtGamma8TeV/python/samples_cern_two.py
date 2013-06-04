@@ -16,21 +16,14 @@ settings.cfg_common_builtins.update({
      "skipChecks"   : True
 })
 
-#path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
-path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130601/"
+path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
+#path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130601/"
 
-class whiz2to5_1(smp.Sample):
+class whiz2to5(smp.Sample):
     legend      = "t#bar{t}#gamma signal"
-    x_sec       = 908.1 * 2.0
-    n_events    = 1080000 * 0.25
+    x_sec       = 0.9081 * 2.0
+    n_events    = 550800
     input_files = path_pc + "whiz2to5_1.root" # n_events!!!
-    cfg_builtin = {"preSelOpt": "go4Whiz"}
-
-class whiz2to5_2(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
-    x_sec       = 908.1 * 2.0
-    n_events    = 1080000 * 0.25
-    input_files = path_pc + "whiz2to5_2.root" # n_events!!!
     cfg_builtin = {"preSelOpt": "go4Whiz"}
 
 class T_t(smp.Sample):
@@ -72,36 +65,24 @@ class TTJetsSignal(smp.Sample):
 class TTJets(smp.Sample):
     legend      = "t#bar{t} inclusive"
     x_sec       = 234.
-    n_events    = 6923750
+    n_events    = 6923750 * 0.6
     input_files = map(
         lambda x: path_pc + x + ".root",
-        ['TTJets1', 'TTJets2' ,'TTJets3', 'TTJets4', 'TTJets5'] # n_events!!!
+        ['TTJets1', 'TTJets2' ,'TTJets3'] #, 'TTJets4', 'TTJets5'] # n_events!!!
     )
     cfg_builtin = {"preSelOpt": "go4Noise"}
 
-class WJets_1(smp.Sample):
+class WJets(smp.Sample):
     legend      = "W + Jets"
     x_sec       = 37509.0
     n_events    = 57709905 # * 0.52836249 # problems running over all events
-    input_files = path_pc + 'WJets_1.root'
+    input_files = path_pc + 'WJets.root'
 
-class WJets_2(smp.Sample):
-    legend      = "W + Jets"
-    x_sec       = 37509.0
-    n_events    = 57709905 # * 0.52836249 # problems running over all events
-    input_files = path_pc + 'WJets_2.root'
-
-class DYJets_1(smp.Sample):
+class DYJets(smp.Sample):
     legend      = "DY + Jets"
     x_sec       = 3503.71
     n_events    = 30459503
-    input_files = path_pc + 'DYJets_1.root'
-
-class DYJets_2(smp.Sample):
-    legend      = "DY + Jets"
-    x_sec       = 3503.71
-    n_events    = 30459503
-    input_files = path_pc + 'DYJets_2.root'
+    input_files = path_pc + 'DYJets.root'
 
 class RunA(smp.Sample):
     is_data     = True
