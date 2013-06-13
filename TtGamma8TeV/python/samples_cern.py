@@ -92,6 +92,7 @@ class TTJets(smp.Sample):
         ['TTJets1', 'TTJets2' ,'TTJets3', 'TTJets4', 'TTJets5'] # n_events!!!
     )
     cfg_builtin = {"preSelOpt": "go4Noise"}
+    cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
 
 class WJets_1(smp.Sample):
     legend      = "W + Jets"
