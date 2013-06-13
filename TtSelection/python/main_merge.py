@@ -5,8 +5,8 @@
 #pydevd.settrace('localhost', port=22022, suspend=False)
 
 
-from cmstoolsac3b.sample import load_samples
 import cmstoolsac3b.settings as settings
+from cmstoolsac3b.sample import load_samples
 import samples_merge
 samples = {}
 samples.update(samples_merge.generate_das_samples())

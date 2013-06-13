@@ -1,9 +1,11 @@
 
 kept_collections = [
+'keep *_particleFlow_*_*',
+'keep *_offlineBeamSpot_*_*',
+'keep recoConversion_pfPhotonTranslator_pfphot_*',
 'keep booledmValueMap_PhotonIDProd_PhotonCutBasedIDLoose_RECO',
 'keep booledmValueMap_PhotonIDProd_PhotonCutBasedIDLooseEM_RECO',
 'keep booledmValueMap_PhotonIDProd_PhotonCutBasedIDTight_RECO',
-'keep BranchListIndexes',
 'keep ClusterSummary_clusterSummaryProducer__RECO',
 'keep double_ak5CaloJets_rho_RECO',
 'keep double_ak5CaloJets_sigma_RECO',
@@ -66,9 +68,6 @@ kept_collections = [
 'keep edmConditionsInEventBlock_conditionsInEdm__RECO',
 'keep edmErrorSummaryEntrys_logErrorHarvester__RECO',
 'keep edmTriggerResults_TriggerResults__*',
-'keep EventAuxiliary',
-'keep EventProductProvenance',
-'keep EventSelections',
 'keep GenEventInfoProduct_generator__*',
 'keep HBHERecHitsSorted_reducedHcalRecHits_hbhereco_RECO',
 'keep HcalNoiseSummary_hcalnoise__RECO',

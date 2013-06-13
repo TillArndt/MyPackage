@@ -1,6 +1,12 @@
 
 import os
 import cmstoolsac3b.sample as smp
+import cmstoolsac3b.settings as settings
+
+settings.cfg_common_builtins["btag"] = True
+
+
+output_path = "/disk1/tholen/eventFiles/fromGrid20130601/"
 
 def generate_das_samples():
 
@@ -21,7 +27,7 @@ def generate_das_samples():
             is_data = is_data_sample
             lumi = 1000.
             input_files = "dummy"
-            output_file = "/disk1/tholen/eventFiles/fromGrid20130601/"
+            output_file = output_path
             cfg_add_lines = [
                 'process.load("MyPackage.TtSelection.'
                 + f[:-3]
@@ -50,6 +56,6 @@ def generate_das_samples():
 
 class Tbar_tW(smp.Sample):
     lumi=1000.
-    output_file = "/disk1/tholen/eventFiles/fromGrid20130502/"
+    output_file = output_path
     input_files = ['/store/user/kuessel/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/YK_MC_MARCH13_SingleTop-tWCh-Tbar/accebdcbeca2810af478d8af2493d41f/SynchSelMuJets_1_1_Vyz.root','/store/user/kuessel/Tbar_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/YK_MC_MARCH13_SingleTop-tWCh-Tbar/accebdcbeca2810af478d8af2493d41f/SynchSelMuJets_7_1_Kfw.root']
 

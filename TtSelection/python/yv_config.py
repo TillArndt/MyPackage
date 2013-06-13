@@ -5,13 +5,6 @@ from FWCore.ParameterSet import Config as cms
 
 from MyPackage.TtSelection.yv_options import options
 options = options()
-try:
-    options.isData   = cms_var["is_data"]
-    options.skim     = cms_var.get("skim", options.skim)
-    options.procName = cms_var.get("procName", options.procName)
-except NameError:
-    print "cms_var is not in __builtin__"
-
 
 process = cms.Process( options.procName )
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -64,23 +57,30 @@ process.load('TopQuarkAnalysis.TopRefTuple.lumi_cfi')
 #begin yvi changes
 
 #add volkers cuts
+def add_with_counter(name):
+    process.patreco += getattr(process, name)
+    counter = cms.EDProducer("EventCountProducer")
+    setattr(process, "EvtCnt" + name, counter)
+    process.patreco += counter
  
 process.tightmuons=process.selectedPatMuonsTR.clone(cut = cms.string('isPFMuon && isGlobalMuon && pt > 26. && abs(eta) < 2.1 && globalTrack.normalizedChi2 < 10. && track.hitPattern.trackerLayersWithMeasurement > 5 && globalTrack.hitPattern.numberOfValidMuonHits > 0 && abs(dB) < 0.2 && innerTrack.hitPattern.numberOfValidPixelHits > 0 && numberOfMatchedStations > 1 && (chargedHadronIso + max(0.,neutralHadronIso+photonIso-0.5*puChargedHadronIso))/pt < 0.12'))
 
+process.EvtCntInit = cms.EDProducer("EventCountProducer")
+process.patreco += process.EvtCntInit
+add_with_counter("tightmuons")
 
-process.patreco +=process.tightmuons
 process.TightMuon=cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(1),
     src = cms.InputTag("tightmuons"),
     minNumber = cms.uint32(1)
 )
-process.patreco +=process.TightMuon
+add_with_counter("TightMuon")
 process.MuonVeto = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(1),
     src = cms.InputTag("selectedPatMuonsTR"),
     minNumber = cms.uint32(1)
 )
-process.patreco += process.MuonVeto
+add_with_counter("MuonVeto")
 
 #
 #
@@ -90,7 +90,7 @@ process.ElectronVeto = cms.EDFilter("PATCandViewCountFilter",
     src = cms.InputTag("selectedPatElectronsTR"),
     minNumber = cms.uint32(0)
 )
-process.patreco += process.ElectronVeto
+add_with_counter("ElectronVeto")
 process.selectedPatJetsForAnalysis55=process.selectedPatJetsForAnalysis.clone(src="selectedPatJetsForAnalysis", cut="pt>55")
 process.patreco +=process.selectedPatJetsForAnalysis55
 process.selectedPatJetsForAnalysis45=process.selectedPatJetsForAnalysis55.clone(cut="pt>45")
@@ -106,33 +106,37 @@ process.OneJet = cms.EDFilter("PATCandViewCountFilter",
     src = cms.InputTag("selectedPatJetsForAnalysis55"),
     minNumber = cms.uint32(1)
 )
-process.patreco += process.OneJet
+add_with_counter("OneJet")
 process.TwoJet = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(10000),
     src = cms.InputTag("selectedPatJetsForAnalysis45"),
     minNumber = cms.uint32(2)
 )
-process.patreco += process.TwoJet
+add_with_counter("TwoJet")
 process.ThreeJet = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(10000),
     src = cms.InputTag("selectedPatJetsForAnalysis35"),
     minNumber = cms.uint32(3)
 )
-process.patreco += process.ThreeJet
+add_with_counter("ThreeJet")
 process.FourJet = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(10000),
     src = cms.InputTag("selectedPatJetsForAnalysis20"),
     minNumber = cms.uint32(4)
 )
-process.patreco += process.FourJet
+add_with_counter("FourJet")
 process.BTagJet = cms.EDFilter("PATCandViewCountFilter",
     maxNumber = cms.uint32(10000),
     src = cms.InputTag("selectedPatJetsForAnalysisBTag"),
     minNumber = cms.uint32(1)
 )
-if options.skim:
-    process.patreco += process.BTagJet
-
+if options.btag:
+    add_with_counter("BTagJet")
+if options.printEventIDs:
+    process.evtIDPrinter = cms.EDAnalyzer("MyEventID",
+        cutname = cms.string(options.printEventIDs)
+    )
+    process.patreco += process.evtIDPrinter
 
 if not options.isData:
     process.patreco.replace(process.pfAllPhotonsTR, process.pfAllPhotonsTR * process.photonMatch * process.patPhotons)
@@ -288,13 +292,12 @@ process.NumConnectedJets= cms.EDAnalyzer( "CandViewHistoAnalyzer",
              )
     )
                                         )
-if not options.isData:
+if not options.isData and not options.noJetSmearing:
      print "Smear Jets."
      process.selectedPatJetsForAnalysis.src="smearedPatJets"
      process.patreco.replace(process.selectedPatJetsForAnalysis,process.smearedPatJets * process.selectedPatJetsForAnalysis)
 
 #* process.connectedJets * process.OverlapJets * process.ResFactorsJets * process.NumOverlaps * process.NumConnectedJets)
-
 
 # set output straight
 process.out.outputCommands = [
@@ -312,5 +315,12 @@ if options.skim:
     ]
     process.out.outputCommands += kept_collections
 
+# event count
+process.InputEventCount = cms.EDProducer("EventCountProducer")
+process.OutputEventCount = cms.EDProducer("EventCountProducer")
+process.out.outputCommands += ["keep *_*EventCount*_*_*"]
+
+process.patreco.insert(0, process.InputEventCount)
+process.patreco += process.OutputEventCount
 
  

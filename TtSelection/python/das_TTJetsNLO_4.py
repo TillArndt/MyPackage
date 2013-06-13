@@ -1,0 +1,87 @@
+import FWCore.ParameterSet.Config as cms
+
+maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+readFiles = cms.untracked.vstring()
+secFiles = cms.untracked.vstring() 
+source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
+readFiles.extend( [
+      '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1217_1_gjr.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1218_1_SGP.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1219_1_VLW.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_121_1_ONs.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1220_1_A4v.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1221_1_KaJ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1222_1_rfi.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1223_1_EKr.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1224_1_Yib.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1225_1_Ukj.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1226_1_vz6.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1227_1_OOM.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1228_1_l2A.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1229_1_FFm.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_122_1_i4k.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1230_1_oXA.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1231_1_VwJ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1233_1_1Ai.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1234_1_R8Q.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1236_1_r4M.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1237_1_5ZT.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1238_1_Q6u.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1239_1_L01.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_123_1_cjy.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1240_1_gQY.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1241_1_j5A.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1242_1_HD5.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1243_1_DWE.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1244_1_3GZ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1246_1_Iio.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1247_1_tmR.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1248_1_nbG.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1249_1_qIN.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_124_1_UjR.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1250_1_2fY.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1251_1_mQT.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1253_1_lFz.root' ] );
+readFiles.extend( [
+
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1254_1_oKZ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1255_1_fWA.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1256_1_iVr.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1257_1_oal.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1258_1_Ot8.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1259_1_lga.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_125_1_M47.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1260_1_BUZ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1261_1_384.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1262_1_8iL.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1263_1_lrU.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1264_1_Y5P.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1265_1_yUB.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1266_1_Hiu.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1267_1_FAZ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1268_1_A7J.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1269_1_rfz.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_126_1_JwA.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1270_1_nj8.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1271_1_n4Y.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1272_1_yRg.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1273_1_EfY.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1274_1_SoU.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1275_1_I2m.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1277_1_JdC.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1278_1_VYe.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1279_1_kTg.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_127_1_L7V.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1280_1_hdz.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1281_1_BP3.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1282_1_QvQ.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1283_1_eoB.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1284_1_4Zc.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1285_1_RfT.root',
+       '/store/user/htholen/TT_8TeV-mcatnlo/TTJets_MCatNLO_patTuple/59f484fc9b4a422135c150500bf194d2/patTuple_1286_1_VTq.root',
+       ] );
+
+
+secFiles.extend( [
+               ] )
+

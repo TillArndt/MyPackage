@@ -7,15 +7,12 @@ def options() :
     options.output = "topTuple.root"
     options.maxEvents = -1
     
-    print sys.argv
-    opt_create = None
-    if "-create" in sys.argv:
-         opt_create = "-create"
-         sys.argv.remove(opt_create)
 
     options.register('procName', default = "PAT2", mytype = VP.varType.string)
     options.register('isData', default = False, mytype = VP.varType.bool)
     options.register('skim', default = True, mytype = VP.varType.bool)
+    options.register('btag', default = False, mytype = VP.varType.bool)
+    options.register('printEventIDs', default = "", mytype = VP.varType.string)
 #    options.register('outputModule', default = True, mytype = VP.varType.bool)
     options.register('quiet', default = False, mytype = VP.varType.bool)
     options.register('requireLepton', default = True, mytype = VP.varType.bool)
@@ -23,15 +20,27 @@ def options() :
     options.register('postfix','TR', mytype = VP.varType.string )
     options.register('btags', mytype = VP.varType.string, mult = VP.multiplicity.list )
     options.register('doElectronEA', default = True, mytype = VP.varType.bool)
-    options.parseArguments()
+    options.register('noJetSmearing', default = False, mytype = VP.varType.bool)
+
+    try:
+        for key in options._register.keys():
+            setattr(options, key, cms_var.get(key, getattr(options, key)))
+    except NameError:
+        print "cms_var is not in __builtin__"
+
+    print sys.argv
+    if not "-create" in sys.argv:
+        options.parseArguments()
+    else:
+        print "Found '-create' in sys.argv! Omitting options.parseArguments()"
     options._tagOrder =[]
 
-    if opt_create:
-        sys.argv.append(opt_create)
-    print sys.argv
 
 
     defaultGT = ('GR_R_53_V18' if options.isData else 'START53_V15')
+
+    # FT_53_V21_AN4
+    # START53_V23
 
     sync53 = 'file:/user/kuessel/files/Synchfiles/syncExercise53.root'
     diffStep1="file:/user/kuessel/CMSSW/Synch/CMSSW_5_3_8_patch3/src/pickevents.root"
@@ -42,8 +51,10 @@ def options() :
 #    defaultFiles = [diffStep1] 
     
     options.files = defaultFiles
-    if not options.globalTag : options.globalTag = defaultGT
+    if not options.globalTag : 
+        options.globalTag = defaultGT
+
+    options.btags = ['combinedSecondaryVertex','jetProbability']
 
     if not options.quiet : print options
-    options.btags = ['combinedSecondaryVertex','jetProbability']
     return options
