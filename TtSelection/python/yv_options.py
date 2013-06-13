@@ -12,7 +12,6 @@ def options() :
     options.register('isData', default = False, mytype = VP.varType.bool)
     options.register('skim', default = True, mytype = VP.varType.bool)
     options.register('btag', default = False, mytype = VP.varType.bool)
-    options.register('printEventIDs', default = "", mytype = VP.varType.string)
 #    options.register('outputModule', default = True, mytype = VP.varType.bool)
     options.register('quiet', default = False, mytype = VP.varType.bool)
     options.register('requireLepton', default = True, mytype = VP.varType.bool)

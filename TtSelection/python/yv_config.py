@@ -132,11 +132,6 @@ process.BTagJet = cms.EDFilter("PATCandViewCountFilter",
 )
 if options.btag:
     add_with_counter("BTagJet")
-if options.printEventIDs:
-    process.evtIDPrinter = cms.EDAnalyzer("MyEventID",
-        cutname = cms.string(options.printEventIDs)
-    )
-    process.patreco += process.evtIDPrinter
 
 if not options.isData:
     process.patreco.replace(process.pfAllPhotonsTR, process.pfAllPhotonsTR * process.photonMatch * process.patPhotons)
