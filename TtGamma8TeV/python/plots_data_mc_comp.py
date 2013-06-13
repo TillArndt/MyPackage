@@ -15,7 +15,8 @@ def generate_data_mc_comp_tools():
     run_labels = [""]
     analyzer_pats = [
         re.compile("CrtlPlot"),
-        re.compile("Nm1Filt"),
+        re.compile("Nm1Plot"),
+        re.compile("JetAna"),
 #        re.compile("DataMCCompPhotons"),
 #        re.compile("DataMCJetCheck"),
 #        re.compile("DataMCMuonCheck"),

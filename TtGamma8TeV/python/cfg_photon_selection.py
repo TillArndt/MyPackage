@@ -68,6 +68,7 @@ process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
 process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
 #process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
+process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
@@ -122,6 +123,7 @@ process.producerPath = cms.Path(
     process.preSel *
     process.puWeight *
 #    process.photonUserDataSequence *
+    process.jetSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )

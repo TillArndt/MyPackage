@@ -4,6 +4,7 @@ import cmstoolsac3b.postprocessing as pp
 import cmstoolsac3b.postproctools as ppt
 import cmstoolsac3b.generators as gen
 import cmstoolsac3b.settings as settings
+import cmstoolsac3b.decorator as dec
 import plots_commons as com
 import itertools
 import re
@@ -51,7 +52,14 @@ class CutflowHistos(pp.PostProcTool):
 class CutflowStack(ppt.FSStackPlotter):
     """Reads cutflow histos from pool and stacks them up."""
     def configure(self):
-        self.canvas_decorators.append(com.LumiTitleBox)
+        class AxisTitles(dec.Decorator):
+            def do_final_cosmetics(self):
+                self.decoratee.do_final_cosmetics()
+                self.first_drawn.GetXaxis().SetTitle("cutflow")
+                if hasattr(self, "bottom_hist"):
+                    self.bottom_hist.GetXaxis().SetTitle("cutflow")
+                self.first_drawn.GetYaxis().SetTitle("selected events / step")
+        self.canvas_decorators += (com.LumiTitleBox, AxisTitles)
         self.save_log_scale = True
 
     def set_up_stacking(self):
@@ -61,10 +69,12 @@ class CutflowStack(ppt.FSStackPlotter):
             {"analyzer": re.compile("CutFlow")}
         )
         wrps = gen.group(wrps)
-        self.stream_stack = gen.mc_stack_n_data_sum(
+        stream_stack = gen.mc_stack_n_data_sum(
             wrps,
             use_all_data_lumi=True
         )
+        def assign_name(wrp): wrp.name = "CombinedCutflow"
+        self.stream_stack = gen.pool_store_items(stream_stack, assign_name)
 
 
 class CutflowTable(pp.PostProcTool):

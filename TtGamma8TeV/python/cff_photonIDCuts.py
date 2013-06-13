@@ -65,9 +65,18 @@ histo_post = {
 }
 
 cuts = {
-    #"drmuon" : ('deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.3',0.,5.,100, "#DeltaR(photon, muon)",'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'),
-    #"drjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.5 || deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15',0.,5.,100,"#DeltaR(photon, jet)", 'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'),
-    #"ptrelDrjet" : ('deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15 && pt / overlaps("jets")[0].pt > 0.75',0.,1.1,100, "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15", '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'),
+    "drmuon" : (
+        'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.7'
+        ,0.,5.,100,
+        "#DeltaR(photon, muon)",
+        'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'
+    ),
+    "drjet" : (
+        'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.7 || deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.3',
+        0.,5.,100,
+        "#DeltaR(photon, jet)",
+        'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
+    ),
 
 # FIDUCIALIZATION / CONVENIENCE CUTS
     #"eta" : ("abs(eta)<1.4442 || 1.556<abs(eta)<2.5", -4, 4, 80, "#eta", "eta"),
@@ -79,7 +88,7 @@ cuts = {
         "eta"
     ),
     "etcut" : (
-        "et>15",
+        "et>25",
         0, 700, 140,
         "E_{T} / GeV",
         "et"
@@ -130,14 +139,13 @@ cuts = {
 cut_key_order = [
     "etaEB",
     "etcut",
-    #"drmuon",
-    #"drjet",
-    #"ptrelDrjet",
     "passEleVeto",
     "hadTowOverEm",
     "chargedHadronIsoEB",
     "neutralHadronIsoEB",
     "photonIsoEB",
+    "drmuon",
+    "drjet",
     "sihihEB",
 ]
 num_cut_keys = len(cut_key_order)

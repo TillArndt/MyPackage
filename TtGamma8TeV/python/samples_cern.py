@@ -20,17 +20,31 @@ settings.cfg_common_builtins.update({
 path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130601/"
 
 class whiz2to5_1(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
+    legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = 908.1 * 2.0
     n_events    = 1080000 * 0.25
     input_files = path_pc + "whiz2to5_1.root" # n_events!!!
     cfg_builtin = {"preSelOpt": "go4Whiz"}
 
 class whiz2to5_2(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
+    legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = 908.1 * 2.0
     n_events    = 1080000 * 0.25
     input_files = path_pc + "whiz2to5_2.root" # n_events!!!
+    cfg_builtin = {"preSelOpt": "go4Whiz"}
+
+class whiz2to5_3(smp.Sample):
+    legend      = "t#bar{t}#gamma (Signal)"
+    x_sec       = 908.1 * 2.0
+    n_events    = 1080000 * 0.25
+    input_files = path_pc + "whiz2to5_3.root" # n_events!!!
+    cfg_builtin = {"preSelOpt": "go4Whiz"}
+
+class whiz2to5_4(smp.Sample):
+    legend      = "t#bar{t}#gamma (Signal)"
+    x_sec       = 908.1 * 2.0
+    n_events    = 1080000 * 0.25
+    input_files = path_pc + "whiz2to5_4.root" # n_events!!!
     cfg_builtin = {"preSelOpt": "go4Whiz"}
 
 class T_t(smp.Sample):
@@ -60,7 +74,7 @@ class Tbar_tW(smp.Sample):
 
 # Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
 class TTJetsSignal(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
+    legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = 234.
     n_events    = 6923750 * 0.6
     input_files = map(

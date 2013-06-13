@@ -16,11 +16,11 @@ settings.cfg_common_builtins.update({
      "skipChecks"   : True
 })
 
-path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
+path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130502/"
 #path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130601/"
 
 class whiz2to5(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
+    legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = 0.9081 * 2.0
     n_events    = 550800
     input_files = path_pc + "whiz2to5_1.root" # n_events!!!
@@ -53,12 +53,12 @@ class Tbar_tW(smp.Sample):
 
 # Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
 class TTJetsSignal(smp.Sample):
-    legend      = "t#bar{t}#gamma signal"
+    legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = 234.
     n_events    = 6923750 * 0.6
     input_files = map(
         lambda x: path_pc + x + ".root",
-        ['TTJets1', 'TTJets2' ,'TTJets3', 'TTJets4', 'TTJets5'] # n_events!!!
+        ['TTJets1', 'TTJets2' ,'TTJets3'] #, 'TTJets4', 'TTJets5'] # n_events!!!
     )
     cfg_builtin = {"preSelOpt": "go4Signal"}
 

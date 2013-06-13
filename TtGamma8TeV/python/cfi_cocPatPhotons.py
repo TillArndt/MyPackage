@@ -1,5 +1,5 @@
 
-jetsource  = "selectedPatJetsForAnalysis"
+jetsource  = "AnalysisJets" #"selectedPatJetsForAnalysis"
 muonsource = "tightmuons"
 try:
     jetsource = cms_var.get("jetsource", jetsource)
