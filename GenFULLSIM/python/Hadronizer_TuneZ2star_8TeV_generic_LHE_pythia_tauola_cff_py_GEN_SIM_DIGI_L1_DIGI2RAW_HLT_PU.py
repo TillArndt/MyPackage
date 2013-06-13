@@ -43,9 +43,9 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.2 $'),
+    version = cms.untracked.string('$Revision: 1.1 $'),
     annotation = cms.untracked.string('runs Z2* Pythia6'),
-    name = cms.untracked.string('$Source: /local/reps/CMSSW/CMSSW/Configuration/GenProduction/python/EightTeV/Hadronizer_TuneZ2star_8TeV_generic_LHE_pythia_tauola_cff.py,v $')
+    name = cms.untracked.string('$Source: /local/reps/CMSSW/UserCode/HTholen/MyPackage/GenFULLSIM/python/Hadronizer_TuneZ2star_8TeV_generic_LHE_pythia_tauola_cff_py_GEN_SIM_DIGI_L1_DIGI2RAW_HLT_PU.py,v $')
 )
 
 # Output definition
@@ -54,7 +54,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RAWSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('test_step1.root'),
+    fileName = cms.untracked.string('out_STEP1.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('RAWSIM')

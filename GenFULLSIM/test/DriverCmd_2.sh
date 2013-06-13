@@ -8,7 +8,7 @@ cmsDriver.py STEP2 \
 --datatier AODSIM \
 --no_exec \
 -n -1 \
---filein file:test_step1.root \
---fileout test_step2.root \
+--filein file:out_STEP1.root \
+--fileout out_STEP2.root \
 
 

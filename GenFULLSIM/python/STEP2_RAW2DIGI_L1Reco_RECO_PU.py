@@ -28,7 +28,9 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:test_step1.root')
+#    fileNames = cms.untracked.vstring('file:test_step1.root')
+    fileNames = cms.untracked.vstring('/store/user/htholen/LHE2EDM_WHIZARD_2to5_ttA/FULLSIM_STEP1_WHIZARD_2to5_ttA/7251ec4f38514387ea3e27f1c6d76906/out_STEP1_1027_1_gLS.root')
+#    fileNames = cms.untracked.vstring('/store/user/htholen/LHE2EDM_WHIZARD_2to5_ttA/FULLSIM_STEP1_WHIZARD_2to5_ttA/7251ec4f38514387ea3e27f1c6d76906/out_STEP1_9_1_JDg.root')
 )
 
 process.options = cms.untracked.PSet(
@@ -37,7 +39,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.381.2.18 $'),
+    version = cms.untracked.string('$Revision: 1.1 $'),
     annotation = cms.untracked.string('STEP2 nevts:-1'),
     name = cms.untracked.string('PyReleaseValidation')
 )
@@ -47,7 +49,7 @@ process.configurationMetadata = cms.untracked.PSet(
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
     outputCommands = process.AODSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('test_step2.root'),
+    fileName = cms.untracked.string('out_STEP2.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('AODSIM')
