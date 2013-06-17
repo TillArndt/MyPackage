@@ -1,77 +1,66 @@
 
 
-
-
-
-
-
-
-
 from PyQt4 import QtGui
+from DataFormats.FWLite import Events,Handle
+
 
 class EventTreeViewer(QtGui.QTreeWidget):
     def __init__(self, parent = None):
         super(EventTreeViewer, self).__init__(parent)
         self.setColumnCount(1)
-        self.setHeaderLabels(["hallo"])
+        self.setHeaderLabels(["pdg", "status", "e", "px", "py", "pz"])
+        self.insertTopLevelItems(0, [QtGui.QTreeWidgetItem()])
+
+    def setEventTree(self, event):
+        handle = Handle("vector<reco::GenParticle>")
+        event.getByLabel("genParticles", handle)
+        items = []
+        def fill_tree(gen_particle, parent_item):
+            for p in xrange(gen_particle.numberOfDaughters()):
+                p = gen_particle.daughter(p)
+                item = QtGui.QTreeWidgetItem(
+                    parent_item,
+                    [
+                        "%d" % p.pdgId(),
+                        "%d" % p.status(),
+                        "%f" % p.energy(),
+                        "%f" % p.px(),
+                        "%f" % p.py(),
+                        "%f" % p.pz(),
+                    ]
+                )
+                items.append(item)
+                fill_tree(p, item)
+        for gp in iter(handle.product()):
+            if not gp.mother():
+                fill_tree(gp, None)
+        self.clear()
+        self.insertTopLevelItems(0,items)
 
 
+a = QtGui.QApplication([])
 
 
+def event_iterator(filename, handles = None):
+    """handles is a list of tuples: (varname, type, InputTag)"""
+    events = Events(filename)
+    if not handles: handles = []
+    for evt in events.__iter__():
+        for name,typ,inputtag in handles:
+            handle = Handle(typ)
+            evt.getByLabel(inputtag,handle)
+            setattr(evt, "hndl_" + name, handle)
+        yield evt
 
 
+def open_viewer(filename):
+    evtit = event_iterator(filename)
+    w = EventTreeViewer()
+    w.setEventTree(evtit.next())
+    w.show()
+    def skipper():
+        w.setEventTree(evtit.next())
+    return skipper
 
 
-
-
-
-def nothing():
-    from DataFormats.FWLite import Events,Handle
-    events = Events("/disk1/tholen/eventFiles/fromGrid20130601/TTJetsNLO_1.root")
-    evtIter = events.__iter__()
-    event = evtIter.next()
-    genPartH = Handle("vector<reco::GenParticle>")
-    event.getByLabel("genParticles",genPartH)
-    genParts=genPartH.product()
-
-
-
-##include "eventtreeviewer.h"
-##include <QtCore/QFile>
-##include <QtCore/QTextStream>
-##include <QDebug>
-#EventTreeViewer::EventTreeViewer(QTreeWidget *parent)
-#: QTreeWidget(parent)
-#{
-#
-#    this->setColumnCount(1);
-#this->setHeaderLabels(QStringList(QString("hallo")));
-#QList<QTreeWidgetItem *> items;
-#QVector<QTreeWidgetItem *> itemsAtLevel(500,NULL);
-#
-#QFile inputFile(":/PrintTreeOutput.log");
-#inputFile.open(QIODevice::ReadOnly);
-#
-#QTextStream in(&inputFile);
-#
-#while( !in.readLine().contains("decay tree")){}
-#
-#QTreeWidgetItem *itam = new QTreeWidgetItem((QTreeWidget*)0, QStringList(QString( in.readLine() )));
-#itemsAtLevel[0]=itam;
-#items.append(itam);
-#
-#while(true){
-#    QString line=in.readLine();
-#if(!line.contains("+"))break;
-#int index=line.indexOf("+");
-#int level=index/4+1;
-#QTreeWidgetItem *itam2 = new QTreeWidgetItem(itemsAtLevel[level-1] , QStringList(QString( line.remove(0,level*4) )));
-#itemsAtLevel[level]=itam2;
-#items.append(itam2);
-#}
-#
-#
-#this->insertTopLevelItems(0, items);
-#
-#
-#}
+fname_heiner = "/disk1/tholen/eventFiles/fromGrid20130601/TTJetsNLO_1.root"
