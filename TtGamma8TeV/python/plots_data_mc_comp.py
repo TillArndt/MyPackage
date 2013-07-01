@@ -1,5 +1,6 @@
 
 import cmstoolsac3b.settings as settings
+import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.postproctools as ppt
 import plots_commons as com
 import re
@@ -26,13 +27,13 @@ def generate_data_mc_comp_tools():
     list_of_tools = []
     for at in analyzer_pats:
         for rl in run_labels:
-            sample_list = _make_stack_sample_list(rl)
+#            sample_list = _make_stack_sample_list(rl)
             tool = ppt.FSStackPlotter(
                 "DataMC_" + at.pattern + "_logscale" + rl
             )
             tool.filter_dict = {
                 "analyzer": at,
-                "sample": sample_list
+#                "sample": sample_list
             }
             tool.canvas_decorators.append(com.LumiTitleBox)
             tool.save_log_scale = True
@@ -42,21 +43,26 @@ def generate_data_mc_comp_tools():
             )
             tool.filter_dict = {
                 "analyzer": at,
-                "sample": sample_list
+#                "sample": sample_list
             }
             tool.canvas_decorators.append(com.LumiTitleBox)
             list_of_tools.append(tool)
-    return list_of_tools
+    chain = ppc.PostProcChain("DataMcComp")
+    chain.add_tools(list_of_tools)
+    return [chain]
 
+# Problem: cannot know names of mc samples beforehand,
+# need some regex that separates T_tW from T_tPU
+# maybe just veto not wanted runs...
 def _make_stack_sample_list(run_label = None):
     """Returns list of sample names."""
-    sample_list = settings.samples_stack
+    sample_list = settings.active_samples
     # reject all non matching data samples.
     if run_label:
         data_sample_names = settings.data_samples().keys()
         sample_list = filter(
             lambda x: not (x in data_sample_names),
-            settings.samples_stack
+            settings.active_samples
         )
         sample_list.append(run_label)
     return sample_list

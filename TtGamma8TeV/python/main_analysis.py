@@ -5,15 +5,28 @@
 #pydevd.settrace('localhost', port=22022, suspend=False)
 
 # DEAR PEDESTRIAN: http://github.com/heinzK1X/CMSToolsAC3b
+import copy
 
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.main as main
 from cmstoolsac3b.sample import load_samples
-import samples_cern_two
-samples = {}
-samples.update(load_samples(samples_cern_two))
-settings.samples_stack = samples.keys() # add all MC and data for stacking
+import samples_cern
+settings.samples = {}
+settings.samples.update(load_samples(samples_cern))
+settings.active_samples = settings.samples.keys() # add all MC and data for stacking
+settings.active_samples.remove("TTNLO")
+settings.active_samples.remove("TTNLOSignal")
 
+# systematic pu processing
+mc_samples = settings.mc_samples()
+pu_samples = {}
+for name, smp_old in mc_samples.iteritems():
+    name += "PU"
+    smp = copy.deepcopy(smp_old)
+    smp.name = name
+    smp.cfg_builtin["puWeightInput"] = "PU_Run2012_73500.root"
+    pu_samples[name] = smp
+settings.samples.update(pu_samples)
 
 import ROOT
 colors = dict()
@@ -54,35 +67,58 @@ pn["PhotonFilthadronicoverem"]      = "H/E"
 pn["PhotonFiltdrjet"]               = "#DeltaR(photon, jet)"
 pn["PhotonFiltdrmuon"]              = "#DeltaR(photon, #mu)"
 pn["PhotonFiltptrelDrjet"]          = "E_{T,photon} / p_{T,jet}"
-pn["realTemplate"]                  = "real photons"
-pn["fakeTemplate"]                  = "fake photons"
+pn["realTemplateSihih"]             = "real photons"
+pn["fakeTemplateSihih"]             = "fake photons"
+pn["realTemplateChHadIso"]          = "real photons"
+pn["fakeTemplateChHadIso"]          = "fake photons"
 settings.pretty_names = pn
 
+import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.postproctools as ppt
 import plots_ME_overlap
 import plots_data_mc_comp
 import plots_cutflow
 import plots_template_fit
 import plots_xsec
-import plots_web_creator
-post_proc_tools = [ppt.UnfinishedSampleRemover]
-#post_proc_tools += plots_data_mc_comp.generate_data_mc_comp_tools()
+settings.web_target_dir = "/afs/cern.ch/work/h/htholen/public/www/"
+
+cutflow_tools = ppc.PostProcChain("CutflowTools", [
+    plots_cutflow.CutflowHistos,
+    plots_cutflow.CutflowStack,
+    plots_cutflow.CutflowTable,
+])
+
+post_proc_tools = [
+    ppt.UnfinishedSampleRemover(True),
+#    ppt.SampleEventCount,
+]
+post_proc_tools += plots_data_mc_comp.generate_data_mc_comp_tools()
 post_proc_tools += [
 #    plots_ME_overlap.MEOverlapComp,
-    plots_cutflow.CutflowHistos,
-    plots_cutflow.CutflowTable,
-    plots_cutflow.CutflowStack,
+    cutflow_tools,
     plots_template_fit.TemplateFitTool,
     plots_xsec.XsecCalculator,
-    plots_web_creator.WebCreator,
+    ppt.HistoPoolClearer,
 ]
-#post_proc_tools = [plots_template_fit.TemplateFitTool,plots_web_creator.WebCreator,]
+import sys_uncert
+sys_isr_fsr         = sys_uncert.SysIsrFsr(None, post_proc_tools)
+sys_pu              = sys_uncert.SysPU(None, post_proc_tools)
+sys_sel_eff_plus    = sys_uncert.SysSelEffPlus(None, post_proc_tools)
+sys_sel_eff_minus   = sys_uncert.SysSelEffMinus(None, post_proc_tools)
+
+post_proc_tools += [
+    sys_isr_fsr,
+    sys_pu,
+    sys_sel_eff_plus,
+    sys_sel_eff_minus,
+    ppt.SimpleWebCreator,
+]
+
 
 if __name__ == '__main__':
     main.main(
         post_proc_tools = post_proc_tools,
-        max_num_processes = 3,
-        samples = samples,
+        max_num_processes = 4,
         try_reuse_results = True,
 #        suppress_cmsRun_exec = True,
         colors = colors,

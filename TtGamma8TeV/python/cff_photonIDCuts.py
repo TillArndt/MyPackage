@@ -38,7 +38,7 @@ histo_pre = {
 
 histo_post = {
     "et" : (
-        "", 0, 700, 35,
+        "", 0., 700., 35,
         "E_{T} / GeV",
         "et"
     ),
@@ -61,6 +61,11 @@ histo_post = {
         "",0.,1.1,100,
         "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15",
         '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'
+    ),
+    "sf_histo" : (
+        "", -700., 700., 140,
+        "E_{T} / GeV",
+        "?(abs(eta) < 0.8) ? -et : et"
     ),
 }
 
@@ -137,23 +142,24 @@ cuts = {
 }
 
 cut_key_order = [
-    "etaEB",
     "etcut",
+    "etaEB",
     "passEleVeto",
     "hadTowOverEm",
+    "sihihEB",
     "chargedHadronIsoEB",
     "neutralHadronIsoEB",
     "photonIsoEB",
     "drmuon",
     "drjet",
-    "sihihEB",
-]
+    ]
 num_cut_keys = len(cut_key_order)
 
 all_cuts = ""
 for key in cuts:
     all_cuts += cuts[key][0] + " && "
-print "\nALL CUTS:\n" + str(all_cuts) + "\n\n"
+print "\nApplied Photon Cuts (in order): \n"+"\n".join(cut_key_order)+"\n\n"
+#TODO: print cuts to, in a table, not only keys
 
 def make_cutflow_token(cut):
     if cut in cut_key_order:
@@ -292,17 +298,17 @@ def add_photon_cuts(process):
 
     # special paths for n-1 plots ###
     for cut_key in cut_key_order:
-        # prepare the not_cut and cuts_minus_one string
-        not_cut = cuts[cut_key][0]
-        cuts_minus_one = all_cuts.replace(not_cut + " && ", "")
-        cuts_minus_one = cuts_minus_one[:-4] # remove trailing &&
-        print "NOT_CUT", not_cut
-        #print "YES_CUT", cuts_minus_one
+
+        # make one cut string for the N-1 plots
+        cutkeys_Nm1 = cut_key_order[:]
+        cutkeys_Nm1.remove(cut_key)
+        cuts_Nm1_list = list(cuts[cutkey][0] for cutkey in cutkeys_Nm1)
+        cuts_Nm1_str = "( " + ") && (".join(cuts_Nm1_list) + " )"
 
         # Filter for n - 1 plot
         Nm1FiltTmp = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonInputDummy"),
-            cut = cms.string(cuts_minus_one),
+            cut = cms.string(cuts_Nm1_str),
             filter = cms.bool(False)
         )
         setattr(process, "Nm1Filt" + cut_key, Nm1FiltTmp)

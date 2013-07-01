@@ -12,6 +12,10 @@ import itertools
 
 class TemplateFitTool(ppt.FSStackPlotter):
 
+    def configure(self):
+        super(TemplateFitTool,self).configure()
+        self.save_name_lambda = lambda wrp: self.plot_output_dir + wrp.name.split("_")[1]
+
     def find_x_range(self, data_hist):
         x_min = data_hist.GetXaxis().GetXmin()
         x_max = data_hist.GetXaxis().GetXmax()
@@ -110,7 +114,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
     def set_up_stacking(self):
 
         def cosmetica(wrps):
-            colors = {"realTemplate":409, "fakeTemplate":625}
+            colors = {"realTemplateSihih":409, "fakeTemplateSihih":625}
             for w in wrps:
                 name = settings.get_pretty_name(w.analyzer)
                 w.histo.SetTitle(name)
@@ -120,7 +124,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
 
         data_lumi = settings.data_lumi_sum_wrp()
         mc_tmplts = gen.fs_mc_stack({
-            "analyzer"  : ("realTemplate","fakeTemplate"),
+            "analyzer"  : ("realTemplateSihih","fakeTemplateSihih"),
             "name"      : "sihihEB"
         })
         mc_tmplts = list(cosmetica(gen.gen_prod(itertools.izip(
@@ -128,7 +132,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
             itertools.repeat(data_lumi)
         ))))
         data_tmplts = gen.fs_filter_sort_load({
-            "analyzer"  : "dataTemplateFitHisto",
+            "analyzer"  : "dataTemplateFitHistoSihih",
             "name"      : "sihihEB"
         })
         fitted = gen.op.sum(data_tmplts)

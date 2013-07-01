@@ -5,6 +5,7 @@ import cmstoolsac3b.postproctools as ppt
 import cmstoolsac3b.generators as gen
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.decorator as dec
+import cmstoolsac3b.wrappers as wrappers
 import plots_commons as com
 import itertools
 import re
@@ -14,6 +15,8 @@ legend_key_func = lambda w: settings.get_stack_position(w.sample)
 
 class CutflowHistos(pp.PostProcTool):
     """Prepares cutflow histos for all samples, stores them in histo pool."""
+    can_reuse = False
+
     def _set_plot_output_dir(self):
         pass
 
@@ -39,6 +42,7 @@ class CutflowHistos(pp.PostProcTool):
             wrps,
             {"analyzer": re.compile("CutFlow*")}
         )
+        wrps = gen.filter_active_samples(wrps)
         wrps = sorted(wrps, key = sample_key_func)
         wrps = gen.load(wrps)
         grps = gen.group(wrps, sample_key_func)
@@ -51,6 +55,8 @@ class CutflowHistos(pp.PostProcTool):
 
 class CutflowStack(ppt.FSStackPlotter):
     """Reads cutflow histos from pool and stacks them up."""
+    can_reuse = False
+
     def configure(self):
         class AxisTitles(dec.Decorator):
             def do_final_cosmetics(self):
@@ -85,6 +91,10 @@ class CutflowTable(pp.PostProcTool):
         wrps = gen.filter(
             wrps,
             {"analyzer": re.compile("CutFlow")}
+        )
+        wrps = itertools.ifilter(
+            lambda w: type(w) is wrappers.HistoWrapper,
+            wrps
         )
         wrps = sorted(wrps, key = legend_key_func)
         return wrps

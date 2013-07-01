@@ -2,6 +2,7 @@
 
 import FWCore.ParameterSet.Config as cms
 
+# Signal photons for matrix element photons (whizard)
 photonsSignalME = cms.EDFilter(
     "GenParticleSelector",
     src = cms.InputTag("genParticles"),
@@ -13,6 +14,7 @@ photonsSignalME = cms.EDFilter(
     filter = cms.bool(False),
 )
 
+# some analyzer
 photonsSignalMEanalyzer = cms.EDAnalyzer(
     "CandViewHistoAnalyzer",
     src = cms.InputTag("photonsSignalME"),
@@ -29,27 +31,21 @@ photonsSignalMEanalyzer = cms.EDAnalyzer(
     )
 )
 
-photonsSignalMEsequence = cms.Sequence(
-    photonsSignalME
-    * photonsSignalMEanalyzer
+# Signal photons for ttbar samples
+patPhotonsSignal = cms.EDProducer("TTGammaMcSignalMatch",
+    patPhotons = cms.InputTag("patPhotons"),
+    genSignal = cms.InputTag("ttbarPhotonMerger", "signalPhotons")
 )
 
-# photon coming from matrix element
-# photonsSignalTwo2Five = cms.EDProducer("TTGammaMcSignalMatch",
-#     src = cms.InputTag("patPhotonsPF")
-#     is2to5 = cms.untracked.bool(True)
-# )
-
-photonsSignalTwo2Seven = cms.EDProducer("TTGammaMcSignalMatch",
-    src = cms.InputTag("patPhotons"),
-    is2to5 = cms.untracked.bool(True)
-)
-
-photonsSignalTwo2SevenCounter = cms.EDFilter("PATCandViewCountFilter",
-    src = cms.InputTag("photonsSignalTwo2Seven"),
+# A counter: require at least one photon
+patPhotonsSignalCounter = cms.EDFilter("PATCandViewCountFilter",
+    src = cms.InputTag("patPhotonsSignal"),
     minNumber = cms.uint32(1),
     maxNumber = cms.uint32(999999),
     filter = cms.bool(True)
 )
 
-
+photonsSignalMEsequence = cms.Sequence(
+    photonsSignalME
+    * photonsSignalMEanalyzer
+)

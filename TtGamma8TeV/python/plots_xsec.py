@@ -1,9 +1,12 @@
 
 import cmstoolsac3b.postprocessing as pprc
 import cmstoolsac3b.generators as gen
+import cmstoolsac3b.settings as settings
+import cmstoolsac3b.wrappers as wrappers
 from PyQt4 import QtCore
 
 class XsecCalculator(pprc.PostProcTool):
+    can_reuse = False
 
     def load_fit_results(self, filename):
         file = QtCore.QSettings(filename, 1)
@@ -179,6 +182,26 @@ class XsecCalculator(pprc.PostProcTool):
         xsec = R * 234.
         xsec_err_stat = xsec * R_err_fit / R
      #   xsec_err_sys = xsec * R_err_sys / R
+
+        wrp = wrappers.Wrapper(name = "x_sec_result")
+        wrp.eff_gamma           = eff_gamma
+        wrp.pur_tt              =  pur_tt
+        wrp.pur_gamma           =  pur_gamma
+        wrp.pur_gamma_err_whiz  =  pur_gamma_err_whiz
+        wrp.N_sel_data          =  N_sel_data
+        wrp.N_presel_data       =  N_presel_data
+        wrp.StoB_presel         =  StoB_presel
+        wrp.StoB_gamma          =  StoB_gamma
+        wrp.N_fit               =  N_fit
+        wrp.N_fit_err           =  N_fit_err
+        wrp.N_MC_predict        =  N_MC_predict
+        wrp.R                   =  R
+        wrp.R_err_fit           =  R_err_fit
+        wrp.R_err_pur_whiz      =  R_err_pur_whiz
+        wrp.xsec                =  xsec
+        wrp.xsec_err_stat       =  xsec_err_stat
+        settings.post_proc_dict["x_sec_result"] = wrp
+        wrp.write_info_file(self.plot_output_dir + "x_sec_result.info")
 
         print "eff_gamma        : ", eff_gamma
         print "pur_tt           : ", pur_tt
