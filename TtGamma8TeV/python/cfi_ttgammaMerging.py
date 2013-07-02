@@ -1,4 +1,11 @@
 
+cutDeltaR = 0.1
+try:
+    cutDeltaR   = cms_var.get("cutDeltaR", cutDeltaR)
+except NameError:
+    print "<"+__name__+">: cms_var not in __builtin__!"
+
+
 import FWCore.ParameterSet.Config as cms
 from SimGeneral.HepPDTESSource.pythiapdt_cfi import *
 from TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff import *
@@ -13,7 +20,7 @@ from TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff import *
 
 ttbarPhotonMerger = cms.EDFilter("TTGammaMerger",
     ptCut = cms.double(20.),
-    drCut = cms.double(.1),
+    drCut = cms.double(cutDeltaR),
     filter = cms.bool(True),
 )
 

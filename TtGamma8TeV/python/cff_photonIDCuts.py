@@ -1,7 +1,9 @@
 
-puWeight  = None
+puWeight    = None
+etCutValue  = 25.
 try:
-    puWeight  = cms_var.get("puWeight", puWeight)
+    puWeight    = cms_var.get("puWeight", puWeight)
+    etCutValue  = cms_var.get("etCutValue", etCutValue)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 
@@ -93,7 +95,7 @@ cuts = {
         "eta"
     ),
     "etcut" : (
-        "et>25",
+        "et>"+str(etCutValue),
         0, 700, 140,
         "E_{T} / GeV",
         "et"

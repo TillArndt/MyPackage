@@ -5,7 +5,6 @@
 #pydevd.settrace('localhost', port=22022, suspend=False)
 
 # DEAR PEDESTRIAN: http://github.com/heinzK1X/CMSToolsAC3b
-import copy
 
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.main as main
@@ -16,17 +15,6 @@ settings.samples.update(load_samples(samples_cern))
 settings.active_samples = settings.samples.keys() # add all MC and data for stacking
 settings.active_samples.remove("TTNLO")
 settings.active_samples.remove("TTNLOSignal")
-
-# systematic pu processing
-mc_samples = settings.mc_samples()
-pu_samples = {}
-for name, smp_old in mc_samples.iteritems():
-    name += "PU"
-    smp = copy.deepcopy(smp_old)
-    smp.name = name
-    smp.cfg_builtin["puWeightInput"] = "PU_Run2012_73500.root"
-    pu_samples[name] = smp
-settings.samples.update(pu_samples)
 
 import ROOT
 colors = dict()
@@ -100,18 +88,23 @@ post_proc_tools += [
     plots_xsec.XsecCalculator,
     ppt.HistoPoolClearer,
 ]
+
 import sys_uncert
-sys_isr_fsr         = sys_uncert.SysIsrFsr(None, post_proc_tools)
-sys_pu              = sys_uncert.SysPU(None, post_proc_tools)
-sys_sel_eff_plus    = sys_uncert.SysSelEffPlus(None, post_proc_tools)
-sys_sel_eff_minus   = sys_uncert.SysSelEffMinus(None, post_proc_tools)
+sys_uncert.makeSysSamplesPU()
+sys_uncert.makeSysSamplesDRCut()
+sys_uncert.makeSysSamplesETCut()
 
 post_proc_tools += [
-    sys_isr_fsr,
-    sys_pu,
-    sys_sel_eff_plus,
-    sys_sel_eff_minus,
+    sys_uncert.SysIsrFsr(None, post_proc_tools),
+    sys_uncert.SysPU(None, post_proc_tools),
+    sys_uncert.SysSelEffPlus(None, post_proc_tools),
+    sys_uncert.SysSelEffMinus(None, post_proc_tools),
+    sys_uncert.SysOverlapDRCutLow(None, post_proc_tools),
+    sys_uncert.SysOverlapDRCutHigh(None, post_proc_tools),
+    sys_uncert.SysPhotonETCutHigh(None, post_proc_tools),
+    sys_uncert.SysPhotonETCutLow(None, post_proc_tools),
     ppt.SimpleWebCreator,
+    sys_uncert.ResultDumper
 ]
 
 
