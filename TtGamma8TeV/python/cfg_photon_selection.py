@@ -9,6 +9,8 @@ sample      = ""
 skipChecks  = False
 
 try:
+    print "cms_var options: "
+    print cms_var
     runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
     useMerging  = cms_var.get("useMerging", useMerging)
@@ -185,6 +187,10 @@ process.selectionPath += process.OutputEventCount
 process.InputCntPrnt = cms.EDAnalyzer("EventCountPrinter",
     src = cms.InputTag("InputEventCount", "", "PAT")
 )
+process.OutputCntPrnt = cms.EDAnalyzer("EventCountPrinter",
+    src = cms.InputTag("OutputEventCount", "", "MERGE")
+)
+process.selectionPath.insert(0, process.OutputCntPrnt)
 process.selectionPath.insert(0, process.InputCntPrnt)
 
 
@@ -197,6 +203,7 @@ if skipChecks:
 
     # event count will produce invalid result, if lumis sections are skipped
     process.selectionPath.remove(process.InputCntPrnt)
+    process.selectionPath.remove(process.OutputCntPrnt)
     process.options.fileMode = cms.untracked.string('NOMERGE')
     if runOnMC:
         process.options.emptyRunLumiMode = cms.untracked.string(

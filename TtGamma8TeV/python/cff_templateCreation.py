@@ -216,7 +216,7 @@ matchedTemplateChHadIso = cms.EDAnalyzer(
             max          = cms.untracked.double(10.),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('ChHadIso'),
-            description  = cms.untracked.string(';PF neutral hadron isolation (#rho corrected);number of photons'),
+            description  = cms.untracked.string(';PF charged hadron isolation (#rho corrected);number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string("max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)")
         ),

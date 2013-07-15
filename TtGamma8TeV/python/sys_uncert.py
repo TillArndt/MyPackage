@@ -14,13 +14,6 @@ def makeSysSample(old_name, new_name, dict_update):
     settings.samples[new_name] = new_smp
 
 
-class ResultDumper(ppc.PostProcTool):
-    can_reuse = False
-    def run(self):
-        for key, data in settings.persistent_dict.iteritems():
-            self.message("INFO " + key + ":  " + str(data))
-
-
 class SysBase(ppc.PostProcChainSystematics):
     def finish_with_systematic(self):
         new = settings.post_proc_dict["x_sec_result"]
@@ -30,7 +23,8 @@ class SysBase(ppc.PostProcChainSystematics):
         settings.persistent_dict[name] = res
         self.message("INFO " + name + " / %: " + str(res * 100.))
         wrp = wrappers.FloatWrapper(res, name=name)
-        wrp.write_info_file(self.plot_output_dir + "result.info")
+        wrp.formula = "abs(old.R - new.R) / old.R"
+        wrp.write_info_file(self.plot_output_dir + "sys_uncert_result.info")
 
 
 class SysIsrFsr(SysBase):
@@ -79,8 +73,8 @@ class SysOverlapDRCutLow(SysBase):
     def prepare_for_systematic(self):
         settings.active_samples.remove("TTJets")
         settings.active_samples.remove("TTJetsSignal")
-        settings.active_samples.remove("TTJets_DRCutLow")
-        settings.active_samples.remove("TTJetsSignal_DRCutLow")
+        settings.active_samples.append("TTJets_DRCutLow")
+        settings.active_samples.append("TTJetsSignal_DRCutLow")
         self.old_result = settings.post_proc_dict["x_sec_result"]
 
 
@@ -88,8 +82,8 @@ class SysOverlapDRCutHigh(SysBase):
     def prepare_for_systematic(self):
         settings.active_samples.remove("TTJets")
         settings.active_samples.remove("TTJetsSignal")
-        settings.active_samples.remove("TTJets_DRCutHigh")
-        settings.active_samples.remove("TTJetsSignal_DRCutHigh")
+        settings.active_samples.append("TTJets_DRCutHigh")
+        settings.active_samples.append("TTJetsSignal_DRCutHigh")
         self.old_result = settings.post_proc_dict["x_sec_result"]
 
 def makeSysSamplesDRCut():
@@ -104,6 +98,7 @@ class SysPhotonETCutLow(SysBase):
         settings.active_samples = list(
             smp + "_ETCutLow" for smp in settings.active_samples
         )
+        self.old_result = settings.post_proc_dict["x_sec_result"]
 
 
 class SysPhotonETCutHigh(SysBase):
@@ -111,6 +106,7 @@ class SysPhotonETCutHigh(SysBase):
         settings.active_samples = list(
             smp + "_ETCutHigh" for smp in settings.active_samples
         )
+        self.old_result = settings.post_proc_dict["x_sec_result"]
 
 def makeSysSamplesETCut():
     for name in settings.active_samples:

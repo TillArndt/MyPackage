@@ -64,7 +64,7 @@ histo_post = {
         "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15",
         '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'
     ),
-    "sf_histo" : (
+    "scaleFactor" : (
         "", -700., 700., 140,
         "E_{T} / GeV",
         "?(abs(eta) < 0.8) ? -et : et"

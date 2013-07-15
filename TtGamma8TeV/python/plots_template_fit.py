@@ -4,6 +4,7 @@ import cmstoolsac3b.generators as gen
 import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.decorator as dec
 import cmstoolsac3b.settings as settings
+from cmstoolsac3b.rendering import BottomPlotRatio
 
 from PyQt4 import QtCore
 from ROOT import TF1, TPaveText
@@ -11,6 +12,13 @@ import itertools
 
 
 class TemplateFitTool(ppt.FSStackPlotter):
+
+    def __init__(self, name = None):
+        super(TemplateFitTool, self).__init__(name)
+        self.name_real  = ""
+        self.name_fake  = ""
+        self.name_data  = ""
+        self.name_histo = ""
 
     def configure(self):
         super(TemplateFitTool,self).configure()
@@ -98,43 +106,66 @@ class TemplateFitTool(ppt.FSStackPlotter):
             )
         textbox.AddText(chi2)
 
+        text = []
         for i, tmplt in enumerate(templates):
-            text = (
+            integral = tmplt.histo.Integral()
+            text.append(
                 "N_{"
                 + tmplt.legend
-                + "} = "
-                + str(round(fit_function.GetParameter(i),3))
-                + " #pm "
-                +str(round(fit_function.GetParError(i),3))
+                + "} = %d #pm %d"%(
+                        integral,
+                        fit_function.GetParError(i) * integral / fit_function.GetParameter(i)
+                    )
                 )
-            textbox.AddText(text)
-
+        for txt in reversed(text):
+            textbox.AddText(txt)
+        #str(round(fit_function.GetParameter(i),3))#str(round(fit_function.GetParError(i),3))
         return textbox
 
     def set_up_stacking(self):
 
         def cosmetica(wrps):
-            colors = {"realTemplateSihih":409, "fakeTemplateSihih":625}
+            colors = {self.name_real:409, self.name_fake:625}
             for w in wrps:
                 name = settings.get_pretty_name(w.analyzer)
                 w.histo.SetTitle(name)
                 w.legend = name
                 w.histo.SetFillColor(colors[w.analyzer])
+                w.histo.SetFillStyle(1001)
                 yield w
 
         data_lumi = settings.data_lumi_sum_wrp()
-        mc_tmplts = gen.fs_mc_stack({
-            "analyzer"  : ("realTemplateSihih","fakeTemplateSihih"),
-            "name"      : "sihihEB"
+        mc_tmplts = list(gen.fs_mc_stack({
+            "analyzer"  : (self.name_real,self.name_fake),
+            "name"      : self.name_histo
+        }))
+        data_tmplts = gen.fs_filter_sort_load({
+            "analyzer"  : self.name_data,
+            "name"      : self.name_histo
         })
+
+        # save template stack right away
+        tmpl_decs = self.canvas_decorators[:]
+        tmpl_decs.remove(BottomPlotRatio)
+        tmpl_cnvs = gen.canvas(mc_tmplts, tmpl_decs)
+        tmpl_cnvs = gen.save(
+            tmpl_cnvs, 
+            lambda w: self.plot_output_dir + w.name
+        )
+        self.message(
+            "INFO Saved " 
+            + str(gen.consume_n_count(
+                tmpl_cnvs
+            )) + "template stack canvases." 
+        )
+
+        # combine mc stack to single histograms
         mc_tmplts = list(cosmetica(gen.gen_prod(itertools.izip(
             (wrp.HistoWrapper(w.histo, **w.all_info()) for w in mc_tmplts),
             itertools.repeat(data_lumi)
         ))))
-        data_tmplts = gen.fs_filter_sort_load({
-            "analyzer"  : "dataTemplateFitHistoSihih",
-            "name"      : "sihihEB"
-        })
+ 
+        # do fit procedure
         fitted = gen.op.sum(data_tmplts)
         self.find_x_range(fitted.histo)
         fit_func = self.build_fit_function(mc_tmplts)
@@ -159,3 +190,21 @@ class TemplateFitTool(ppt.FSStackPlotter):
         tmplt_stacks = [gen.op.stack(mc_tmplts)]
         stream_stack = [(tmplt_stacks[0], fitted)]
         self.stream_stack = gen.pool_store_items(stream_stack)
+
+
+class TemplateFitToolSihih(TemplateFitTool):
+    def __init__(self, name = None):
+        super(TemplateFitToolSihih, self).__init__(name)
+        self.name_real  = "realTemplateSihih"
+        self.name_fake  = "fakeTemplateSihih"
+        self.name_data  = "dataTemplateFitHistoSihih"
+        self.name_histo = "sihihEB"
+
+
+class TemplateFitToolChHadIso(TemplateFitTool):
+    def __init__(self, name = None):
+        super(TemplateFitToolChHadIso, self).__init__(name)
+        self.name_real  = "realTemplateChHadIso"
+        self.name_fake  = "fakeTemplateChHadIso"
+        self.name_data  = "dataTemplateFitHistoChHadIso"
+        self.name_histo = "ChHadIso"

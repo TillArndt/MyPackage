@@ -2,6 +2,7 @@
 
 from PyQt4 import QtGui
 from DataFormats.FWLite import Events,Handle
+a = QtGui.QApplication([])
 
 
 class EventTreeViewer(QtGui.QTreeWidget):
@@ -10,10 +11,11 @@ class EventTreeViewer(QtGui.QTreeWidget):
         self.setColumnCount(1)
         self.setHeaderLabels(["pdg", "status", "e", "px", "py", "pz"])
         self.insertTopLevelItems(0, [QtGui.QTreeWidgetItem()])
+        self.collection = "genParticles"
 
     def setEventTree(self, event):
         handle = Handle("vector<reco::GenParticle>")
-        event.getByLabel("genParticles", handle)
+        event.getByLabel(self.collection, handle)
         items = []
         def fill_tree(gen_particle, parent_item):
             for p in xrange(gen_particle.numberOfDaughters()):
@@ -38,9 +40,6 @@ class EventTreeViewer(QtGui.QTreeWidget):
         self.insertTopLevelItems(0,items)
 
 
-a = QtGui.QApplication([])
-
-
 def event_iterator(filename, handles = None):
     """handles is a list of tuples: (varname, type, InputTag)"""
     events = Events(filename)
@@ -53,9 +52,10 @@ def event_iterator(filename, handles = None):
         yield evt
 
 
-def open_viewer(filename):
+def open_viewer(filename, collection_name= None):
     evtit = event_iterator(filename)
     w = EventTreeViewer()
+    if collection_name: w.collection = collection_name
     w.setEventTree(evtit.next())
     w.show()
     def skipper():
@@ -63,4 +63,5 @@ def open_viewer(filename):
     return skipper
 
 
-fname_heiner = "/disk1/tholen/eventFiles/fromGrid20130601/TTJetsNLO_1.root"
+fname_hein_nlo = "/disk1/tholen/eventFiles/fromGrid20130618/TTNLO_000.root"
+fname_hein_mg  = "/disk1/tholen/eventFiles/fromGrid20130618/TTJets_000.root"

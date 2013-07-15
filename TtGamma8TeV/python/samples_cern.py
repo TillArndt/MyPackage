@@ -19,6 +19,9 @@ settings.cfg_common_builtins.update({
 #path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
 path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
 
+ttbar_xsec = 245.8
+ttbar_xsec_err = 2.6
+
 class whiz2to5(smp.Sample):
     legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = .9081 * 2.0
@@ -54,14 +57,14 @@ class Tbar_tW(smp.Sample):
 # Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
 class TTJetsSignal(smp.Sample):
     legend      = "t#bar{t}#gamma (Signal)"
-    x_sec       = 234.
+    x_sec       = ttbar_xsec
     n_events    = 6854514 
     input_files = path_pc + 'TTJets_*.root'
     cfg_builtin = {"preSelOpt": "go4Signal"}
 
 class TTJets(smp.Sample):
     legend      = "t#bar{t} inclusive"
-    x_sec       = 234.
+    x_sec       = ttbar_xsec
     n_events    = 6854514
     input_files = path_pc + 'TTJets_*.root'
     cfg_builtin = {"preSelOpt": "go4Noise"}
@@ -69,17 +72,19 @@ class TTJets(smp.Sample):
 
 class TTNLO(smp.Sample):
     legend      = "t#bar{t} inclusive"
-    x_sec       = 234.
+    x_sec       = ttbar_xsec
     n_events    = 4900000
     input_files = path_pc + 'TTNLO_*.root'
     cfg_builtin = {"preSelOpt": "go4Noise"}
+    cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
 
 class TTNLOSignal(smp.Sample):
-    legend      = "t#bar{t} inclusive"
-    x_sec       = 234.
+    legend      = "t#bar{t}#gamma (Signal)"
+    x_sec       = ttbar_xsec
     n_events    = 4900000
     input_files = path_pc + 'TTNLO_*.root'
     cfg_builtin = {"preSelOpt": "go4Signal"}
+    cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
 
 class WJets(smp.Sample):
     legend      = "W + Jets"
@@ -101,10 +106,9 @@ class RunA(smp.Sample):
     cfg_builtin = {}
 
 class RunB(smp.Sample):
-    enable      = False
     is_data     = True
     legend      = "Data"
-    lumi        = 558.738 + 3867. #lumiCalc2 
+    lumi        = 4425.7 #558.738 + 3867. #lumiCalc2 
     input_files = path_pc + 'RunB_*.root'
     cfg_builtin = {}
 
