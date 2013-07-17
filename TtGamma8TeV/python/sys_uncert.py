@@ -24,7 +24,7 @@ class SysBase(ppc.PostProcChainSystematics):
         self.message("INFO " + name + " / %: " + str(res * 100.))
         wrp = wrappers.FloatWrapper(res, name=name)
         wrp.formula = "abs(old.R - new.R) / old.R"
-        wrp.write_info_file(self.plot_output_dir + "sys_uncert_result.info")
+        wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
 
 
 class SysIsrFsr(SysBase):
@@ -55,14 +55,33 @@ def makeSysSamplesPU():
         )
 
 
-class SysSelEffPlus(SysBase):
+class SysSelEffBase(ppc.PostProcChainSystematics):
+    def finish_with_systematic(self):
+        new = settings.post_proc_dict["x_sec_result"]
+        old = self.old_result
+        res     = abs(old.R - new.R) / old.R
+        res_MC  = abs(old.R_MC - new.R_MC) / old.R_MC
+        name = self.__class__.__name__
+        settings.persistent_dict[name] = res
+        settings.persistent_dict[name+"MC"] = res_MC
+        self.message("INFO " + name + " / %: " + str(res * 100.))
+        self.message("INFO " + name + "MC / %: " + str(res_MC * 100.))
+        wrp = wrappers.FloatWrapper(res, name=name)
+        wrp.formula = "abs(old.R - new.R) / old.R"
+        wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
+        wrp = wrappers.FloatWrapper(res_MC, name=name+"MC")
+        wrp.formula = "abs(old.R_MC - new.R_MC) / old.R_MC"
+        wrp.write_info_file(settings.dir_result + "sys_uncert_result_MC.info")
+
+
+class SysSelEffPlus(SysSelEffBase):
     def prepare_for_systematic(self):
         settings.samples["whiz2to5"].lumi *= 1.25
         settings.samples["whiz2to5"].x_sec *= 1.25
         self.old_result = settings.post_proc_dict["x_sec_result"]
 
 
-class SysSelEffMinus(SysBase):
+class SysSelEffMinus(SysSelEffBase):
     def prepare_for_systematic(self):
         settings.samples["whiz2to5"].lumi *= 0.75
         settings.samples["whiz2to5"].x_sec *= 0.75
@@ -113,4 +132,14 @@ def makeSysSamplesETCut():
         makeSysSample(name, name + "_ETCutLow", {"etCutValue": 22.})
         makeSysSample(name, name + "_ETCutHigh", {"etCutValue": 28.})
 
-
+from plots_xsec import XsecCalculatorChHadIso
+class SysTemplateFit(SysBase):
+    def prepare_for_systematic(self):
+        new_chain = []
+        for t in self.tool_chain:
+            if t.name == "XsecCalculatorSihih":
+                new_chain.append(XsecCalculatorChHadIso())
+            else:
+                new_chain.append(t)
+        self.tool_chain = new_chain
+        self.old_result = settings.post_proc_dict["x_sec_result"]

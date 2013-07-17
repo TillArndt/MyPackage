@@ -18,6 +18,7 @@ legend_key_func = lambda w: settings.get_stack_position(w.sample)
 
 class CutflowHistos(pp.PostProcTool):
     """Prepares cutflow histos for all samples, stores them in histo pool."""
+    can_reuse = False
     has_output_dir = False
 
     def combine_cutflow_histo(self, grp):
@@ -57,6 +58,7 @@ class CutflowHistos(pp.PostProcTool):
 
 class CutflowStack(ppt.FSStackPlotter):
     """Reads cutflow histos from pool and stacks them up."""
+    can_reuse = False
 
     def configure(self):
         class AxisTitles(dec.Decorator):
@@ -86,6 +88,7 @@ class CutflowStack(ppt.FSStackPlotter):
 
 class CutflowTableContent(pp.PostProcTool):
     """Generates cutflow table data."""
+    can_reuse = False
     has_output_dir = False
 
     def __init__(self, name = None):

@@ -298,7 +298,7 @@ def add_photon_cuts(process):
         )
         last_filter   = new_filter
 
-    # special paths for n-1 plots ###
+    ################################################### paths for n-1 plots ###
     for cut_key in cut_key_order:
 
         # make one cut string for the N-1 plots
@@ -307,25 +307,58 @@ def add_photon_cuts(process):
         cuts_Nm1_list = list(cuts[cutkey][0] for cutkey in cutkeys_Nm1)
         cuts_Nm1_str = "( " + ") && (".join(cuts_Nm1_list) + " )"
 
+        # pre filter counter
+        Nm1CountPre = cms.EDProducer("EventCountProducer")
+        Nm1CountPrePrnt = cms.EDAnalyzer("EventCountPrinter",
+            src = cms.InputTag("Nm1CountPre" + cut_key)
+        )
+
         # Filter for n - 1 plot
-        Nm1FiltTmp = cms.EDFilter("PATPhotonSelector",
+        Nm1Filt = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonInputDummy"),
             cut = cms.string(cuts_Nm1_str),
             filter = cms.bool(False)
         )
-        setattr(process, "Nm1Filt" + cut_key, Nm1FiltTmp)
 
         # n - 1 Plot
-        Nm1PlotTmp = make_histo_analyzer("Nm1Filt" + cut_key, cuts[cut_key])
-        setattr(process, "Nm1Plot" + cut_key, Nm1PlotTmp)
+        Nm1Plot = make_histo_analyzer("Nm1Filt" + cut_key, cuts[cut_key])
 
+        # Filter for n - 1 plot
+        Nm1FiltBlocking = cms.EDFilter("PATPhotonSelector",
+            src = cms.InputTag("photonInputDummy"),
+            cut = cms.string(cuts_Nm1_str),
+            filter = cms.bool(True)
+        )
+
+        # post filter counter
+        Nm1CountPost = cms.EDProducer("EventCountProducer")
+        Nm1CountPostPrnt = cms.EDAnalyzer("EventCountPrinter",
+            src = cms.InputTag("Nm1CountPost" + cut_key)
+        )
+
+        # add to process
+        setattr(process, "Nm1CountPre" + cut_key, Nm1CountPre)
+        setattr(process, "Nm1CountPrePrint" + cut_key, Nm1CountPrePrnt)
+        setattr(process, "Nm1Filt" + cut_key, Nm1Filt)
+        setattr(process, "Nm1Plot" + cut_key, Nm1Plot)
+        setattr(process, "Nm1FiltBlocking" + cut_key, Nm1FiltBlocking)
+        setattr(process, "Nm1CountPost" + cut_key, Nm1CountPost)
+        setattr(process, "Nm1CountPostPrint" + cut_key, Nm1CountPostPrnt)
+
+        # make path
         pathTmp = cms.Path(
             process.preSel
+            * getattr(process, "Nm1CountPre" + cut_key)
+            * getattr(process, "Nm1CountPre" + cut_key)
+            * getattr(process, "Nm1CountPre" + cut_key)
             * getattr(process, "Nm1Filt" + cut_key)
             * getattr(process, "Nm1Plot" + cut_key)
+            * getattr(process, "Nm1FiltBlocking" + cut_key)
+            * getattr(process, "Nm1CountPost" + cut_key)
+            * getattr(process, "Nm1CountPrePrint" + cut_key)
+            * getattr(process, "Nm1CountPostPrint" + cut_key)
         )
         setattr(process, "path"+cut_key, pathTmp)
         post_paths.append(pathTmp)
 
     return pre_paths, post_paths
-

@@ -5,8 +5,6 @@ import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.decorator as dec
 import cmstoolsac3b.settings as settings
 from cmstoolsac3b.rendering import BottomPlotRatio
-
-from PyQt4 import QtCore
 from ROOT import TF1, TPaveText
 import itertools
 
@@ -19,9 +17,10 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.name_fake  = ""
         self.name_data  = ""
         self.name_histo = ""
+        self.fit_result = wrp.Wrapper(name = "FitResults")
 
     def configure(self):
-        super(TemplateFitTool,self).configure()
+        super(TemplateFitTool, self).configure()
         self.save_name_lambda = lambda wrp: self.plot_output_dir + wrp.name.split("_")[1]
 
     def find_x_range(self, data_hist):
@@ -60,35 +59,48 @@ class TemplateFitTool(ppt.FSStackPlotter):
 
         return tf1
 
-    def save_fit_results(self, fit_function, templates):
-        """
-        """
-
-        file = QtCore.QSettings(
-            self.plot_output_dir + "FitResults.ini", 1
-        )
-        file.setValue("Chi2", fit_function.GetChisquare())
-        file.setValue("NDF", fit_function.GetNDF())
-
-        file.beginWriteArray("parameters")
-        for i, tmplt in enumerate(templates):
-            file.setArrayIndex(i)
-            file.setValue("legend", tmplt.legend)
-            file.setValue("value", fit_function.GetParameter(i))
-            file.setValue("error", fit_function.GetParError(i))
-            file.setValue("binIntegral", tmplt.histo.Integral())
-        file.endArray()
-        file.sync()
-        del file
-
     def scale_templates_to_fit(self, fit_function, templates):
         for i in range(0, len(templates)):
-            #TODO: use gen functions here
             templates[i].histo.Scale(fit_function.GetParameter(i))
 
-    def make_fit_textbox(self, fit_function, templates):
+    def calc_chi2(self, templates, fitted):
+        """"""
+        ratio = gen.op.div((fitted, gen.op.sum(templates))).histo
+        chi2 = 0.
+        bin_min = ratio.GetXaxis().FindBin(self.x_min)
+        bin_max = ratio.GetXaxis().FindBin(self.x_max) + 1
+        for i in xrange(bin_min, bin_max):
+            if ratio.GetBinError(i) > 1e-43:
+                chi2 += ((1 - ratio.GetBinContent(i))/ratio.GetBinError(i))**2
+        return chi2
+
+    def save_fit_results(self, fit_function, templates, chi2):
+        """"""
+        res = self.fit_result
+        res.Chi2 = chi2
+        res.NDF = fit_function.GetNDF()
+        res.legend = []
+        res.value = []
+        res.error = []
+        res.binIntegralMC = []
+        res.binIntegralScaled = []
+        res.binIntegralScaledError = []
+        for i, tmplt in enumerate(templates):
+            res.legend.append(tmplt.legend)
+            res.value.append(fit_function.GetParameter(i))
+            res.error.append(fit_function.GetParError(i))
+            res.binIntegralMC.append(tmplt.histo.Integral() / res.value[-1])
+            res.binIntegralScaled.append(tmplt.histo.Integral())
+            res.binIntegralScaledError.append(
+                res.binIntegralScaled[-1] * res.error[-1] / res.value[-1]
+            )
+        res.write_info_file(self.plot_output_dir + "FitResults.info")
+
+    def make_fit_textbox(self):
+        res = self.fit_result
+
         x1, x2, y2 = 0.33, 0.62, 0.88
-        y1 = y2 - ((len(templates) + 1) * 0.04)
+        y1 = y2 - ((len(res.legend) + 1) * 0.04)
 
         textbox = TPaveText(x1,y1,x2,y2,"brNDC")
         textbox.SetBorderSize(1)
@@ -100,26 +112,24 @@ class TemplateFitTool(ppt.FSStackPlotter):
 
         chi2 = (
             "#chi^{2} / NDF = "
-            + str(round(fit_function.GetChisquare(),2))
+            + str(round(res.Chi2,2))
             + " / "
-            + str(fit_function.GetNDF())
+            + str(res.NDF)
             )
         textbox.AddText(chi2)
 
         text = []
-        for i, tmplt in enumerate(templates):
-            integral = tmplt.histo.Integral()
+        for i, legend in enumerate(res.legend):
             text.append(
                 "N_{"
-                + tmplt.legend
+                + legend
                 + "} = %d #pm %d"%(
-                        integral,
-                        fit_function.GetParError(i) * integral / fit_function.GetParameter(i)
+                        res.binIntegralScaled[i],
+                        res.binIntegralScaledError[i]
                     )
                 )
         for txt in reversed(text):
             textbox.AddText(txt)
-        #str(round(fit_function.GetParameter(i),3))#str(round(fit_function.GetParError(i),3))
         return textbox
 
     def set_up_stacking(self):
@@ -170,14 +180,14 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.find_x_range(fitted.histo)
         fit_func = self.build_fit_function(mc_tmplts)
         fitted.histo.Fit(fit_func, "WL M N", "", self.x_min, self.x_max)
-        self.save_fit_results(fit_func, mc_tmplts)
         self.scale_templates_to_fit(fit_func, mc_tmplts)
+        chi2 = self.calc_chi2(mc_tmplts, fitted)
+        self.save_fit_results(fit_func, mc_tmplts, chi2)
 
         #TODO: Make DECORATORS INSTANCEABLE BEFORE APPLYING
         #TODO: self.first_drawed.GetXaxis().SetNoExponent()
         textboxes = {
-            mc_tmplts[0].name:
-                self.make_fit_textbox(fit_func, mc_tmplts)
+            mc_tmplts[0].name: self.make_fit_textbox()
         }
         class TextBoxDecorator(dec.Decorator):
             textbox_dict = textboxes

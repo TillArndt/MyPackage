@@ -69,6 +69,14 @@ pn["realTemplateSihih"]         = "real"
 pn["fakeTemplateSihih"]         = "fake"
 pn["realTemplateChHadIso"]      = "real"
 pn["fakeTemplateChHadIso"]      = "fake"
+
+pn.update({
+    "SysIsrFsr"             : "ISR/FSR",
+    "SysOverlapDRCutHigh"   : "overlap removal",
+    "SysPU"                 : "PU",
+    "SysPhotonETCutHigh"    : r"$\epsilon_\gamma \;(\et)$",
+    "SysSelEffMinus"        : r"$\epsilon_\gamma \;(\sigma_{\rm sig})",
+})
 settings.pretty_names = pn
 
 settings.rootfile_postfixes = [".root", ".png", ".eps"]

@@ -107,16 +107,7 @@ if preSelOpt == "go4Whiz":
 # Path declarations
 #process.dataMC = cms.Path(
 #    process.preSel *
-#    process.WeightsCheck *
-#    process.DataMCMuonCheck *
-#    process.DataMCJetCheck *
-#    process.DataMCPhotonCheck *
-#    process.DataMCCompPhotons *
-#    process.WeightsCheckTrue *
-#    process.DataMCMuonCheckTrue *
-#    process.DataMCJetCheckTrue *
-#    process.DataMCPhotonCheckTrue *
-#    process.DataMCCompPhotonsTrue
+#     process.dataMCSequence
 #)
 
 process.producerPath = cms.Path(

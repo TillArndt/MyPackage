@@ -15,15 +15,25 @@ template_input_collection_chhadiso = "Nm1FiltchargedHadronIsoEB"
 
 matched = 'genParticlesSize>0'
 
-real = '\
+real_with_ECAL_cut = '\
 (\
-    genParticlesSize>0 \
+    genParticlesSize > 0 \
     && (\
         (abs(energy - genParticle.energy) / genParticle.energy)^2 < 4 * ( \
             (3.63 / sqrt(genParticle.energy))^2 \
             + (.124 / genParticle.energy)^2 \
             + (0.3)^2 \
         )\
+    )\
+)'
+
+real = '\
+(\
+    genParticlesSize > 0 \
+    && (\
+        (abs(energy - genParticle.energy) / genParticle.energy) < 2. \
+    ) && (\
+        deltaR(eta, phi, genParticle.eta, genParticle.phi) < 0.2 \
     )\
 )'
 

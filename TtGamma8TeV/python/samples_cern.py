@@ -19,8 +19,8 @@ settings.cfg_common_builtins.update({
 #path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
 path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
 
-ttbar_xsec = 245.8
-ttbar_xsec_err = 2.6
+ttbar_xsec = settings.ttbar_xsec
+ttbar_xsec_err = settings.ttbar_xsec_err
 
 class whiz2to5(smp.Sample):
     legend      = "t#bar{t}#gamma (Signal)"
