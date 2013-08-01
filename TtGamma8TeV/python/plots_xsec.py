@@ -9,6 +9,7 @@ class XsecCalculator(pprc.PostProcTool):
     def configure(self):
         self.fir_res_dir        = None
         self.fit_template_name  = None
+        self.fake_template_name = None
         self.pre_count_name     = None
         self.post_count_name    = None
 
@@ -23,7 +24,7 @@ class XsecCalculator(pprc.PostProcTool):
             mc_cont[legend]         = fit_res.binIntegralMC[i]
             data_cont[legend]       = fit_res.binIntegralScaled[i]
             data_cont_err[legend]   = fit_res.binIntegralScaledError[i]
-        return parameters, mc_cont, data_cont, data_cont_err
+        return parameters, mc_cont, data_cont, data_cont_err, fit_res
 
     def run(self):
         self.configure()
@@ -39,7 +40,7 @@ class XsecCalculator(pprc.PostProcTool):
         c.bkg_pre = 0.
         c.bkg_post = 0.
         c.tt_pre = 0.
-        c.tt_post = 0.
+        c.tt_post = 0
         for smp in settings.mc_samples().itervalues():
             legend = smp.legend
             if legend == "t#bar{t}#gamma (Signal)":
@@ -64,7 +65,7 @@ class XsecCalculator(pprc.PostProcTool):
 
         # selection performance
         r.eff_gamma = c.sig_post / c.sig_pre
-        r.pur_gamma = c.sig_post / (c.sig_post + c.bkg_post)
+        r.pur_gamma = (c.tt_post + c.sig_post) / (c.sig_post + c.bkg_post)
         r.pur_tt = (c.tt_pre + c.sig_pre) / (c.bkg_pre + c.sig_pre)
         r.N_presel_data = c.data_pre
         r.N_sel_data = c.data_post
@@ -72,9 +73,11 @@ class XsecCalculator(pprc.PostProcTool):
         r.StoB_presel = c.tt_pre / (c.bkg_pre - c.tt_pre)
 
         # fit result
-        fit_param, mc_cont, data_cont, data_cont_err = self.load_fit_results()
+        fit_param, mc_cont, data_cont, data_cont_err, fit_res = self.load_fit_results()
         r.N_MC_predict  = mc_cont[self.fit_template_name]
         r.N_fit         = data_cont[self.fit_template_name]
+        r.N_fake        = data_cont[self.fake_template_name]
+        r.N_data_tmpl   = fit_res.dataIntegral
         r.N_fit_err     = data_cont_err[self.fit_template_name]
 
         # R
@@ -101,15 +104,17 @@ class XsecCalculator(pprc.PostProcTool):
 class XsecCalculatorSihih(XsecCalculator):
     def configure(self):
         self.fit_template_name = settings.get_pretty_name("realTemplateSihih")
-        self.fir_res_dir = self.plot_output_dir + "../TemplateFitToolSihih/FitResults.info"
-        self.pre_count_name = "Nm1CountPresihihEB"
-        self.post_count_name = "Nm1CountPostsihihEB"
+        self.fake_template_name = settings.get_pretty_name("fakeTemplateSihih")
+        self.fir_res_dir = self.plot_output_dir + "../TemplateFitTools/TemplateFitToolSihih/FitResults.info"
+        self.pre_count_name = "Nm1CountPresihihEB,"
+        self.post_count_name = "Nm1CountPostsihihEB,"
 
 
 class XsecCalculatorChHadIso(XsecCalculator):
     def configure(self):
         self.fit_template_name = settings.get_pretty_name("realTemplateChHadIso")
-        self.fir_res_dir = self.plot_output_dir + "../TemplateFitToolChHadIso/FitResults.info"
-        self.pre_count_name = "Nm1CountPrechargedHadronIsoEB"
-        self.post_count_name = "Nm1CountPostchargedHadronIsoEB"
+        self.fake_template_name = settings.get_pretty_name("fakeTemplateChHadIso")
+        self.fir_res_dir = self.plot_output_dir + "../TemplateFitTools/TemplateFitToolChHadIso/FitResults.info"
+        self.pre_count_name = "Nm1CountPrechargedHadronIsoEB,"
+        self.post_count_name = "Nm1CountPostchargedHadronIsoEB,"
 

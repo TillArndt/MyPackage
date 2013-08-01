@@ -64,8 +64,7 @@ class checkObject : public edm::EDAnalyzer {
       // simple map to contain all histograms; 
       // histograms are booked in the beginJob() 
       // method
-      std::map<std::string, TH1F*> hists_; 
-
+      std::map<std::string, TH1F*> hists_;
       std::string bTagAlgorithm_;
       const edm::InputTag srcObjects_;
       edm::InputTag srcPUWeight_;

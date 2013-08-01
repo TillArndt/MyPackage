@@ -1,7 +1,9 @@
 
+runOnMC     = True
 puWeight    = None
 etCutValue  = 25.
 try:
+    runOnMC     = not cms_var["is_data"]
     puWeight    = cms_var.get("puWeight", puWeight)
     etCutValue  = cms_var.get("etCutValue", etCutValue)
 except NameError:
@@ -17,52 +19,42 @@ if puWeight:
 
 histo_pre = {
     "et" : (
-        "", 0, 700, 140,
+        "", 0., 700., 140,
         "E_{T} / GeV",
         "et"
     ),
     "drmuon" : (
-        "", 0.,5.,100,
+        "", 0.,5.,50,
         "#DeltaR(photon, muon)",
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'
     ),
     "drjet" : (
-        "",0.,5.,100,
+        "",0.,5.,50,
         "#DeltaR(photon, jet)",
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
-    ),
-    "ptrelDrjet" : (
-        "",0.,1.1,100,
-        "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15",
-        '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'
     ),
 }
 
 histo_post = {
     "et" : (
-        "", 0., 700., 35,
+        "", 0., 700., 70,
         "E_{T} / GeV",
         "et"
     ),
     "eta" : (
-        "", -4., 4., 40,
+        "", -2., 2., 40,
         "#eta",
         "eta"
     ),
     "drmuon" : (
-        "",0.,5.,100,
+        "",0.,5.,50,
         "#DeltaR(photon, muon)",
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'
     ),
     "drjet" : (
-        "",0.,5.,100,
+        "",0.,5.,50,
         "#DeltaR(photon, jet)",
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
-    ),
-    "ptrelDrjet" : (
-        "",0.,1.1,100,
-        "E_{T,photon} / p_{T,jet} for #DeltaR(photon, jet) < 0.15",
-        '?(deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.15)? pt / overlaps("jets")[0].pt: -0.01'
     ),
     "scaleFactor" : (
         "", -700., 700., 140,
@@ -74,13 +66,13 @@ histo_post = {
 cuts = {
     "drmuon" : (
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.7'
-        ,0.,5.,100,
+        ,0.,5.,50,
         "#DeltaR(photon, muon)",
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'
     ),
     "drjet" : (
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.7 || deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.3',
-        0.,5.,100,
+        0.,5.,50,
         "#DeltaR(photon, jet)",
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
     ),
@@ -90,13 +82,13 @@ cuts = {
     #"etaEE" : ("1.556<abs(eta)<2.5",-4, 4, 80, "#eta", "eta"),
     "etaEB" : (
         "abs(eta)<1.4442",
-        -4, 4, 80,
+        -4., 4., 80,
         "#eta",
         "eta"
     ),
     "etcut" : (
         "et>"+str(etCutValue),
-        0, 700, 140,
+        0., 700., 70,
         "E_{T} / GeV",
         "et"
     ),
@@ -110,31 +102,31 @@ cuts = {
     ),
     "hadTowOverEm" : (
         "hadTowOverEm<0.05",
-        0., 4., 80,
+        0., 1., 20,
         "H/E",
         "hadTowOverEm"
     ),
     "sihihEB" : (
         "sigmaIetaIeta<0.011", # EE: 0.031
-        0., 0.08, 80,
+        0., 0.03, 30,
         "#sigma_{i #eta i #eta}",
         "sigmaIetaIeta"
     ),
     "chargedHadronIsoEB" : (
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
-        0., 10., 80,
+        0., 10., 40,
         "PF charged hadron isolation (#rho corrected)",
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ),
     "neutralHadronIsoEB" : (
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.) < (0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
-        0., 10., 80,
+        0., 10., 40,
         "PF neutral hadron isolation (#rho corrected)",
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
     ),
     "photonIsoEB" : (
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.) < (0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
-        0., 10., 80,
+        0., 10., 40,
         "PF photon isolation (#rho corrected)",
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
     ),
@@ -255,7 +247,7 @@ def add_photon_cuts(process):
         ##################################################### selectionPath ###
         # Before Cut: Control Plot for cut on actual distribution
         CrtlPlotTmp = make_histo_analyzer(last_producer, cuts[cut_key])
-        setattr(process, "CrtlPlot" + cut_key, CrtlPlotTmp)
+        setattr(process, "CrtlPlotInter" + cut_key, CrtlPlotTmp)
 
         # Filter for selectionPath
         new_filter   = "PhotonFilt" + cut_key
@@ -308,8 +300,8 @@ def add_photon_cuts(process):
         cuts_Nm1_str = "( " + ") && (".join(cuts_Nm1_list) + " )"
 
         # pre filter counter
-        Nm1CountPre = cms.EDProducer("EventCountProducer")
-        Nm1CountPrePrnt = cms.EDAnalyzer("EventCountPrinter",
+        Nm1CountPre = cms.EDProducer("WeightedEventCountProducer")
+        Nm1CountPrePrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
             src = cms.InputTag("Nm1CountPre" + cut_key)
         )
 
@@ -331,10 +323,14 @@ def add_photon_cuts(process):
         )
 
         # post filter counter
-        Nm1CountPost = cms.EDProducer("EventCountProducer")
-        Nm1CountPostPrnt = cms.EDAnalyzer("EventCountPrinter",
+        Nm1CountPost = cms.EDProducer("WeightedEventCountProducer")
+        Nm1CountPostPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
             src = cms.InputTag("Nm1CountPost" + cut_key)
         )
+
+        if puWeight:
+            Nm1CountPre.weights     = puWeight
+            Nm1CountPost.weights    = puWeight
 
         # add to process
         setattr(process, "Nm1CountPre" + cut_key, Nm1CountPre)
@@ -348,8 +344,6 @@ def add_photon_cuts(process):
         # make path
         pathTmp = cms.Path(
             process.preSel
-            * getattr(process, "Nm1CountPre" + cut_key)
-            * getattr(process, "Nm1CountPre" + cut_key)
             * getattr(process, "Nm1CountPre" + cut_key)
             * getattr(process, "Nm1Filt" + cut_key)
             * getattr(process, "Nm1Plot" + cut_key)

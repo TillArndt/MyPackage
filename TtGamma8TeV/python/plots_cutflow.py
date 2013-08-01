@@ -309,10 +309,10 @@ class CutflowTableTex(pp.PostProcTool):
         with open(self.plot_output_dir + "cutflow.tex", "w") as f:
             f.writelines(map(lambda l: l + "\n", tex_template))
 
-        subprocess.call(
-            ["pdflatex", "cutflow.tex"],
-            cwd=self.plot_output_dir
-        )
+#        subprocess.call(
+#            ["pdflatex", "cutflow.tex"],
+#            cwd=self.plot_output_dir
+#        )
 
         wrp = wrappers.Wrapper(name="CutflowTableTex")
         for i, line in enumerate(self.table_lines):

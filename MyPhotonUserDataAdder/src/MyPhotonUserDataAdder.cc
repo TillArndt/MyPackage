@@ -13,13 +13,15 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataAdder.cc,v 1.5 2013/05/24 13:19:22 htholen Exp $
+// $Id: MyPhotonUserDataAdder.cc,v 1.6 2013/05/29 09:25:53 htholen Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <map>
+#include <sstream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -59,7 +61,13 @@ class MyPhotonUserDataAdder : public edm::EDProducer {
       virtual void endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
       // ----------member data ---------------------------
-      edm::InputTag _srcPhoton, _srcKt6pfRho, _srcElectron, _srcConversion, _srcBeamSpot, _srcPFColl, _srcVertices ;
+      edm::InputTag _srcPhoton,
+                    _srcKt6pfRho,
+                    _srcElectron,
+                    _srcConversion,
+                    _srcBeamSpot,
+                    _srcPFColl,
+                    _srcVertices;
       PFIsolationEstimator isolator;
 };
 

@@ -11,6 +11,11 @@ photonUserData = cms.EDProducer("MyPhotonUserDataAdder",
     srcPFColl = cms.InputTag("particleFlow")
 )
 
+photonUserDataLargestPdgId = cms.EDProducer("MyPhotonUserDataLargestPdgId",
+    srcPhoton = cms.InputTag("photonUserData"),
+)
+
 photonUserDataSequence = cms.Sequence(
-    photonUserData
+    photonUserData *
+    photonUserDataLargestPdgId
 )

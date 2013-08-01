@@ -1,20 +1,20 @@
 
 import cmstoolsac3b.rendering as rnd
 import cmstoolsac3b.settings as settings
+import cmstoolsac3b.generators as gen
+
 
 class SimpleTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS work in progress #sqrt{s}=8 TeV  "
+        return "      CMS Preliminary #sqrt{s}=8 TeV  "
+
 
 class LumiTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS work in progress  L="\
+        return "      CMS Preliminary  L="\
                + str(round(self.renderers[0].lumi/1000.,1))\
                + " fb^{-1} at #sqrt{s}=8 TeV"
 
-settings.web_target_dir     = "/afs/cern.ch/work/h/htholen/public/www/"
-settings.tex_target_dir     = "/afs/cern.ch/work/h/htholen/private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/auto_snippets/"
-settings.plot_target_dir    = "/afs/cern.ch/work/h/htholen/private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/auto_images/"
 
 import ROOT
 colors = dict()
@@ -28,7 +28,7 @@ colors["Single Top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
 settings.colors = colors
 
-stacking_order = [
+settings.stacking_order = [
     "t#bar{t}#gamma #mu+Jets (Signal)",
     "t#bar{t}#gamma (Signal)",
     "QCD",
@@ -38,7 +38,6 @@ stacking_order = [
     "Single Top",
     "t#bar{t} inclusive",
     ]
-settings.stacking_order = stacking_order
 
 pn = dict()
 pn["preselected"]               = "presel."
@@ -72,10 +71,11 @@ pn["fakeTemplateChHadIso"]      = "fake"
 
 pn.update({
     "SysIsrFsr"             : "ISR/FSR",
-    "SysOverlapDRCutHigh"   : "overlap removal",
+    "SysOverlapDRCut"       : "overlap removal",
     "SysPU"                 : "PU",
-    "SysPhotonETCutHigh"    : r"$\epsilon_\gamma \;(\et)$",
-    "SysSelEffMinus"        : r"$\epsilon_\gamma \;(\sigma_{\rm sig})",
+    "SysPhotonETCut"        : r"$\epsilon_\gamma \;(\et)$",
+    "SysSelEffSig"          : r"$\epsilon_\gamma \;(\sigma_{\rm sig})$",
+    "SysSelEffBkg"          : r"$\epsilon_\gamma \;(\sigma_{\rm bkg})$",
 })
 settings.pretty_names = pn
 

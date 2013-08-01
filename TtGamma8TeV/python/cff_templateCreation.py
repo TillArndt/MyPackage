@@ -1,5 +1,6 @@
 
-puWeight  = None
+
+puWeight    = None
 try:
     puWeight  = cms_var.get("puWeight", puWeight)
 except NameError:
@@ -47,7 +48,9 @@ piZero = '\
     )\
 )'
 
-prompt = real + '&& !' + piZero
+#prompt = real + '&& !' + piZero
+largestId = 'userFloat("largestAncestorPdgId")'
+prompt = largestId + ' > 0.5 && 24.5 >' + largestId
 
 
 ##################################################################### Sihih ###
@@ -120,8 +123,8 @@ matchedTemplateSihih = cms.EDAnalyzer(
         ),
         cms.PSet(
             min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(0.08),
-            nbins        = cms.untracked.int32 (80),
+            max          = cms.untracked.double(0.03),
+            nbins        = cms.untracked.int32 (30),
             name         = cms.untracked.string('sihihEB'),
             description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons (barrel)'),
             lazyParsing  = cms.untracked.bool(True),
@@ -170,6 +173,34 @@ dataTemplatePathSihih = cms.Path(
     dataTemplateFitPhotonsSihih
     * dataTemplateFitHistoSihih
 )
+
+
+
+############################### path for sihih shift histograms ###
+
+import MyPackage.TtGamma8TeV.cff_photonIDCuts as pho_cuts
+def add_sihih_shifted_histos(process):
+    process.sihihShiftPath = cms.Path()
+    cut_token = pho_cuts.cuts["sihihEB"]
+    for shift_int in xrange(900, 1050, 2):
+
+        # prepare tokens 
+        shift           = (shift_int - 1000) * 0.00001
+        shift_id        = "TemplateSihihShift%04d" % shift_int
+        shift_cut       = list(cut_token)
+        shift_cut[4]    = ("%.5f + " % shift) + shift_cut[4]
+        shift_cut[5]    = ("%.5f + " % shift) + shift_cut[5]
+
+        # n - 1 Plot takes input from existing n-1 filter
+        real_tmplt = pho_cuts.make_histo_analyzer("realPhotonsSihih", shift_cut)
+        fake_tmplt = pho_cuts.make_histo_analyzer("fakePhotonsSihih", shift_cut)
+
+        # add to process and to path
+        setattr(process, "real" + shift_id, real_tmplt)
+        setattr(process, "fake" + shift_id, fake_tmplt)
+        process.sihihShiftPath *= real_tmplt
+        process.sihihShiftPath *= fake_tmplt
+
 
 ################################################################## ChHadIso ###
 # Filters
@@ -224,7 +255,7 @@ matchedTemplateChHadIso = cms.EDAnalyzer(
         cms.PSet(
             min          = cms.untracked.double(0.),
             max          = cms.untracked.double(10.),
-            nbins        = cms.untracked.int32 (80),
+            nbins        = cms.untracked.int32 (40),
             name         = cms.untracked.string('ChHadIso'),
             description  = cms.untracked.string(';PF charged hadron isolation (#rho corrected);number of photons'),
             lazyParsing  = cms.untracked.bool(True),

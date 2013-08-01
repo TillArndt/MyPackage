@@ -13,7 +13,6 @@ try:
     print cms_var
     runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
-    useMerging  = cms_var.get("useMerging", useMerging)
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
     puReweight  = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
@@ -21,7 +20,7 @@ try:
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 print "<"+__name__+">: Running On MC:", runOnMC
-print "<"+__name__+">: Samplename is:", legend
+print "<"+__name__+">: Samplename is:", sample
 
 
 ############################################## Regular Config starting here ###
@@ -44,7 +43,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('TFILESERVICEmyPhotonSelection.root')
+    fileName = cms.string('TFILESERVICE_cfg_photon_selection.root')
 )
 
 import FWCore.MessageService.MessageLogger_cfi as logger
@@ -60,61 +59,39 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # input and presel
 process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
-process.load("MyPackage.TtGamma8TeV.cfi_mcTruth")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
 process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
-#process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
+process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
+process.widenedCocPatPhotons.src = "photonUserDataLargestPdgId"
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
     cut = cms.string(""),
     filter = cms.bool(False)
 )
 
-if preSelOpt == "go4Signal":
+if preSelOpt == "doOverlapRemoval":
     process.preSel.replace(
-        process.bTagRequirement,
-        process.bTagRequirement
+        process.bTagCounter,
+        process.bTagCounter
         * process.ttgammaMerging
-        * process.patPhotonsSignal
-        * process.patPhotonsSignalCounter
-    )
-#    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
-
-if preSelOpt == "go4Noise":
-    process.preSel.replace(
-        process.bTagRequirement,
-        process.bTagRequirement
-        * process.ttgammaMerging
-        * process.patPhotonsSignal
-        * ~process.patPhotonsSignalCounter
-    )
-#    process.widenedCocPatPhotons.src = "photonsSignalTwo2Seven"
-
-if preSelOpt == "go4Whiz":
-    process.patPhotonsSignal.genSignal = "photonsSignalME"
-    process.preSel.replace(
-        process.bTagRequirement,
-        process.bTagRequirement
-        * process.photonsSignalMEsequence
-        * process.patPhotonsSignal
     )
 
 # Path declarations
-#process.dataMC = cms.Path(
-#    process.preSel *
-#     process.dataMCSequence
-#)
+process.dataMC = cms.Path(
+    process.preSel *
+    process.dataMCSequence
+)
 
 process.producerPath = cms.Path(
     process.preSel *
     process.puWeight *
-#    process.photonUserDataSequence *
-    process.jetSequence *
+    process.photonUserDataLargestPdgId *
+#    process.jetSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )
@@ -123,13 +100,6 @@ process.selectionPath = cms.Path(
     process.preSel *
     process.photonInputDummy
 )
-
-if preSelOpt == "go4Signal" or preSelOpt == "go4Noise":
-    process.selectionPath.replace(
-        process.ttbarPhotonMerger,
-        process.ttbarPhotonMergerSingleCall
-    )
-
 
 #process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
 #if puWeight:
@@ -146,7 +116,7 @@ process.schedule = cms.Schedule(
 )
 process.schedule += [
     process.producerPath,
-#    process.dataMC,
+    process.dataMC,
     process.selectionPath,
 #    process.overlapsPath,
 ]
@@ -165,6 +135,22 @@ else:
     process.dataTemplatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
     process.schedule.append(process.dataTemplatePathSihih)
     process.schedule.append(process.dataTemplatePathChHadIso)
+
+# data driven
+import MyPackage.TtGamma8TeV.cff_templateDatDrvBkg as ddrvTmpl
+if runOnMC:
+    process.schedule += ddrvTmpl.add_nm2_path(process)
+else:
+    process.schedule += ddrvTmpl.add_nm2_path_core(process)
+    process.schedule += ddrvTmpl.add_bkg_template_path(process)
+
+
+##################################### sihih shifted histos for template fit ###
+if runOnMC:
+    from MyPackage.TtGamma8TeV.cff_templateCreation import add_sihih_shifted_histos
+    add_sihih_shifted_histos(process)
+    process.sihihShiftPath.insert(0, process.preSel)
+    process.schedule += [process.sihihShiftPath]
 
 
 ############################################################### event count ###
@@ -189,8 +175,6 @@ process.selectionPath.insert(0, process.InputCntPrnt)
 if skipChecks:
     process.source.duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
     process.producerPath.remove(process.CheckOneObj)
-    for p in process.schedule:
-        p.remove(process.bTagRequirement)
 
     # event count will produce invalid result, if lumis sections are skipped
     process.selectionPath.remove(process.InputCntPrnt)

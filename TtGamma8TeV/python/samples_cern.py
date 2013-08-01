@@ -9,9 +9,6 @@ import cmstoolsac3b.sample as smp
 # this is already set as default in the cmssw configs.
 import cmstoolsac3b.settings as settings
 settings.cfg_common_builtins.update({
-#    "jetsource"    : "selectedPatJetsForAnalysis",
-#    "photonsource" : "patPhotons",
-#    "muonsource"   : "tightmuons",
      "puWeight"     : "PUWeightTrue",
      "skipChecks"   : True
 })
@@ -56,34 +53,36 @@ class Tbar_tW(smp.Sample):
 
 # Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
 class TTJetsSignal(smp.Sample):
+    enable      = False
     legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = ttbar_xsec
     n_events    = 6854514 
     input_files = path_pc + 'TTJets_*.root'
-    cfg_builtin = {"preSelOpt": "go4Signal"}
+    cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
 
 class TTJets(smp.Sample):
     legend      = "t#bar{t} inclusive"
     x_sec       = ttbar_xsec
     n_events    = 6854514
     input_files = path_pc + 'TTJets_*.root'
-    cfg_builtin = {"preSelOpt": "go4Noise"}
-    cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
+    cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
+#    cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
 
 class TTNLO(smp.Sample):
     legend      = "t#bar{t} inclusive"
     x_sec       = ttbar_xsec
     n_events    = 4900000
     input_files = path_pc + 'TTNLO_*.root'
-    cfg_builtin = {"preSelOpt": "go4Noise"}
+    cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
     cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
 
 class TTNLOSignal(smp.Sample):
+    enable      = False
     legend      = "t#bar{t}#gamma (Signal)"
     x_sec       = ttbar_xsec
     n_events    = 4900000
     input_files = path_pc + 'TTNLO_*.root'
-    cfg_builtin = {"preSelOpt": "go4Signal"}
+    cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
     cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
 
 class WJets(smp.Sample):
