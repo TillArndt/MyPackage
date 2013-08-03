@@ -1,0 +1,9 @@
+<use   name="DataFormats/Common"/>
+<use   name="FWCore/MessageLogger"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/Framework"/>
+<use   name="MyProducts/MergeableFloatCounter"/>
+<flags EDM_PLUGIN="1"/>
+<export>
+  <lib   name="1"/>
+</export>
