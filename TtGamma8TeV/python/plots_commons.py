@@ -3,7 +3,6 @@ import cmstoolsac3b.rendering as rnd
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.generators as gen
 
-
 class SimpleTitleBox(rnd.TitleBox):
     def make_title(self):
         return "      CMS Preliminary #sqrt{s}=8 TeV  "
@@ -14,6 +13,14 @@ class LumiTitleBox(rnd.TitleBox):
         return "      CMS Preliminary  L="\
                + str(round(self.renderers[0].lumi/1000.,1))\
                + " fb^{-1} at #sqrt{s}=8 TeV"
+
+
+def count_ttgamma_photons(wrps, sub_tot_list_ref):
+    for w in wrps:
+        sub_tot_list_ref[1] += w.histo.Integral()
+        if w.legend == "t#bar{t}#gamma (Signal)":
+            sub_tot_list_ref[0] += w.histo.Integral()
+        yield w
 
 
 import ROOT

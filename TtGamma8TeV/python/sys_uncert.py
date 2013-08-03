@@ -11,8 +11,6 @@ def makeSysSample(old_name, new_name, dict_update):
     """Utility method for generating systematic samples."""
     new_smp = copy.deepcopy(settings.samples[old_name])
     new_smp.name = new_name
-    # TODO: why does deepcopy not work???
-    new_smp.cfg_builtin = settings.samples[old_name].cfg_builtin.copy()
     new_smp.cfg_builtin.update(dict_update)
     settings.samples[new_name] = new_smp
 
@@ -262,14 +260,14 @@ SysPhotonETCut = SysGroupMax(
 ##################################################### stability: two b-tags ###
 def makeSysSamplesBTag():
     for name in settings.active_samples:
-        makeSysSample(name, name + "_2BTags", {})
-        settings.samples[name + "_2BTags"].cfg_add_lines.append(
-            "process.bTagCounter.minNumber = 2"
+        makeSysSample(name, name + "_BTags", {})
+        settings.samples[name + "_BTags"].cfg_add_lines.append(
+            "process.bTagCounter.minNumber = 1"
         )
 
-class SysTwoBTags(SysBase):
+class SysBTags(SysBase):
     def prepare_for_systematics(self):
         settings.active_samples = list(
-            smp + "_2BTags" for smp in settings.active_samples
+            smp + "_BTags" for smp in settings.active_samples
         )
-        super(SysTwoBTags, self).prepare_for_systematic()
+        super(SysBTags, self).prepare_for_systematic()

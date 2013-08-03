@@ -138,11 +138,12 @@ else:
 
 # data driven
 import MyPackage.TtGamma8TeV.cff_templateDatDrvBkg as ddrvTmpl
+process.schedule += ddrvTmpl.add_bkg_template_path(process)
 if runOnMC:
     process.schedule += ddrvTmpl.add_nm2_path(process)
 else:
     process.schedule += ddrvTmpl.add_nm2_path_core(process)
-    process.schedule += ddrvTmpl.add_bkg_template_path(process)
+
 
 
 ##################################### sihih shifted histos for template fit ###

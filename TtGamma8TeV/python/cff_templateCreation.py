@@ -11,8 +11,6 @@ import FWCore.ParameterSet.Config as cms
 if puWeight:
     puWeight = cms.untracked.InputTag("puWeight", puWeight)
 
-template_input_collection_sihih = "Nm1FiltsihihEB"
-template_input_collection_chhadiso = "Nm1FiltchargedHadronIsoEB"
 
 matched = 'genParticlesSize>0'
 
@@ -50,10 +48,18 @@ piZero = '\
 
 #prompt = real + '&& !' + piZero
 largestId = 'userFloat("largestAncestorPdgId")'
-prompt = largestId + ' > 0.5 && 24.5 >' + largestId
+prompt = largestId + ' > 0.5 && 24.5 > ' + largestId + ' && ' + real
 
 
 ##################################################################### Sihih ###
+template_input_collection_sihih = "Nm1FiltsihihEB"
+
+# Take only one photon per event (photons are pt-ordered)
+firstPhotonForSihih = cms.EDProducer("FirstPhotonPicker",
+    src = cms.InputTag(template_input_collection_sihih)
+)
+template_input_collection_sihih = "firstPhotonForSihih"
+
 # Filters
 matchedPhotonsSihih = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag(template_input_collection_sihih),
@@ -147,7 +153,8 @@ piZeroTemplateSihih = matchedTemplateSihih.clone(
     src = cms.InputTag("piZeroPhotonsSihih"),
 )
 templatePathSihih = cms.Path(
-    matchedPhotonsSihih
+    firstPhotonForSihih
+    * matchedPhotonsSihih
     * unmatchedPhotonsSihih
     * realPhotonsSihih
     * fakePhotonsSihih
@@ -162,7 +169,7 @@ templatePathSihih = cms.Path(
 
 dataTemplateFitPhotonsSihih = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag(template_input_collection_sihih),
-    cut = cms.string("1<2"),
+    cut = cms.string(""),
     filter = cms.bool(False)
 )
 dataTemplateFitHistoSihih = matchedTemplateSihih.clone(
@@ -170,11 +177,10 @@ dataTemplateFitHistoSihih = matchedTemplateSihih.clone(
 )
 
 dataTemplatePathSihih = cms.Path(
-    dataTemplateFitPhotonsSihih
+    firstPhotonForSihih
+    * dataTemplateFitPhotonsSihih
     * dataTemplateFitHistoSihih
 )
-
-
 
 ############################### path for sihih shift histograms ###
 
@@ -203,6 +209,14 @@ def add_sihih_shifted_histos(process):
 
 
 ################################################################## ChHadIso ###
+template_input_collection_chhadiso = "Nm1FiltchargedHadronIsoEB"
+
+# Take only one photon per event (photons are pt-ordered)
+firstPhotonForChHadIso = cms.EDProducer("FirstPhotonPicker",
+    src = cms.InputTag(template_input_collection_chhadiso)
+)
+template_input_collection_chhadiso = "firstPhotonForChHadIso"
+
 # Filters
 matchedPhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag(template_input_collection_chhadiso),
@@ -278,7 +292,8 @@ piZeroTemplateChHadIso = matchedTemplateChHadIso.clone(
     src = cms.InputTag("piZeroPhotonsChHadIso"),
 )
 templatePathChHadIso = cms.Path(
-    matchedPhotonsChHadIso
+    firstPhotonForChHadIso
+    * matchedPhotonsChHadIso
     * unmatchedPhotonsChHadIso
     * realPhotonsChHadIso
     * fakePhotonsChHadIso
@@ -291,17 +306,17 @@ templatePathChHadIso = cms.Path(
     * piZeroTemplateChHadIso
 )
 
+dataTemplateFitPhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
+    src = cms.InputTag(template_input_collection_chhadiso),
+    cut = cms.string(""),
+    filter = cms.bool(False)
+)
 dataTemplateFitHistoChHadIso = matchedTemplateChHadIso.clone(
     src = cms.InputTag("dataTemplateFitPhotonsChHadIso")
 )
 
-dataTemplateFitPhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag(template_input_collection_chhadiso),
-    cut = cms.string("1<2"),
-    filter = cms.bool(False)
-)
-
 dataTemplatePathChHadIso = cms.Path(
-    dataTemplateFitPhotonsChHadIso
+    firstPhotonForChHadIso
+    * dataTemplateFitPhotonsChHadIso
     * dataTemplateFitHistoChHadIso
 )

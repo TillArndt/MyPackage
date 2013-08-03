@@ -44,13 +44,19 @@ import plots_template_fit
 import plots_xsec
 import plots_summary
 import plots_match_quality
+import plots_ABCD
 
 post_proc_sys = [
     plots_counters.CounterReader,
 #    plots_ME_overlap.MEOverlapComp,
     plots_cutflow.cutflow_chain,
     plots_template_fit.TemplateFitTools,
+    plots_ABCD.RealPhotonsABCD,
+    plots_ABCD.RealPhotonsABCDCheck,
+    plots_xsec.XsecCalculatorABCD,
+    plots_xsec.XsecCalculatorChHadIso,
     plots_xsec.XsecCalculatorSihih,
+    plots_xsec.XsecCalculatorSihihShift,
     ppt.HistoPoolClearer,
 ]
 
@@ -64,7 +70,7 @@ if settings.do_sys_uncert:
 post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
     plots_data_mc_comp.generate_data_mc_comp_tools(),
-    plots_match_quality.MatchQualityStack,
+#    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
 if settings.do_sys_uncert:
@@ -73,24 +79,24 @@ if settings.do_sys_uncert:
         sys_uncert.SysPU(None, post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
+#        sys_uncert.SysTemplateFitChHadIso(None, post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
-        sys_uncert.SysTemplateFitChHadIso(None, post_proc_sys),
-        sys_uncert.SysTwoBTags(None, post_proc_sys),
-        plots_summary.ResultSummary,
-        plots_summary.RootPlotConverter,
-        plots_summary.ResultTexifier,
-        plots_summary.CopyTool,
-        plots_summary.TexCompiler,
+        sys_uncert.SysBTags(None, post_proc_sys),
+#        plots_summary.ResultSummary,
+#        plots_summary.RootPlotConverter,
+#        plots_summary.ResultTexifier,
+#        plots_summary.CopyTool,
+#        plots_summary.TexCompiler,
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-    plots_summary.ResultSummary,
+#    plots_summary.ResultSummary,
 ]
 
 def drop_toolchain():
     settings.postprocessor.tool_chain = []
 
-if __name__ == '__main__':
+def analysis_main():
     main.main(
         post_proc_tools = post_proc_tools,
         max_num_processes = 4,
@@ -99,4 +105,5 @@ if __name__ == '__main__':
         cfg_main_import_path="MyPackage.TtGamma8TeV.cfg_photon_selection",
     )
 
-
+if __name__ == '__main__':
+    analysis_main()

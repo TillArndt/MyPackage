@@ -12,25 +12,36 @@ class XsecCalculator(pprc.PostProcTool):
         self.fake_template_name = None
         self.pre_count_name     = None
         self.post_count_name    = None
+        self.n_sig_ttgam_wrp    = None
 
-    def load_fit_results(self):
-        fit_res = wrappers.Wrapper.create_from_file(self.fir_res_dir)
-        parameters      = {}
-        mc_cont         = {}
-        data_cont       = {}
-        data_cont_err   = {}
-        for i, legend in enumerate(fit_res.legend):
-            parameters[legend]      = (fit_res.value[i], fit_res.error[i])
-            mc_cont[legend]         = fit_res.binIntegralMC[i]
-            data_cont[legend]       = fit_res.binIntegralScaled[i]
-            data_cont_err[legend]   = fit_res.binIntegralScaledError[i]
-        return parameters, mc_cont, data_cont, data_cont_err, fit_res
+#    def load_fit_results(self):
+#        fit_res = wrappers.Wrapper.create_from_file(self.fir_res_dir)
+#        parameters      = {}
+#        mc_cont         = {}
+#        data_cont       = {}
+#        data_cont_err   = {}
+#        for i, legend in enumerate(fit_res.legend):
+#            parameters[legend]      = (fit_res.value[i], fit_res.error[i])
+#            mc_cont[legend]         = fit_res.binIntegralMC[i]
+#            data_cont[legend]       = fit_res.binIntegralScaled[i]
+#            data_cont_err[legend]   = fit_res.binIntegralScaledError[i]
+#
+#        # fit result
+#        fit_param, mc_cont, data_cont, data_cont_err, fit_res = self.load_fit_results()
+#        r.N_MC_predict  = mc_cont[self.fit_template_name]
+#        r.N_fit         = data_cont[self.fit_template_name]
+#        r.N_fake        = data_cont[self.fake_template_name]
+#        r.N_data_tmpl   = fit_res.dataIntegral
+#        r.N_fit_err     = data_cont_err[self.fit_template_name]
+#
+#        return parameters, mc_cont, data_cont, data_cont_err, fit_res
 
     def run(self):
         self.configure()
 
         # store results in wrapper
-        r = wrappers.Wrapper(name = "x_sec_result")
+        r = self.n_sig_ttgam_wrp
+        r.name = self.name
 
         # prepare mc counts
         class counts(object): pass
@@ -65,56 +76,55 @@ class XsecCalculator(pprc.PostProcTool):
 
         # selection performance
         r.eff_gamma = c.sig_post / c.sig_pre
-        r.pur_gamma = (c.tt_post + c.sig_post) / (c.sig_post + c.bkg_post)
         r.pur_tt = (c.tt_pre + c.sig_pre) / (c.bkg_pre + c.sig_pre)
         r.N_presel_data = c.data_pre
         r.N_sel_data = c.data_post
         r.StoB_gamma = c.sig_post / c.bkg_post
         r.StoB_presel = c.tt_pre / (c.bkg_pre - c.tt_pre)
 
-        # fit result
-        fit_param, mc_cont, data_cont, data_cont_err, fit_res = self.load_fit_results()
-        r.N_MC_predict  = mc_cont[self.fit_template_name]
-        r.N_fit         = data_cont[self.fit_template_name]
-        r.N_fake        = data_cont[self.fake_template_name]
-        r.N_data_tmpl   = fit_res.dataIntegral
-        r.N_fit_err     = data_cont_err[self.fit_template_name]
+        # background-substracted number of ttgamma signal events
+        r.n_sig_ttgam = self.n_sig_ttgam_wrp.n_sig_ttgam
 
         # R
         R_denom = r.eff_gamma * r.N_presel_data * r.pur_tt
-        r.R = r.N_fit * r.pur_gamma / R_denom
-        r.R_err_fit = r.N_fit_err * r.pur_gamma / R_denom
-
-        # R_MC
-        R_MC_denom = r.eff_gamma * (c.tt_pre + c.sig_pre)
-        r.R_MC = r.N_MC_predict * r.pur_gamma / R_MC_denom
+        r.R = r.n_sig_ttgam / R_denom
+        r.R_err_stat = r.n_sig_ttgam_err / R_denom
 
         # xsec
         r.xsec = r.R * settings.ttbar_xsec_cms
-        r.xsec_err_stat = r.xsec * r.R_err_fit / r.R
+        r.xsec_err_stat = r.xsec * r.R_err_stat / r.R
 
-        # xsec_MC
-        r.xsec_MC = r.R_MC * settings.ttbar_xsec
+        print r
 
         # store and write out
-        settings.post_proc_dict["x_sec_result"] = r
+        settings.post_proc_dict[self.name] = r
         r.write_info_file(self.plot_output_dir + "x_sec_result.info")
 
 
 class XsecCalculatorSihih(XsecCalculator):
     def configure(self):
-        self.fit_template_name = settings.get_pretty_name("realTemplateSihih")
-        self.fake_template_name = settings.get_pretty_name("fakeTemplateSihih")
-        self.fir_res_dir = self.plot_output_dir + "../TemplateFitTools/TemplateFitToolSihih/FitResults.info"
         self.pre_count_name = "Nm1CountPresihihEB,"
         self.post_count_name = "Nm1CountPostsihihEB,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolSihih"]
+
+
+class XsecCalculatorSihihShift(XsecCalculator):
+    def configure(self):
+        self.pre_count_name = "Nm1CountPresihihEB,"
+        self.post_count_name = "Nm1CountPostsihihEB,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolSihihShift"]
 
 
 class XsecCalculatorChHadIso(XsecCalculator):
     def configure(self):
-        self.fit_template_name = settings.get_pretty_name("realTemplateChHadIso")
-        self.fake_template_name = settings.get_pretty_name("fakeTemplateChHadIso")
-        self.fir_res_dir = self.plot_output_dir + "../TemplateFitTools/TemplateFitToolChHadIso/FitResults.info"
         self.pre_count_name = "Nm1CountPrechargedHadronIsoEB,"
         self.post_count_name = "Nm1CountPostchargedHadronIsoEB,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolChHadIso"]
+
+
+class XsecCalculatorABCD(XsecCalculator):
+    def configure(self):
+        self.pre_count_name = "Nm1CountPresihihEB,"
+        self.post_count_name = "Nm1CountPostsihihEB,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict["res_ABCD"]
 
