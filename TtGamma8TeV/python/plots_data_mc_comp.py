@@ -65,7 +65,7 @@ def generate_data_mc_comp_tools():
             if "Nm1Plot" == at.pattern:
                 tool.hook_pre_canvas_build = hook_DataMC_canv_pre_lin
             list_of_tools.append(tool)
-    chain = ppc.PostProcChain("DataMcComp")
+    chain = ppc.PostProcChainIndie("DataMcComp")
     chain.add_tools(list_of_tools)
     return chain
 

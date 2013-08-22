@@ -12,7 +12,7 @@ bTagRequirement = cms.EDFilter(
 bTagCounter = cms.EDFilter("PATCandViewCountFilter",
     src = cms.InputTag("bTagRequirement"),
     maxNumber = cms.uint32(10000),
-    minNumber = cms.uint32(2),
+    minNumber = cms.uint32(1),
     filter = cms.bool(True)
 )
 

@@ -47,8 +47,9 @@ piZero = '\
 )'
 
 #prompt = real + '&& !' + piZero
+stat1phot = "genParticlesSize > 0 && abs(genParticle.pdgId) == 22 && genParticle.status == 1 && "
 largestId = 'userFloat("largestAncestorPdgId")'
-prompt = largestId + ' > 0.5 && 24.5 > ' + largestId + ' && ' + real
+prompt = stat1phot + largestId + ' > 0.5 && 24.5 > ' + largestId
 
 
 ##################################################################### Sihih ###
@@ -132,7 +133,7 @@ matchedTemplateSihih = cms.EDAnalyzer(
             max          = cms.untracked.double(0.03),
             nbins        = cms.untracked.int32 (30),
             name         = cms.untracked.string('sihihEB'),
-            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons (barrel)'),
+            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string('?abs(eta) < 1.5? sigmaIetaIeta: -0.1')
         ),
@@ -183,7 +184,6 @@ dataTemplatePathSihih = cms.Path(
 )
 
 ############################### path for sihih shift histograms ###
-
 import MyPackage.TtGamma8TeV.cff_photonIDCuts as pho_cuts
 def add_sihih_shifted_histos(process):
     process.sihihShiftPath = cms.Path()

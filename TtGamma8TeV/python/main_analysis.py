@@ -1,11 +1,14 @@
 
 #import sys
-#sys.path.append("/home/home2/institut_3b/tholen/installs/pycharm-2.0.2/pycharm-debug.egg")
+#sys.path.append(
+# "/home/home2/institut_3b/tholen/installs/pycharm-2.0.2/pycharm-debug.egg"
+# )
 #from pydev import pydevd
 #pydevd.settrace('localhost', port=22022, suspend=False)
 
 # DEAR PEDESTRIAN: http://github.com/heinzK1X/CMSToolsAC3b
 
+import sys
 import cmstoolsac3b.main as main
 import cmstoolsac3b.settings as settings
 settings.ttbar_xsec = 245.8
@@ -19,16 +22,17 @@ settings.ttbar_xsec_cms_err = (
     + settings.ttbar_xsec_cms_syst**2
     + settings.ttbar_xsec_cms_lum**2
 )**.5
-settings.do_sys_uncert = True
+settings.do_sys_uncert = not "--noSys" in sys.argv
 
 import plots_commons  # sets style related things
 from cmstoolsac3b.sample import load_samples
 import samples_cern
 settings.samples = {}
 settings.samples.update(load_samples(samples_cern))
-settings.active_samples = settings.samples.keys() # add all MC and data for stacking
-settings.active_samples.remove("TTNLO")
-#settings.active_samples.remove("TTNLOSignal")
+settings.active_samples = settings.samples.keys() # add all MC and data
+settings.active_samples.remove("TTPoHe")
+settings.active_samples.remove("TTMCNLO")
+settings.active_samples.remove("TTMadG")
 work = "/afs/cern.ch/work/h/htholen/"
 cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
 settings.web_target_dir     = work + "public/www/MainAnalysis/"
@@ -45,18 +49,19 @@ import plots_xsec
 import plots_summary
 import plots_match_quality
 import plots_ABCD
+import plots_shilpi
+
 
 post_proc_sys = [
-    plots_counters.CounterReader,
 #    plots_ME_overlap.MEOverlapComp,
     plots_cutflow.cutflow_chain,
+    plots_commons.TightIdPurityCount,
+    plots_commons.RealTightIdPurityCount,
     plots_template_fit.TemplateFitTools,
+    plots_shilpi.ShilpiMethodTools,
     plots_ABCD.RealPhotonsABCD,
-    plots_ABCD.RealPhotonsABCDCheck,
-    plots_xsec.XsecCalculatorABCD,
-    plots_xsec.XsecCalculatorChHadIso,
-    plots_xsec.XsecCalculatorSihih,
-    plots_xsec.XsecCalculatorSihihShift,
+    plots_ABCD.RealPhotonsABCDMC,
+    plots_xsec.XsecCalculators,
     ppt.HistoPoolClearer,
 ]
 
@@ -69,28 +74,32 @@ if settings.do_sys_uncert:
 
 post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
+    plots_counters.CounterReader,
     plots_data_mc_comp.generate_data_mc_comp_tools(),
-#    plots_match_quality.MatchQualityStack,
+    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
 if settings.do_sys_uncert:
     post_proc_tools += [
-        sys_uncert.SysIsrFsr(None, post_proc_sys),
         sys_uncert.SysPU(None, post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
 #        sys_uncert.SysTemplateFitChHadIso(None, post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
-#        plots_summary.ResultSummary,
-#        plots_summary.RootPlotConverter,
-#        plots_summary.ResultTexifier,
-#        plots_summary.CopyTool,
-#        plots_summary.TexCompiler,
+        sys_uncert.SysIsrFsr(None,
+            post_proc_sys + [sys_uncert.SysMCatNLO(None, post_proc_sys)]
+        ),
+        sys_uncert.SysMadgraph(None, post_proc_sys),
+        plots_summary.ResultSummaries,
+        plots_summary.ResultTexifierMethodComp,
+        plots_summary.ResultTexifier("XsecCalculatorSihihShift"),
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-#    plots_summary.ResultSummary,
+    plots_summary.RootPlotConverter,
+    plots_summary.CopyTool,
+#    plots_summary.TexCompiler,
 ]
 
 def drop_toolchain():

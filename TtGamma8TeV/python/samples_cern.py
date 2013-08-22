@@ -10,7 +10,7 @@ import cmstoolsac3b.sample as smp
 import cmstoolsac3b.settings as settings
 settings.cfg_common_builtins.update({
      "puWeight"     : "PUWeightTrue",
-     "skipChecks"   : True
+#     "skipChecks"   : True
 })
 
 #path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
@@ -61,28 +61,35 @@ class Tbar_tW(smp.Sample):
         self.input_files = path_pc + 'Tbar_tW_*.root'
         super(Tbar_tW, self).__init__()
 
-# Kindonakis https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat8TeV
-class TTJetsSignal(smp.Sample):
+class TTPoPy(smp.Sample):
     def __init__(self):
-        self.enable      = False
-        self.legend      = "t#bar{t}#gamma (Signal)"
+        self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
-        self.n_events    = 6854514
-        self.input_files = path_pc + 'TTJets_*.root'
+        self.n_events    = 6474753
+        self.input_files = path_pc + 'TTPoPy_*.root'
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
-        super(TTJetsSignal, self).__init__()
+        super(TTPoPy, self).__init__()
 
-class TTJets(smp.Sample):
+class TTPoHe(smp.Sample):
+    def __init__(self):
+        self.legend      = "t#bar{t} inclusive"
+        self.x_sec       = ttbar_xsec
+        self.n_events    = 7000000
+        self.input_files = path_pc + 'TTPoHe_*.root'
+        self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
+        super(TTPoHe, self).__init__()
+
+class TTMadG(smp.Sample):
     def __init__(self):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
         self.n_events    = 6854514
         self.input_files = path_pc + 'TTJets_*.root'
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
-    #    self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
-        super(TTJets, self).__init__()
+        #self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
+        super(TTMadG, self).__init__()
 
-class TTNLO(smp.Sample):
+class TTMCNLO(smp.Sample):
     def __init__(self):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
@@ -90,18 +97,7 @@ class TTNLO(smp.Sample):
         self.input_files = path_pc + 'TTNLO_*.root'
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         self.cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
-        super(TTNLO, self).__init__()
-
-class TTNLOSignal(smp.Sample):
-    def __init__(self):
-        self.enable      = False
-        self.legend      = "t#bar{t}#gamma (Signal)"
-        self.x_sec       = ttbar_xsec
-        self.n_events    = 4900000
-        self.input_files = path_pc + 'TTNLO_*.root'
-        self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
-        self.cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
-        super(TTNLOSignal, self).__init__()
+        super(TTMCNLO, self).__init__()
 
 class WJets(smp.Sample):
     def __init__(self):

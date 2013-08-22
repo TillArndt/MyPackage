@@ -4,6 +4,7 @@ import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.wrappers as wrappers
 from cmstoolsac3b.generators import _iterableize
+from plots_summary import result_quantities, xsec_calc_name_iter
 
 
 ################################################## base class / preparation ###
@@ -25,31 +26,29 @@ class SysBase(ppc.PostProcChainVanilla):
     def prepare_for_systematic(self):
         if self.preparation_func:
             self.preparation_func()
-        self.old_result = settings.post_proc_dict["x_sec_result"]
+        for calc in xsec_calc_name_iter():
+            setattr(self, calc, settings.post_proc_dict[calc])
 
     def finish_with_systematic(self):
-        new = settings.post_proc_dict["x_sec_result"]
-        old = self.old_result
-        res = abs((new.R - old.R) / old.R)
-        name = self.name
-        settings.persistent_dict[name] = res
-        self.message("INFO " + name + " / %: " + str(res * 100.))
-        wrp = wrappers.FloatWrapper(res, name=name)
-        wrp.formula = "(new.R - old.R) / old.R"
+        wrp = wrappers.Wrapper(name=self.name)
+        wrp.formula = "abs(new - old) / old"
+        for calc in xsec_calc_name_iter():
+            self.calc_uncert(calc, wrp)
         wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
+        settings.persistent_dict[self.name] = wrp
 
-
-#class SysBaseMC(SysBase):
-#    def finish_with_systematic(self):
-#        new = settings.post_proc_dict["x_sec_result"]
-#        old = self.old_result
-#        res_MC  = abs(old.R_MC - new.R_MC / old.R_MC)
-#        name = self.name
-#        settings.persistent_dict[name] = res_MC
-#        self.message("INFO " + name + "/ %: " + str(res_MC * 100.))
-#        wrp = wrappers.FloatWrapper(res_MC, name=name+"MC")
-#        wrp.formula = "(new.R_MC - old.R_MC) / old.R_MC"
-#        wrp.write_info_file(settings.dir_result + "sys_uncert_result_MC.info")
+    def calc_uncert(self, xsec_calc, wrp):
+        new = settings.post_proc_dict[xsec_calc]
+        old = getattr(self, xsec_calc)
+        for q in result_quantities:
+            new_val = getattr(new, q)
+            old_val = getattr(old, q)
+            res = abs((new_val - old_val) / old_val)
+            setattr(wrp, xsec_calc+"_"+q, res)
+            self.message(
+                "INFO Uncertainty on "
+                + xsec_calc + "_" + q + " / %: " + str(res * 100.)
+            )
 
 
 class SysGroup(ppc.PostProcChain):
@@ -62,44 +61,65 @@ class SysGroup(ppc.PostProcChain):
         return self
 
     def store_result(self, result, formula):
-        name = self.name
-        settings.persistent_dict[name] = result
-        self.message("INFO " + name + " / %: " + str(result * 100.))
-        wrp = wrappers.FloatWrapper(result, name=name)
+        wrp = wrappers.Wrapper(name=self.name)
+        wrp.__dict__.update(result)
+        settings.persistent_dict[self.name] = wrp
         wrp.formula = formula
         wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
+        self.message("INFO Group uncertainty results: " + str(wrp))
 
 
 class SysGroupMax(SysGroup):
     """Groups systematics together. Takes largest deviation as result."""
     def finished(self):
-        res = max(
-            abs(settings.persistent_dict[t.name])
-            for t in self.tool_chain
-        )
+        res = {}
+        for q in result_quantities:
+            for calc in xsec_calc_name_iter():
+                name = calc + "_" + q
+                res[name] = max(
+                    abs(getattr(settings.persistent_dict[t.name], name))
+                    for t in self.tool_chain
+                )
         self.store_result(res, "max( sys deviations )")
         super(SysGroupMax, self).finished()
 
 
 class SysGroupAdd(SysGroup):
     def finished(self):
-        res = sum(
-            (settings.persistent_dict[t.name])**2
-            for t in self.tool_chain
-        )**.5
+        res = {}
+        for q in result_quantities:
+            for calc in xsec_calc_name_iter():
+                name = calc + "_" + q
+                res[name] = sum(
+                    (getattr(settings.persistent_dict[t.name], name))**2
+                    for t in self.tool_chain
+                )**.5
         self.store_result(res, "(sum( sys deviations**2 ))**.5")
         super(SysGroupAdd, self).finished()
 
 
 
-################################################################# isr / fsr ###
+################################################# showering / hadronization ###
 class SysIsrFsr(SysBase):
     def prepare_for_systematic(self):
-        settings.active_samples.remove("TTJets")
-        settings.active_samples.append("TTNLO")
-#        settings.active_samples.remove("TTJetsSignal")
-#        settings.active_samples.append("TTNLOSignal")
+        settings.active_samples.remove("TTPoPy")
+        settings.active_samples.append("TTPoHe")
         super(SysIsrFsr, self).prepare_for_systematic()
+
+
+################################################################# generator ###
+class SysMadgraph(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples.remove("TTPoPy")
+        settings.active_samples.append("TTMadG")
+        super(SysMadgraph, self).prepare_for_systematic()
+
+
+class SysMCatNLO(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples.remove("TTPoHe")
+        settings.active_samples.append("TTMCNLO")
+        super(SysMCatNLO, self).prepare_for_systematic()
 
 
 #################################################################### pileup ###
@@ -142,14 +162,6 @@ def sys_xsec_group(name, sample, uncert):
         ]
     )
 
-#SysSelEffSigMC = SysGroupMax(
-#    "SysSelEffSigMC",
-#    [
-#        SysBaseMC("SysSelEffSigMCPlus", None,lambda:sys_xsec("whiz2to5", 1.25)),
-#        SysBaseMC("SysSelEffSigMCMinus",None,lambda:sys_xsec("whiz2to5", 0.75)),
-#    ]
-#)
-
 #TODO: Store xsec errors in sample def
 SysSelEffBkg = SysGroupAdd(
     "SysSelEffBkg",
@@ -158,7 +170,7 @@ SysSelEffBkg = SysGroupAdd(
         sys_xsec_group("SysSelEffTbar_t",   "Tbar_t",   (.9/30.7, 1.1/30.7)),
         sys_xsec_group("SysSelEffT_tW",     "T_tW",     0.3/11.1),
         sys_xsec_group("SysSelEffTbar_tW",  "Tbar_tW",  0.3/11.1),
-        sys_xsec_group("SysSelEffTTJets",   "TTJets",   (0.025,0.034)),
+        sys_xsec_group("SysSelEffTTPoPy",   "TTPoPy",   (0.025,0.034)),
     ]
 )
 
@@ -173,26 +185,20 @@ SysSelEff = SysGroupAdd(
 
 ########################################################### overlap removal ###
 def makeSysSamplesDRCut():
-    makeSysSample("TTJets", "TTJets_DRCutLow", {"cutDeltaR": 0.050})
-    makeSysSample("TTJets", "TTJets_DRCutHigh", {"cutDeltaR": 0.150})
-#    makeSysSample("TTJetsSignal", "TTJetsSignal_DRCutLow", {"cutDeltaR": 0.050})
-#    makeSysSample("TTJetsSignal", "TTJetsSignal_DRCutHigh", {"cutDeltaR": 0.150})
+    makeSysSample("TTPoPy", "TTPoPy_DRCutLow", {"cutDeltaR": 0.050})
+    makeSysSample("TTPoPy", "TTPoPy_DRCutHigh", {"cutDeltaR": 0.150})
 
 class SysOverlapDRCutLow(SysBase):
     def prepare_for_systematic(self):
-        settings.active_samples.remove("TTJets")
-        settings.active_samples.append("TTJets_DRCutLow")
-#        settings.active_samples.remove("TTJetsSignal")
-#        settings.active_samples.append("TTJetsSignal_DRCutLow")
+        settings.active_samples.remove("TTPoPy")
+        settings.active_samples.append("TTPoPy_DRCutLow")
         super(SysOverlapDRCutLow, self).prepare_for_systematic()
 
 
 class SysOverlapDRCutHigh(SysBase):
     def prepare_for_systematic(self):
-        settings.active_samples.remove("TTJets")
-        settings.active_samples.append("TTJets_DRCutHigh")
-#        settings.active_samples.remove("TTJetsSignal")
-#        settings.active_samples.append("TTJetsSignal_DRCutHigh")
+        settings.active_samples.remove("TTPoPy")
+        settings.active_samples.append("TTPoPy_DRCutHigh")
         super(SysOverlapDRCutHigh, self).prepare_for_systematic()
 
 SysOverlapDRCut = SysGroupMax(
@@ -262,12 +268,15 @@ def makeSysSamplesBTag():
     for name in settings.active_samples:
         makeSysSample(name, name + "_BTags", {})
         settings.samples[name + "_BTags"].cfg_add_lines.append(
-            "process.bTagCounter.minNumber = 1"
+            "process.bTagCounter.minNumber = 2"
         )
 
 class SysBTags(SysBase):
-    def prepare_for_systematics(self):
+    def prepare_for_systematic(self):
         settings.active_samples = list(
             smp + "_BTags" for smp in settings.active_samples
         )
         super(SysBTags, self).prepare_for_systematic()
+
+
+

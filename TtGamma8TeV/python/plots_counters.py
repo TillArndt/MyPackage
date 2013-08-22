@@ -8,9 +8,10 @@ class CounterReader(pp.PostProcTool):
     can_reuse = False
 
     def run(self):
+        samples = settings.samples.keys()
         search_string = "EventCountPrinter:"
         for p in settings.cmsRun_procs:
-            if not p.name in settings.active_samples:
+            if not p.name in samples:
                 continue
             if not p.successful():
                 continue

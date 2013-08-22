@@ -1,13 +1,19 @@
 
-import cmstoolsac3b.settings as settings
-import cmstoolsac3b.postprocessing as ppc
 import os
 import glob
+import copy
 import subprocess
 import shutil
+import cmstoolsac3b.settings as settings
+import cmstoolsac3b.wrappers as wrappers
+import cmstoolsac3b.postprocessing as ppc
+import plots_xsec
+from plots_commons import copy_tex_to_target_dir
 
 summed_uncerts = [
     "SysIsrFsr",
+    "SysMCatNLO",
+#    "SysMadgraph",
     "SysOverlapDRCut",
     "SysPU",
 #    "SysPhotonETCut",
@@ -15,60 +21,93 @@ summed_uncerts = [
     "SysSelEffBkg",
 ]
 
-cmsAN   = "/afs/cern.ch/work/h/htholen/private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
-cmsPAS  = "/afs/cern.ch/work/h/htholen/private/cmsPublishDir/cms_repo/notes/TOP-13-011/trunk/"
+result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]
 
-def total_uncert():
+def xsec_calc_name_iter():
+    return (c.name for c in plots_xsec.XsecCalculators.tool_chain)
+
+cmsPub  = "/afs/cern.ch/work/h/htholen/private/cmsPublishDir/"
+cmsAN   = cmsPub + "cms_repo/notes/AN-13-195/trunk/"
+cmsPAS  = cmsPub + "cms_repo/notes/TOP-13-011/trunk/"
+
+def total_uncert(quantity):
     sum = 0.
-    for key in summed_uncerts: 
-        sum += (settings.persistent_dict.get(key, 0.))**2
+    for key in summed_uncerts:
+        wrp = settings.persistent_dict.get(key)
+        if wrp:
+            sum += (getattr(wrp, quantity))**2
     return sum**.5
 
 class ResultSummary(ppc.PostProcTool):
-    can_reuse = False
+    def __init__(self, xsec_calc):
+        super(ResultSummary, self).__init__(
+            self.__class__.__name__ + "_" + xsec_calc
+        )
+        self.xsec_calc = xsec_calc
+
     def run(self):
-        res = settings.post_proc_dict["x_sec_result"]
-        for key, data in settings.persistent_dict.iteritems():
-            setattr(res, key, data)
-        total_sys           = total_uncert()
-        res.TotalSysUncert  = total_sys
-        res.R_err_sys       = res.R * total_sys
-        res.xsec_err_sys    = res.xsec * (
-            total_sys**2
-            + (settings.ttbar_xsec_cms_err / settings.ttbar_xsec_cms)**2
-        )**.5
+        res_wrp = settings.post_proc_dict[self.xsec_calc]
+        res_wrp.name = self.name
+        for q in result_quantities:
+            name = self.xsec_calc + "_" + q
+            for sys in summed_uncerts:
+                wrp = settings.persistent_dict.get(sys)
+                if wrp:
+                    setattr(res_wrp, sys + "_" + name, getattr(wrp, name))
+            total_sys = total_uncert(name)
+            setattr(res_wrp, "TotalSysUncert_" + q, total_sys)
+            setattr(res_wrp, q + "_err_sys", getattr(res_wrp, q) * total_sys)
+            setattr(res_wrp, "xsec_err_sys",
+                res_wrp.xsec * (
+                    total_sys**2
+                    + (settings.ttbar_xsec_cms_err / settings.ttbar_xsec_cms)**2
+                )**.5
+            )
 
-        print res
+        self.result = res_wrp # write out later..
+        self.message("INFO " + str(res_wrp))
 
-        res.write_info_file(settings.DIR_PLOTS + "summary_analysis.info")
-        self.message("INFO " + str(res))
+ResultSummaries = ppc.PostProcChain(
+    "ResultSummaries",
+#    [ResultSummary("XsecCalculatorABCD")]
+    list(ResultSummary(x) for x in xsec_calc_name_iter())
+)
 
 
 class ResultTexifier(ppc.PostProcTool):
-    def __init__(self, name = None):
-        super(ResultTexifier, self).__init__(name)
+    def __init__(self, xsec_calc):
+        super(ResultTexifier, self).__init__(
+            self.__class__.__name__ + "_" + xsec_calc
+        )
+        self.xsec_calc = xsec_calc
         self.target_dir = settings.tex_target_dir
         self.numbers_digit = [
-            "N_MC_predict",
-            "N_fit",
-            "N_fit_err",
+#            "N_MC_predict",
+            "n_sig",
+            "n_sig_err",
+            "n_sig_ttgam",
+            "n_sig_ttgam_err",
+            "n_sig_ttgam_err_sys",
             "N_presel_data",
             "N_sel_data",
         ]
         self.numbers_percent_1f = [
-            "TotalSysUncert",
+            "TotalSysUncert_R",
             "eff_gamma",
-            "pur_gamma",
+            "pur_ttgam",
             "pur_tt",
         ]
-        self.numbers_percent_1f += summed_uncerts
+        self.numbers_percent_1f += map(
+            lambda s: s + "_" + xsec_calc + "_R",
+            summed_uncerts
+        )
         self.numbers_float_2f = [
             "StoB_gamma",
             "StoB_presel",
         ]
 
     def write_tex_snippets(self):
-        res = settings.post_proc_dict["x_sec_result"]
+        res = self.result
 
         # write digit numbers
         for key in self.numbers_digit:
@@ -86,11 +125,19 @@ class ResultTexifier(ppc.PostProcTool):
                 f.write("%.2f" % getattr(res,key))
 
         # write special numbers
+        # R_fid
+        with open(self.plot_output_dir + "R_fid.tex", "w") as f:
+            f.write(
+                "(%.2f " % (res.R_fid*100)
+                + r"\;\pm %.2f" % (res.R_fid_err_stat*100) + r"\,\stat"
+                + r"\;\pm %.2f" % (res.R_fid_err_sys*100) + r"\,\syst"
+                + r")\cdot 10^{-2}"
+            )
         # R
         with open(self.plot_output_dir + "R.tex", "w") as f:
             f.write(
                 "(%.2f " % (res.R*100)
-                + r"\;\pm %.2f" % (res.R_err_fit*100) + r"\,\stat"
+                + r"\;\pm %.2f" % (res.R_err_stat*100) + r"\,\stat"
                 + r"\;\pm %.2f" % (res.R_err_sys*100) + r"\,\syst"
                 + r")\cdot 10^{-2}"
             )
@@ -101,87 +148,176 @@ class ResultTexifier(ppc.PostProcTool):
                 + r"\;\pm" + ("%.1f" % res.xsec_err_stat) + r"\,\stat"
                 + r"\;\pm" + ("%.1f" % res.xsec_err_sys) + r"\,\syst"
             )
+        # largestSys
+        with open(self.plot_output_dir + "largestSys.tex", "w") as f:
+            f.write(("%.1f" % (
+                getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R") * 100.
+                ))+"\\,\\%")
 
     def write_uncert_tabular(self):
-        res = settings.post_proc_dict["x_sec_result"]
+        res = self.result
         table = [
-            r"\begin{tabular}{l c} \\",
+            r"\begin{tabular}{l c c} \\",
             r"\hline",
             r"\hline",
-            r"Source & Uncertainty (\%) \\",
+            r"Source & \multicolumn{2}{c}{Uncertainty (\%)} \\",
+            r"& $\Nsig$ & $\Rvis$ \\",
             r"\hline",
-            r"Statistical & %.1f \\" % (
-                getattr(res, "R_err_fit") / getattr(res, "R") * 100.
+            r"Statistical & %.1f & %.1f \\" % (
+                getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.,
+                getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.,
             ),
             r"\hline",
-            r"Systematic & %.1f \\" % (
-                getattr(res, "R_err_sys") / getattr(res, "R") * 100.
+            r"Systematic & %.1f & %.1f \\" % (
+                getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.,
+                getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.,
             ),
             r"\hline",
-            r"Individual contributions: & \\"
+            r"Individual contributions: & & \\"
         ]
-        for sys in sorted(summed_uncerts, key=lambda u: -getattr(res, u)):
+        for sys in sorted(summed_uncerts,
+            key=lambda s: -getattr(res, s + "_" + self.xsec_calc + "_R")
+        ):
             table.append(
                 "\;\;\;"
                 + settings.get_pretty_name(sys)
-                + r" & %.1f \\" % (getattr(res, sys) * 100.)
+                + r" & %.1f & %.1f \\" % (
+                    getattr(res, sys+"_"+self.xsec_calc+"_n_sig_ttgam") * 100.,
+                    getattr(res, sys+"_"+self.xsec_calc+"_R_fid") * 100.,
+                ),
             )
         table += (
-            r"\;\;\;JES & --- \\",
-            r"\;\;\;JER & --- \\",
-            r"\;\;\;top quark $\pt$ & --- \\",
-            r"\;\;\;b-tag & --- \\",
-            r"\;\;\;top quark mass & --- \\",
-            r"\;\;\;PDF uncert. & --- \\",
-#            r"  & --- \\",
-#            r"  & --- \\",
+            r"\;\;\;JES             & ---  & --- \\",
+            r"\;\;\;JER             & ---  & --- \\",
+            r"\;\;\;top-quark $\pt$ & ---  & --- \\",
+            r"\;\;\;b-quark tag     & ---  & --- \\",
+            r"\;\;\;top-quark mass  & ---  & --- \\",
+            r"\;\;\;PDF uncert.     & ---  & --- \\",
             r"\hline",
-            r"\textbf{Total} & %.1f \\" % (
-                  (getattr(res, "R_err_fit") / getattr(res, "R") * 100.)**2
-                + (getattr(res, "R_err_sys") / getattr(res, "R") * 100.)**2
-            )**.5,
+            r"\textbf{Total} & %.1f & %.1f \\" % (
+(
+    (getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.)**2
+  + (getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.)**2
+)**.5,
+(
+    (getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.)**2
+  + (getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.)**2
+)**.5,
+            ),
+            r"\hline",
             r"\hline",
             r"\end{tabular}",
         )
         with open(self.plot_output_dir + "sys_tabular.tex", "w") as f:
             f.writelines(map(lambda l: l + "\n", table))
-
-    def copy_to_target_dir(self):
-        if not self.target_dir: return
-        self.message("INFO Copying *.tex to " + self.target_dir)
-        for cwd, dirs, files in os.walk(self.plot_output_dir):
-            for f in files:
-                if f[-4:] == ".tex":
-                    shutil.copy2(
-                        self.plot_output_dir + f,
-                        self.target_dir
-                    )
-            break
+        for n, l in enumerate(table):
+            setattr(self.result, "line%02d"%n, l)
 
     def run(self):
+        self.result = copy.deepcopy(
+            settings.post_proc_dict["ResultSummary_" + self.xsec_calc]
+        )
         self.write_tex_snippets()
         self.write_uncert_tabular()
-        self.copy_to_target_dir()
+        copy_tex_to_target_dir(self)
+
+
+class ResultTexifierMethodComp(ResultTexifier):
+    def __init__(self, name=None):
+        super(ResultTexifier, self).__init__(name)
+
+    def write_method_comparison_tabular(self):
+        res = self.results
+        l = len(res)
+        for r in res:
+            r.calc = r.name.split("_")[-1]
+        table = [
+            r"\begin{tabular}{l " + l*"c " + r"} \\",
+            r"\hline",
+            r"\hline",
+            "Method " + (l*"& %s" + r" \\") % tuple(
+                settings.get_pretty_name(r.calc)
+                for r in res
+            ),
+            (r"$\Nsig / \epsilon_\gamma$ " + l*" & %.1f" + r" \\") % tuple(
+                getattr(r, "n_sig_ttgam") / r.eff_gamma
+                for r in res
+            ),
+            r"\hline",
+            r"\hline",
+            r"Source & \multicolumn{" + str(l) + r"}{c}{Uncertainty} \\",
+            r"\hline",
+            (r"Internal (e.g. fit) " + l*" & %.1f" + r" \\") % tuple(
+                getattr(r, "n_sig_ttgam_err") / r.eff_gamma
+                for r in res
+                ),
+            r"\hline",
+            (r"Systematic" + l*" & %.1f" + r" \\") % tuple(
+                getattr(r, "n_sig_ttgam_err_sys") / r.eff_gamma
+                for r in res
+                ),
+            r"\hline",
+            r"Contributions: & & \\"
+        ]
+        for sys in sorted(summed_uncerts,
+            key=lambda s: -getattr(res[0], s + "_" + res[0].calc + "_n_sig_ttgam")
+        ):
+            table.append(
+                "\;\;\;"
+                + settings.get_pretty_name(sys)
+                + (l*" & %.1f" + r" \\") % tuple(
+                    getattr(r, sys+"_"+r.calc+"_n_sig_ttgam") * getattr(r, "n_sig_ttgam")  / r.eff_gamma
+                    for r in res
+                    ),
+            )
+        table += (
+            r"\hline",
+            (r"\textbf{Total uncertainty}" + l*" & %.1f" + r" \\") % tuple(
+                    (
+                        getattr(r, "n_sig_ttgam_err")**2
+                        + getattr(r, "n_sig_ttgam_err_sys")**2
+                    )**.5  / r.eff_gamma
+                    for r in res
+                ),
+            r"\hline",
+            r"\hline",
+            r"\end{tabular}",
+            )
+        with open(self.plot_output_dir + "method_tabular.tex", "w") as f:
+            f.writelines(map(lambda l: l + "\n", table))
+        for n, l in enumerate(table):
+            setattr(self.result, "line%02d"%n, l)
+
+    def run(self):
+        self.target_dir = settings.tex_target_dir
+        self.results = list(
+            settings.post_proc_dict["ResultSummary_" + calc]
+            for calc in xsec_calc_name_iter()
+        )
+        self.result = wrappers.Wrapper()
+        self.write_method_comparison_tabular()
+        copy_tex_to_target_dir(self)
 
 
 class RootPlotConverter(ppc.PostProcTool):
+    has_output_dir = False
+
     def __init__(self, tool_name=None):
         super(RootPlotConverter, self).__init__(tool_name)
         self.target_dir = settings.plot_target_dir
         self.pdf_copy_dirs = [
-            (settings.DIR_PLOTS + "CutflowTools/CutflowStack/", ""),
-            (settings.DIR_PLOTS + "TemplateFitToolSihih/", ""),
-            (settings.DIR_PLOTS + "TemplateFitToolChHadIso/", ""),
-            (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_logscale/", "nm1_log_"),
-            (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_linscale/", "nm1_lin_"),
-            (settings.DIR_PLOTS + "DataMcComp/DataMC_CrtlPlotPost_linscale/", "post_lin_"),
-            (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCMuonCheck_logscale", "datamc_muon_"),
-            (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCJetCheck_logscale", "datamc_jet_"),
-            (settings.DIR_PLOTS + "MatchQualityStack", "match_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateStacks/", ""),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateOverlaysNormIntegral/", "overlay_int_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihih/", "fit_Sihih_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihihShift/", "fit_SihihShift_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIso/", "fit_ChHadIso_"),
+(settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_logscale/","nm1_log_"),
+(settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_linscale/","nm1_lin_"),
+(settings.DIR_PLOTS + "DataMcComp/DataMC_CrtlPlotPost_linscale/","post_lin_"),
+(settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCMuonCheck_logscale/","datamc_muon_"),
+(settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCJetCheck_logscale/","datamc_jet_"),
+(settings.DIR_PLOTS + "MatchQualityStack", "match_"),
         ]
-
-    def _set_plot_output_dir(self):
-        pass
 
     def convert_eps_to_pdf(self):
         for pdf_dir, _ in self.pdf_copy_dirs:
@@ -189,11 +325,13 @@ class RootPlotConverter(ppc.PostProcTool):
                 if files:
                     self.message("INFO converting eps files in " + cwd)
                 for f in files:
-                    if  f[-4:] == ".eps":
+                    f_eps = os.path.join(cwd, f)
+                    f_pdf = os.path.join(cwd, f[:-4] + ".pdf")
+                    if  f[-4:] == ".eps" and not os.path.exists(f_pdf):
                         subprocess.call([
                             "convert",
-                            os.path.join(cwd, f),
-                            os.path.join(cwd, f[:-4] + ".pdf")
+                            f_eps,
+                            f_pdf
                         ])
                 break
 

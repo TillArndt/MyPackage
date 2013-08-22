@@ -1,13 +1,11 @@
 
+import copy
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.wrappers as wrappers
 import cmstoolsac3b.generators as gen
 import cmstoolsac3b.postprocessing as ppc
-from plots_commons import count_ttgamma_photons
 
 class RealPhotonsABCD(ppc.PostProcTool):
-    can_reuse = False
-
     def configure(self):
         self.data_sihih = gen.op.sum(
             gen.fs_filter_sort_load({
@@ -27,25 +25,11 @@ class RealPhotonsABCD(ppc.PostProcTool):
     def run(self):
         self.configure()
 
-        # store result in a wrapper
-        r = wrappers.Wrapper(name = "res_ABCD")
-        settings.post_proc_dict["res_ABCD"] = r
-
-        # get mc counts for purity of events with a real photon
-        sub_tot_list = [0., 0.]
-        gen.consume_n_count(
-            count_ttgamma_photons(
-                gen.gen_norm_to_lumi(
-                    gen.fs_filter_sort_load({
-                        "analyzer"  : "realTemplateSihih",
-                        "name"      : "sihihEB",
-                    })
-                ),
-                sub_tot_list
-            )
+        # store result
+        self.result = copy.deepcopy(
+            settings.post_proc_dict["RealTightIdPurityCount"]
         )
-        r.mc_real_photon_ttgamma  = sub_tot_list[0]
-        r.mc_real_photon_total    = sub_tot_list[1]
+        r = self.result
 
         # fetch all histograms
         data_sihih          = self.data_sihih
@@ -101,17 +85,11 @@ class RealPhotonsABCD(ppc.PostProcTool):
         r.n_sig_err   = (r.data_lt_011 + r.n_bkg_err)**.5
 
         # now correct for the non-ttgamma events with a real photon
-        r.pur_ttgam   = r.mc_real_photon_ttgamma / r.mc_real_photon_total
         r.n_sig_ttgam = r.n_sig * r.pur_ttgam
         r.n_sig_ttgam_err = r.n_sig_err * r.pur_ttgam
 
-        #self.message("INFO result! " + str(r))
 
-
-
-class RealPhotonsABCDCheck(ppc.PostProcTool):
-    can_reuse = False
-
+class RealPhotonsABCDMC(RealPhotonsABCD):
     def configure(self):
         data_lumi = settings.data_lumi_sum_wrp()
         self.data_sihih = gen.op.prod((
@@ -134,3 +112,5 @@ class RealPhotonsABCDCheck(ppc.PostProcTool):
             ),
             data_lumi
         ))
+
+

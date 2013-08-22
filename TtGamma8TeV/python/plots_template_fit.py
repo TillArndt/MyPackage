@@ -25,8 +25,8 @@ analyzers_mc = [
     "fakeNm2PlotsihihEB",
     "realNm2PlotchargedHadronIsoEB",
     "fakeNm2PlotchargedHadronIsoEB",
-    "Nm1PlotSihihChHadIsoInv",
-    "Nm1PlotChHadIsoSihihInv",
+#    "Nm1PlotSihihChHadIsoInv", # attention: do not let data and mc be merged 
+#    "Nm1PlotChHadIsoSihihInv",
 ]
 analyzers_mc += analyzers_mc_sihih_shift
 
@@ -63,6 +63,7 @@ def cosmetica1(wrps):
     for w in wrps:
         name = get_legend_name(w.analyzer)
         w.histo.SetTitle(name)
+        w.histo.SetYTitle(w.histo.GetYaxis().GetTitle() + " / a.u.")
         w.legend = name
         w.histo.SetLineColor(color(w.analyzer))
         w.histo.SetLineWidth(3)
@@ -149,41 +150,6 @@ class TemplateStacks(ppt.FSStackPlotter):
         )
 
 
-### plot templates overlayed ##############################
-class TemplateOverlaysNormIntegral(ppt.FSStackPlotter):
-    def __init__(self, name=None):
-        super(TemplateOverlaysNormIntegral, self).__init__(name),
-        self.canvas_decorators = self.canvas_decorators[1:]
-        self.canvas_decorators.append(com.SimpleTitleBox)
-
-    def set_up_stacking(self):
-        key_func = lambda w: w.analyzer[4:]
-        mc_tmplts = settings.post_proc_dict["mc_templates"]
-        mc_tmplts = (wrp.HistoWrapper(w.histo, **w.all_info()) for w in mc_tmplts)
-        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
-        mc_tmplts = cosmetica1(mc_tmplts)
-        mc_tmplts = sorted(mc_tmplts, key=key_func)
-        mc_tmplts = gen.group(mc_tmplts, key_func=key_func)
-        self.stream_stack = mc_tmplts
-
-
-class TemplateOverlaysNormLumi(ppt.FSStackPlotter):
-    def __init__(self, name=None):
-        super(TemplateOverlaysNormLumi, self).__init__(name),
-        self.canvas_decorators = self.canvas_decorators[1:]
-        self.canvas_decorators.append(com.SimpleTitleBox)
-
-    def set_up_stacking(self):
-        key_func = lambda w: w.analyzer[4:]
-        mc_tmplts = settings.post_proc_dict["mc_templates"]
-        mc_tmplts = (wrp.HistoWrapper(w.histo, **w.all_info()) for w in mc_tmplts)
-        mc_tmplts = gen.gen_norm_to_lumi(mc_tmplts)
-        mc_tmplts = cosmetica1(mc_tmplts)
-        mc_tmplts = sorted(mc_tmplts, key=key_func)
-        mc_tmplts = gen.group(mc_tmplts, key_func=key_func)
-        self.stream_stack = mc_tmplts
-
-
 ### fitting tools #########################################
 class TemplateFitTool(ppt.FSStackPlotter):
     def __init__(self, name = None):
@@ -191,7 +157,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.mc_tmplts      = None
         self.fitted         = None
         self.fitbox_bounds  = None
-        self.fit_result     = wrp.Wrapper(name = "FitResults")
+        self.result         = wrp.Wrapper(name = "FitResults")
         self.n_templates    = 0
 
     def configure(self):
@@ -230,7 +196,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
 
     def make_fit_results(self, mc_tmplts, chi2):
         """"""
-        r = self.fit_result
+        r = self.result
         fit_function = self.fit_func
         r.Chi2 = chi2
         r.NDF = fit_function.GetNDF()
@@ -258,10 +224,9 @@ class TemplateFitTool(ppt.FSStackPlotter):
                 r.n_sig_err         = r.binIntegralScaledError[-1]
                 r.n_sig_ttgam       = r.n_sig * r.pur_ttgam
                 r.n_sig_ttgam_err   = r.n_sig_err * r.pur_ttgam
-        settings.post_proc_dict[self.name] = r
 
     def make_fit_textbox(self):
-        res = self.fit_result
+        res = self.result
         x1, x2, y2 = self.fitbox_bounds
         y1 = y2 - ((len(res.legend) + 1) * 0.04)
 
@@ -316,7 +281,6 @@ class TemplateFitTool(ppt.FSStackPlotter):
         scale_templates_to_fit(self.fit_func, mc_tmplts)
         chi2 = calc_chi2(self.x_min, self.x_max, mc_tmplts, self.fitted)
         self.make_fit_results(mc_tmplts, chi2)
-        self.fit_result.write_info_file(self.plot_output_dir + "FitResults.info")
 
         fit_textbox = self.make_fit_textbox()
         textboxes = {mc_tmplts[0].name: fit_textbox}
@@ -341,6 +305,7 @@ class TemplateFitToolSihih(TemplateFitTool):
         self.fitted         = gen.fs_filter_sort_load({
             "analyzer"  : "dataTemplateFitHistoSihih",
             "name"      : "sihihEB",
+            "is_data"   : True,
         })
 
 
@@ -356,6 +321,7 @@ class TemplateFitToolChHadIso(TemplateFitTool):
         self.fitted         = gen.fs_filter_sort_load({
             "analyzer"  : "dataTemplateFitHistoChHadIso",
             "name"      : "ChHadIso",
+            "is_data"   : True,
         })
 
 
@@ -368,6 +334,7 @@ class TemplateFitToolSihihShift(TemplateFitTool):
         self.fitted         = gen.fs_filter_sort_load({
             "analyzer"  : "dataTemplateFitHistoSihih",
             "name"      : "sihihEB",
+            "is_data"   : True,
         })
 
     def build_fit_function(self, mc_tmplts):
@@ -411,11 +378,14 @@ class TemplateFitToolSihihShift(TemplateFitTool):
         picked_num = int(round(shift))
         del mc_tmplts[:]
         for i in range(size):
+            tmplt = self.template_matrix[i][picked_num]
+            tmplt.analyzer = tmplt.analyzer[:-4]
             mc_tmplts.append(self.template_matrix[i][picked_num])
+        settings.post_proc_dict["fitted_shift_templates"] = mc_tmplts[:]
 
     def make_fit_results(self, mc_tmplts, chi2):
         super(TemplateFitToolSihihShift, self).make_fit_results(mc_tmplts, chi2)
-        res = self.fit_result
+        res = self.result
         size = len(self.template_matrix)
         val = self.fit_func.GetParameter(size)
         err = self.fit_func.GetParError(size)
@@ -425,24 +395,65 @@ class TemplateFitToolSihihShift(TemplateFitTool):
     def make_fit_textbox(self):
         box = super(TemplateFitToolSihihShift, self).make_fit_textbox()
         box.AddText(
-            "#Delta #sigma_{i #eta i #eta} = (%.3f #pm %.3f)#upoint 10^{-3}" % (
-                self.fit_result.shift_val*1000,
-                self.fit_result.shift_err*1000
+            "#delta = (%.3f #pm %.3f)#upoint 10^{-4}" % (
+                self.result.shift_val*10000,
+                self.result.shift_err*10000
             )
         )
         return box
+
+
+### plot templates overlayed ##############################
+def overlayed_template_iter():
+    return itertools.chain(
+        settings.post_proc_dict["mc_templates"],
+        settings.post_proc_dict.get("fitted_shift_templates", list())
+    )
+
+class TemplateOverlaysNormIntegral(ppt.FSStackPlotter):
+    def __init__(self, name=None):
+        super(TemplateOverlaysNormIntegral, self).__init__(name),
+        self.canvas_decorators = self.canvas_decorators[1:]
+        self.canvas_decorators.append(com.SimpleTitleBox)
+
+    def set_up_stacking(self):
+        key_func = lambda w: w.analyzer[4:]
+        mc_tmplts = overlayed_template_iter()
+        mc_tmplts = (wrp.HistoWrapper(w.histo, **w.all_info()) for w in mc_tmplts)
+        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        mc_tmplts = sorted(mc_tmplts, key=key_func)
+        mc_tmplts = gen.group(mc_tmplts, key_func=key_func)
+        self.stream_stack = mc_tmplts
+
+
+class TemplateOverlaysNormLumi(ppt.FSStackPlotter):
+    def __init__(self, name=None):
+        super(TemplateOverlaysNormLumi, self).__init__(name),
+        self.canvas_decorators = self.canvas_decorators[1:]
+        self.canvas_decorators.append(com.SimpleTitleBox)
+
+    def set_up_stacking(self):
+        key_func = lambda w: w.analyzer[4:]
+        mc_tmplts = overlayed_template_iter()
+        mc_tmplts = (wrp.HistoWrapper(w.histo, **w.all_info()) for w in mc_tmplts)
+        mc_tmplts = gen.gen_norm_to_lumi(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        mc_tmplts = sorted(mc_tmplts, key=key_func)
+        mc_tmplts = gen.group(mc_tmplts, key_func=key_func)
+        self.stream_stack = mc_tmplts
 
 
 TemplateFitTools = ppc.PostProcChain(
     "TemplateFitTools",
     [
         TemplateStacks,
-#        DataDrvTemplates,
-        TemplateOverlaysNormLumi,
-        TemplateOverlaysNormIntegral,
         TemplateFitToolSihihShift,
         TemplateFitToolSihih,
         TemplateFitToolChHadIso,
+        TemplateOverlaysNormLumi,
+        TemplateOverlaysNormIntegral,
+#        DataDrvTemplates,
 #        TemplateFitToolSihihDaDrv,
 #        TemplateFitToolChHadIsoDaDrv,
     ]

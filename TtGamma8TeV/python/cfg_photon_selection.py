@@ -14,7 +14,7 @@ try:
     runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
-    puReweight  = cms_var.get("puWeight", puWeight)
+    puWeight    = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
     skipChecks  = cms_var.get("skipChecks", skipChecks)
 except NameError:
@@ -64,6 +64,7 @@ process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
 process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
 process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
+process.load("MyPackage.TtGamma8TeV.cfi_topPtSequence")
 process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
@@ -79,6 +80,7 @@ if preSelOpt == "doOverlapRemoval":
         process.bTagCounter,
         process.bTagCounter
         * process.ttgammaMerging
+        * process.topPtSequenceTTBar   ## also do the top pt production
     )
 
 # Path declarations
@@ -130,11 +132,11 @@ if runOnMC:
     process.templatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
     process.schedule.append(process.templatePathSihih)
     process.schedule.append(process.templatePathChHadIso)
-else:
-    process.dataTemplatePathSihih.insert(0, process.preSel * process.Nm1FiltsihihEB)
-    process.dataTemplatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
-    process.schedule.append(process.dataTemplatePathSihih)
-    process.schedule.append(process.dataTemplatePathChHadIso)
+
+process.dataTemplatePathSihih.insert(0, process.preSel * process.Nm1FiltsihihEB)
+process.dataTemplatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
+process.schedule.append(process.dataTemplatePathSihih)
+process.schedule.append(process.dataTemplatePathChHadIso)
 
 # data driven
 import MyPackage.TtGamma8TeV.cff_templateDatDrvBkg as ddrvTmpl
@@ -144,7 +146,22 @@ if runOnMC:
 else:
     process.schedule += ddrvTmpl.add_nm2_path_core(process)
 
-
+# check for shilpi's method
+if runOnMC:
+    process.realFullTightID = process.realPhotonsSihih.clone(
+        src = "FullTightIDBlocking",
+        filter = True,
+    )
+    process.realFullTightIDCount = process.FullTightIDCount.clone()
+    process.realFullTightIDCountPrnt = process.FullTightIDCountPrnt.clone(
+        src = "realFullTightIDCount"
+    )
+    process.realFullTightIDSequence = cms.Sequence(
+        process.realFullTightID
+        * process.realFullTightIDCount
+        * process.realFullTightIDCountPrnt
+    )
+    process.pathLooseID *= process.realFullTightIDSequence
 
 ##################################### sihih shifted histos for template fit ###
 if runOnMC:
@@ -187,11 +204,11 @@ if skipChecks:
         )
 
 
-############################################# output module for debugging ###
+################################################ output module for debugging ###
 #process.out = cms.OutputModule( "PoolOutputModule",
 #    outputCommands  = cms.untracked.vstring( 'keep *' ),
-#    SelectEvents    = cms.untracked.PSet( SelectEvents = cms.vstring('producerPath') ),
-#    fileName        = cms.untracked.string("test_out_" + sample + ".root"),
+#    SelectEvents    = cms.untracked.PSet( SelectEvents = cms.vstring('pathLooseID') ),
+#    fileName        = cms.untracked.string("outputEvents/" + sample + ".root"),
 #)
 #process.outPath = cms.EndPath(process.out)
 #process.schedule.append(process.outPath)

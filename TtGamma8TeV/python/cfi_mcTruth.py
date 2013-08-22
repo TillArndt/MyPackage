@@ -9,7 +9,7 @@ photonsSignalME = cms.EDFilter(
     cut = cms.string('\
     abs(pdgId) == 22 \
     && \
-    mother.numberOfDaughters == 7 \
+    mother.numberOfDaughters == 5 \
     '),
     filter = cms.bool(False),
 )
@@ -48,4 +48,9 @@ patPhotonsSignalCounter = cms.EDFilter("PATCandViewCountFilter",
 photonsSignalMEsequence = cms.Sequence(
     photonsSignalME
     * photonsSignalMEanalyzer
+)
+
+# fiducialization cuts counter
+fidSigPhotons = cms.Sequence(
+
 )

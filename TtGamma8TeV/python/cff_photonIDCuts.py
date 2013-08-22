@@ -115,24 +115,21 @@ cuts = {
     "chargedHadronIsoEB" : (
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 40,
-        "PF charged hadron isolation (#rho corrected)",
+        "PF charged hadron isolation (#rho corrected) / GeV",
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ),
     "neutralHadronIsoEB" : (
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.) < (0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
         0., 10., 40,
-        "PF neutral hadron isolation (#rho corrected)",
+        "PF neutral hadron isolation (#rho corrected) / GeV",
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
     ),
     "photonIsoEB" : (
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.) < (0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
         0., 10., 40,
-        "PF photon isolation (#rho corrected)",
+        "PF photon isolation (#rho corrected) / GeV",
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
     ),
-
-# TODO:
-# ARE THE ISOLATIONS RHO CORRECTED BY PF2PAT??? NO!!
 }
 
 cut_key_order = [
@@ -160,7 +157,7 @@ def make_cutflow_token(cut):
         bin = str(cut_key_order.index(cut) + 1) + "."
     else:
         bin = "0."
-    return ("", -.5, num_cut_keys + .5, num_cut_keys + 1, cut, bin)
+    return "", -.5, num_cut_keys + .5, num_cut_keys + 1, cut, bin
 
 def make_histo_analyzer(src, tokens):
     """tokens: (cut, low, high, n-bins, x-axis-label, plotquantity)"""
@@ -175,7 +172,7 @@ def make_histo_analyzer(src, tokens):
                 nbins        = cms.untracked.int32 (tokens[3]),
                 name         = cms.untracked.string("histo"),
                 description  = cms.untracked.string(
-                    ";" + tokens[4] + ";Number of photons"
+                    ";" + tokens[4] + ";number of photons"
                 ),
                 plotquantity = cms.untracked.string(tokens[5]),
             )
@@ -299,12 +296,6 @@ def add_photon_cuts(process):
         cuts_Nm1_list = list(cuts[cutkey][0] for cutkey in cutkeys_Nm1)
         cuts_Nm1_str = "( " + ") && (".join(cuts_Nm1_list) + " )"
 
-        # pre filter counter
-        Nm1CountPre = cms.EDProducer("WeightedEventCountProducer")
-        Nm1CountPrePrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
-            src = cms.InputTag("Nm1CountPre" + cut_key)
-        )
-
         # Filter for n - 1 plot
         Nm1Filt = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag("photonInputDummy"),
@@ -329,12 +320,9 @@ def add_photon_cuts(process):
         )
 
         if puWeight:
-            Nm1CountPre.weights     = puWeight
             Nm1CountPost.weights    = puWeight
 
         # add to process
-        setattr(process, "Nm1CountPre" + cut_key, Nm1CountPre)
-        setattr(process, "Nm1CountPrePrint" + cut_key, Nm1CountPrePrnt)
         setattr(process, "Nm1Filt" + cut_key, Nm1Filt)
         setattr(process, "Nm1Plot" + cut_key, Nm1Plot)
         setattr(process, "Nm1FiltBlocking" + cut_key, Nm1FiltBlocking)
@@ -344,15 +332,127 @@ def add_photon_cuts(process):
         # make path
         pathTmp = cms.Path(
             process.preSel
-            * getattr(process, "Nm1CountPre" + cut_key)
             * getattr(process, "Nm1Filt" + cut_key)
             * getattr(process, "Nm1Plot" + cut_key)
             * getattr(process, "Nm1FiltBlocking" + cut_key)
             * getattr(process, "Nm1CountPost" + cut_key)
-            * getattr(process, "Nm1CountPrePrint" + cut_key)
             * getattr(process, "Nm1CountPostPrint" + cut_key)
         )
         setattr(process, "path"+cut_key, pathTmp)
         post_paths.append(pathTmp)
+
+    ############################## input counter and counter after fid cuts ###
+    # fiducialization cuts filter
+    cuts_fid_list = list(cuts[cutkey][0] for cutkey in ["etcut", "etaEB",])
+    cuts_fid_str = "( " + ") && (".join(cuts_fid_list) + " )"
+    process.FidFiltBlocking = cms.EDFilter("PATPhotonSelector",
+        src = cms.InputTag("photonInputDummy"),
+        cut = cms.string(cuts_fid_str),
+        filter = cms.bool(True)
+    )
+
+    # pre and post counters
+    process.FidCountPre = cms.EDProducer("WeightedEventCountProducer")
+    process.FidCountPost = cms.EDProducer("WeightedEventCountProducer")
+    if puWeight:
+        process.FidCountPre.weights     = puWeight
+        process.FidCountPost.weights    = puWeight
+
+    # ... and printers
+    process.FidCountPrePrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
+        src = cms.InputTag("FidCountPre")
+    )
+    process.FidCountPostPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
+        src = cms.InputTag("FidCountPost")
+    )
+
+    # path
+    process.pathFidCount = cms.Path(
+        process.preSel
+        * process.FidCountPre
+        * process.FidFiltBlocking
+        * process.FidCountPost
+        * process.FidCountPrePrnt
+        * process.FidCountPostPrnt
+    )
+    post_paths.append(process.pathFidCount)
+
+    ############################################## shilpi's loose id events ###
+    # Implementation of cutstrings
+    hoe             = "hadTowOverEm"
+    sieie           = "sigmaIetaIeta"
+    pfchargedIso    = "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
+    pfneutralIso    = "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
+    pfphoIso        = "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
+
+    cuthoe          = "0.05"
+    cutsieie        = "0.012"
+    cutchargedIso   = "4.0"
+    cutneutralIso   = "(4.5 + 0.04*pt)"
+    cutphoIso       = "(4.5 + 0.005*pt)"
+
+    maxchargedIso   = "min(0.2*et, 5*" + cutchargedIso  + ")"
+    maxneutralIso   = "min(0.2*et, 5*" + cutneutralIso  + ")"
+    maxphoIso       = "min(0.2*et, 5*" + cutphoIso      + ")"
+    maxhoe          = cuthoe
+
+    lower_cut = (
+        "( "       + pfchargedIso + ">" + cutchargedIso
+        + ") || (" + pfneutralIso + ">" + cutneutralIso
+        + ") || (" + pfphoIso     + ">" + cutphoIso
+        + ") || (" + sieie        + ">" + cutsieie
+        + ")"
+    )
+    upper_cut = (
+        "( "       + pfchargedIso + "<" + maxchargedIso
+        + ") && (" + pfneutralIso + "<" + maxneutralIso
+        + ") && (" + pfphoIso     + "<" + maxphoIso
+        + ") && (" + hoe          + "<" + maxhoe
+        + ")"
+    )
+
+    # Blocking Filter for only complete tight ID events
+    process.FullTightIDBlocking = cms.EDFilter("PATPhotonSelector",
+        src = cms.InputTag("Nm1FiltsihihEB"),
+        cut = cms.string(cuts["sihihEB"][0]),
+        filter = cms.bool(True)
+    )
+
+    # Filters for lower and upper cut
+    process.LooseIDlower = cms.EDFilter("PATPhotonSelector",
+        src = cms.InputTag("photonInputDummy"),
+        cut = cms.string(lower_cut),
+        filter = cms.bool(False)
+    )
+    process.LooseIDupper = cms.EDFilter("PATPhotonSelector",
+        src = cms.InputTag("LooseIDlower"),
+        cut = cms.string(upper_cut),
+        filter = cms.bool(False)
+    )
+
+    # Shilpi's Weight function
+    process.ShilpiWeight = cms.EDProducer("ShilpiWeight",
+        src = cms.InputTag("LooseIDupper"),
+        weights = puWeight,
+    )
+
+    # tight id counter and printer
+    process.FullTightIDCount = cms.EDProducer("WeightedEventCountProducer")
+    if puWeight:
+        process.FullTightIDCount.weights = puWeight
+    process.FullTightIDCountPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
+        src = cms.InputTag("FullTightIDCount")
+    )
+
+    process.pathLooseID = cms.Path(
+        process.preSel
+        * process.FullTightIDBlocking
+        * process.FullTightIDCount
+        * process.LooseIDlower
+        * process.LooseIDupper
+        * process.ShilpiWeight
+        * process.FullTightIDCountPrnt
+    )
+    post_paths.append(process.pathLooseID)
 
     return pre_paths, post_paths
