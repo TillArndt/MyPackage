@@ -10,7 +10,7 @@ cocPatPhotons = cms.EDProducer("PATPhotonCleaner",
     # overlap checking configurables
     checkOverlaps = cms.PSet(
         jets = cms.PSet(
-            src                 = cms.InputTag("selectedPatJetsForAnalysis20"),
+            src                 = cms.InputTag("selectedPatJetsForAnalysis"),
             algorithm           = cms.string("byDeltaR"),
             preselection        = cms.string(""),  # don't preselect the jets
             deltaR              = cms.double(0.5), # if > 0.5: make many jets overlapping

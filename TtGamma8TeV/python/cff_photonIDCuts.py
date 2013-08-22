@@ -132,6 +132,42 @@ cuts = {
     ),
 }
 
+def loose_deno_cuts(lower_cut_with_sieie = True):
+    """Implementation of cutstrings for loose deno id"""
+    hoe             = "hadTowOverEm"
+    sieie           = "sigmaIetaIeta"
+    pfchargedIso    = "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
+    pfneutralIso    = "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
+    pfphoIso        = "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
+
+    cuthoe          = "0.05"
+    cutsieie        = "0.012"
+    cutchargedIso   = "4.0"
+    cutneutralIso   = "(4.5 + 0.04*pt)"
+    cutphoIso       = "(4.5 + 0.005*pt)"
+
+    maxchargedIso   = "min(0.2*et, 5*" + cutchargedIso  + ")"
+    maxneutralIso   = "min(0.2*et, 5*" + cutneutralIso  + ")"
+    maxphoIso       = "min(0.2*et, 5*" + cutphoIso      + ")"
+    maxhoe          = cuthoe
+
+    lower_cut = (
+        "( "       + pfchargedIso + ">" + cutchargedIso
+        + ") || (" + pfneutralIso + ">" + cutneutralIso
+        + ") || (" + pfphoIso     + ">" + cutphoIso
+        + ")"
+        )
+    if lower_cut_with_sieie:
+        lower_cut += " || (" + sieie + ">" + cutsieie + ")"
+    upper_cut = (
+        "( "       + pfchargedIso + "<" + maxchargedIso
+        + ") && (" + pfneutralIso + "<" + maxneutralIso
+        + ") && (" + pfphoIso     + "<" + maxphoIso
+        + ") && (" + hoe          + "<" + maxhoe
+        + ")"
+        )
+    return lower_cut, upper_cut
+
 cut_key_order = [
     "etcut",
     "etaEB",
@@ -378,38 +414,6 @@ def add_photon_cuts(process):
     post_paths.append(process.pathFidCount)
 
     ############################################## shilpi's loose id events ###
-    # Implementation of cutstrings
-    hoe             = "hadTowOverEm"
-    sieie           = "sigmaIetaIeta"
-    pfchargedIso    = "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
-    pfneutralIso    = "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
-    pfphoIso        = "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
-
-    cuthoe          = "0.05"
-    cutsieie        = "0.012"
-    cutchargedIso   = "4.0"
-    cutneutralIso   = "(4.5 + 0.04*pt)"
-    cutphoIso       = "(4.5 + 0.005*pt)"
-
-    maxchargedIso   = "min(0.2*et, 5*" + cutchargedIso  + ")"
-    maxneutralIso   = "min(0.2*et, 5*" + cutneutralIso  + ")"
-    maxphoIso       = "min(0.2*et, 5*" + cutphoIso      + ")"
-    maxhoe          = cuthoe
-
-    lower_cut = (
-        "( "       + pfchargedIso + ">" + cutchargedIso
-        + ") || (" + pfneutralIso + ">" + cutneutralIso
-        + ") || (" + pfphoIso     + ">" + cutphoIso
-        + ") || (" + sieie        + ">" + cutsieie
-        + ")"
-    )
-    upper_cut = (
-        "( "       + pfchargedIso + "<" + maxchargedIso
-        + ") && (" + pfneutralIso + "<" + maxneutralIso
-        + ") && (" + pfphoIso     + "<" + maxphoIso
-        + ") && (" + hoe          + "<" + maxhoe
-        + ")"
-    )
 
     # Blocking Filter for only complete tight ID events
     process.FullTightIDBlocking = cms.EDFilter("PATPhotonSelector",
@@ -419,6 +423,7 @@ def add_photon_cuts(process):
     )
 
     # Filters for lower and upper cut
+    lower_cut, upper_cut = loose_deno_cuts()
     process.LooseIDlower = cms.EDFilter("PATPhotonSelector",
         src = cms.InputTag("photonInputDummy"),
         cut = cms.string(lower_cut),

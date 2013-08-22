@@ -138,7 +138,8 @@ process.dataTemplatePathChHadIso.insert(0, process.preSel * process.Nm1Filtcharg
 process.schedule.append(process.dataTemplatePathSihih)
 process.schedule.append(process.dataTemplatePathChHadIso)
 
-# data driven
+########################################### data driven background template ###
+# n-2 paths and sideband background templates
 import MyPackage.TtGamma8TeV.cff_templateDatDrvBkg as ddrvTmpl
 process.schedule += ddrvTmpl.add_bkg_template_path(process)
 if runOnMC:
@@ -146,7 +147,14 @@ if runOnMC:
 else:
     process.schedule += ddrvTmpl.add_nm2_path_core(process)
 
-# check for shilpi's method
+# paths for sihih background template with loose id
+import MyPackage.TtGamma8TeV.cff_templateDatDrvBkgLooseID as ddrvTmplLoose
+if runOnMC:
+    process.schedule += ddrvTmplLoose.add_path_truth(process)
+else:
+    process.schedule += ddrvTmplLoose.add_path_core(process)
+
+#################################################### real tight id counters ###
 if runOnMC:
     process.realFullTightID = process.realPhotonsSihih.clone(
         src = "FullTightIDBlocking",
