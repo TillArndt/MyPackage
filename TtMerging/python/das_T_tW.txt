@@ -1,0 +1,6 @@
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_6_1_PMl.root
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_5_1_Ksz.root
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_4_1_yBX.root
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_3_1_k1k.root
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_2_1_MqD.root
+/store/user/htholen/T_tW-channel-DR_TuneZ2star_8TeV-powheg-tauola/20130610ReRecoMC_smp_T_tW/196f8124f9470d4cf6c3b680d1da9040/out_patTuple_1_1_co9.root
