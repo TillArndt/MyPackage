@@ -116,7 +116,7 @@ kept_collections = [
 'keep recoGenParticlesedmAssociation_photonMatch__PAT2',
 'keep recoGenParticlesedmAssociation_photonMatchAll__PAT2',
 'keep recoGenParticlesedmAssociation_photonMatchOthers__PAT2',
-'keep recoGsfElectrons_gsfElectrons__RECO',
+'keep *_*gsfElectron*_*_RECO',
 'keep recoMETs_htMetAK5__RECO',
 'keep recoMETs_htMetAK7__RECO',
 'keep recoMETs_htMetIC5__RECO',
