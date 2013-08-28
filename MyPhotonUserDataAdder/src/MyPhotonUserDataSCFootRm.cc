@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataSCFootRm.cc,v 1.2 2013/08/28 07:51:24 htholen Exp $
+// $Id: MyPhotonUserDataSCFootRm.cc,v 1.1 2013/08/28 08:53:04 htholen Exp $
 //
 //
 
@@ -33,6 +33,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "PFIsolation/SuperClusterFootprintRemoval/interface/SuperClusterFootprintRemoval.h"
+
 
 class MyPhotonUserDataSCFootRm : public edm::EDProducer {
    public:
@@ -83,9 +84,9 @@ MyPhotonUserDataSCFootRm::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
         ////////////////////////////////////////////// SC footprint removal ///
         reco::SuperClusterRef scref(ph.superCluster());
-        ph.addUserFloat("chargedisoSCfootRm", remover.PFIsolation("charged",scref,vertexforchargediso));
-        ph.addUserFloat("neutralisoSCfootRm", remover.PFIsolation("neutral",scref));
-        ph.addUserFloat("photonisoSCfootRm",  remover.PFIsolation("photon",scref));
+        ph.addUserFloat("chargedisoSCFootRm", remover.PFIsolation("charged",scref,vertexforchargediso));
+        ph.addUserFloat("neutralisoSCFootRm", remover.PFIsolation("neutral",scref));
+        ph.addUserFloat("photonisoSCFootRm",  remover.PFIsolation("photon",scref));
     }
 
     iEvent.put( photonColl);
