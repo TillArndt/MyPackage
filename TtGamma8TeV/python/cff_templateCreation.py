@@ -1,89 +1,74 @@
 
 
-puWeight    = None
+runOnMC     = True
 try:
-    puWeight  = cms_var.get("puWeight", puWeight)
+    runOnMC     = not cms_var["is_data"]
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 
 import FWCore.ParameterSet.Config as cms
+import MyPackage.TtGamma8TeV.cff_photonIDCuts as pho_cuts
 
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
+#################################################### definition of mc truth ###
 
-
-matched = 'genParticlesSize>0'
-
-real_with_ECAL_cut = '\
-(\
-    genParticlesSize > 0 \
-    && (\
-        (abs(energy - genParticle.energy) / genParticle.energy)^2 < 4 * ( \
-            (3.63 / sqrt(genParticle.energy))^2 \
-            + (.124 / genParticle.energy)^2 \
-            + (0.3)^2 \
-        )\
-    )\
-)'
-
-real = '\
-(\
-    genParticlesSize > 0 \
-    && (\
-        (abs(energy - genParticle.energy) / genParticle.energy) < 2. \
-    ) && (\
-        deltaR(eta, phi, genParticle.eta, genParticle.phi) < 0.2 \
-    )\
-)'
-
-piZero = '\
-( \
-    abs(genParticle.mother.pdgId) == 111 \
-    || (\
-        genParticle.mother.numberOfMothers > 0 \
-        && \
-        abs(genParticle.mother.mother.pdgId) == 111 \
-    )\
-)'
-
-#prompt = real + '&& !' + piZero
-stat1phot = "genParticlesSize > 0 && abs(genParticle.pdgId) == 22 && genParticle.status == 1 && "
+stat1phot = "genParticlesSize > 0 && abs(genParticle.pdgId) == 22 && genParticle.status == 1"
 largestId = 'userFloat("largestAncestorPdgId")'
-prompt = stat1phot + largestId + ' > 0.5 && 24.5 > ' + largestId
+prompt      = stat1phot+" && "+largestId+' > 0.5 && 24.5 > '+largestId
+real        = prompt
+fake        = '!('+prompt+')'
+fakeGamma   = stat1phot+" && "+fake
+fakeOther   = "!("+stat1phot+")"
 
 
-##################################################################### Sihih ###
-template_input_collection_sihih = "Nm1FiltsihihEB"
+########################################################### sihih histogram ###
+_template_input_collection = "Nm1FiltsihihEB"
 
 # Take only one photon per event (photons are pt-ordered)
 firstPhotonForSihih = cms.EDProducer("FirstPhotonPicker",
-    src = cms.InputTag(template_input_collection_sihih)
+    src = cms.InputTag(_template_input_collection)
 )
-template_input_collection_sihih = "firstPhotonForSihih"
+_template_input_collection = "firstPhotonForSihih"
 
-# Filters
-matchedPhotonsSihih = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag(template_input_collection_sihih),
-    cut = cms.string(matched),
+PhotonsSihih = cms.EDFilter("PATPhotonSelector",
+    src = cms.InputTag(_template_input_collection),
+    cut = cms.string(""),
     filter = cms.bool(False)
 )
-unmatchedPhotonsSihih = matchedPhotonsSihih.clone(
-    cut = cms.string('!(' + matched + ')')
+
+TemplateSihih = pho_cuts.make_histo_analyzer(
+    "PhotonsSihih",
+    pho_cuts.cuts["sihihEB"]
 )
-realPhotonsSihih = matchedPhotonsSihih.clone(
-    cut = cms.string(prompt)
+
+TemplatePathSihih = cms.Path(
+    firstPhotonForSihih
+    * PhotonsSihih
+    * TemplateSihih
 )
-fakePhotonsSihih = matchedPhotonsSihih.clone(
-    cut = cms.string('!(' + prompt + ')')
+
+
+################################################# sihih templates (only mc) ###
+
+# Filters
+PhotonsSihihreal = cms.EDFilter("PATPhotonSelector",
+    src = cms.InputTag(_template_input_collection),
+    cut = cms.string(real),
+    filter = cms.bool(False)
 )
-piZeroPhotonsSihih = matchedPhotonsSihih.clone(
-    cut = cms.string(real + "&&" + piZero)
+PhotonsSihihfake = PhotonsSihihreal.clone(
+    cut = cms.string(fake)
+)
+PhotonsSihihfakeGamma = PhotonsSihihreal.clone(
+    cut = cms.string(fakeGamma)
+)
+PhotonsSihihfakeOther = PhotonsSihihreal.clone(
+    cut = cms.string(fakeOther)
 )
 
 # Analyzers
 matchQualitySihih = cms.EDAnalyzer(
     "CandViewHistoAnalyzer",
-    src = cms.InputTag("realPhotonsSihih"),
+    src = cms.InputTag("PhotonsSihihreal"),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(0.),
@@ -106,85 +91,35 @@ matchQualitySihih = cms.EDAnalyzer(
     )
 )
 
-matchedTemplateSihih = cms.EDAnalyzer(
-    "CandViewHistoAnalyzer",
-    src = cms.InputTag("matchedPhotonsSihih"),
-    histograms = cms.VPSet(
-        cms.PSet(
-            min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(0.08),
-            nbins        = cms.untracked.int32 (80),
-            name         = cms.untracked.string('sihih'),
-            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons'),
-            lazyParsing  = cms.untracked.bool(True),
-            plotquantity = cms.untracked.string('sigmaIetaIeta')
-        ),
-        cms.PSet(
-            min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(0.08),
-            nbins        = cms.untracked.int32 (80),
-            name         = cms.untracked.string('sihihEE'),
-            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons (endcap)'),
-            lazyParsing  = cms.untracked.bool(True),
-            plotquantity = cms.untracked.string('?abs(eta) > 1.5? sigmaIetaIeta: -0.1')
-        ),
-        cms.PSet(
-            min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(0.03),
-            nbins        = cms.untracked.int32 (30),
-            name         = cms.untracked.string('sihihEB'),
-            description  = cms.untracked.string(';#sigma_{i #eta i #eta};number of photons'),
-            lazyParsing  = cms.untracked.bool(True),
-            plotquantity = cms.untracked.string('?abs(eta) < 1.5? sigmaIetaIeta: -0.1')
-        ),
-    )
+TemplateSihihreal = TemplateSihih.clone(
+    src = cms.InputTag("PhotonsSihihreal"),
 )
-if puWeight:
-    matchedTemplateSihih.weights = puWeight
-unmatchedTemplateSihih = matchedTemplateSihih.clone(
-    src = cms.InputTag("unmatchedPhotonsSihih"),
+TemplateSihihfake = TemplateSihih.clone(
+    src = cms.InputTag("PhotonsSihihfake"),
 )
-realTemplateSihih = matchedTemplateSihih.clone(
-    src = cms.InputTag("realPhotonsSihih"),
+TemplateSihihfakeGamma = TemplateSihih.clone(
+    src = cms.InputTag("PhotonsSihihfakeGamma"),
 )
-fakeTemplateSihih = matchedTemplateSihih.clone(
-    src = cms.InputTag("fakePhotonsSihih"),
+TemplateSihihfakeOther = TemplateSihih.clone(
+    src = cms.InputTag("PhotonsSihihfakeOther"),
 )
-piZeroTemplateSihih = matchedTemplateSihih.clone(
-    src = cms.InputTag("piZeroPhotonsSihih"),
-)
-templatePathSihih = cms.Path(
+TemplateSequenceSihihTruth = cms.Sequence(
     firstPhotonForSihih
-    * matchedPhotonsSihih
-    * unmatchedPhotonsSihih
-    * realPhotonsSihih
-    * fakePhotonsSihih
-    * piZeroPhotonsSihih
+    * PhotonsSihihreal
+    * PhotonsSihihfake
+    * PhotonsSihihfakeGamma
+    * PhotonsSihihfakeOther
     * matchQualitySihih
-    * matchedTemplateSihih
-    * unmatchedTemplateSihih
-    * realTemplateSihih
-    * fakeTemplateSihih
-    * piZeroTemplateSihih
+    * TemplateSihihreal
+    * TemplateSihihfake
+    * TemplateSihihfakeGamma
+    * TemplateSihihfakeOther
 )
+if runOnMC:
+    TemplatePathSihih *= TemplateSequenceSihihTruth
 
-dataTemplateFitPhotonsSihih = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag(template_input_collection_sihih),
-    cut = cms.string(""),
-    filter = cms.bool(False)
-)
-dataTemplateFitHistoSihih = matchedTemplateSihih.clone(
-    src = cms.InputTag("dataTemplateFitPhotonsSihih")
-)
 
-dataTemplatePathSihih = cms.Path(
-    firstPhotonForSihih
-    * dataTemplateFitPhotonsSihih
-    * dataTemplateFitHistoSihih
-)
-
-############################### path for sihih shift histograms ###
-import MyPackage.TtGamma8TeV.cff_photonIDCuts as pho_cuts
+########################################### path for sihih shift histograms ###
 def add_sihih_shifted_histos(process):
     process.sihihShiftPath = cms.Path()
     cut_token = pho_cuts.cuts["sihihEB"]
@@ -198,48 +133,68 @@ def add_sihih_shifted_histos(process):
         shift_cut[5]    = ("%.5f + " % shift) + shift_cut[5]
 
         # n - 1 Plot takes input from existing n-1 filter
-        real_tmplt = pho_cuts.make_histo_analyzer("realPhotonsSihih", shift_cut)
-        fake_tmplt = pho_cuts.make_histo_analyzer("fakePhotonsSihih", shift_cut)
+        real_tmplt      = pho_cuts.make_histo_analyzer("PhotonsSihihreal", shift_cut)
+        fake_tmplt      = pho_cuts.make_histo_analyzer("PhotonsSihihfake", shift_cut)
+        fakeGamma_tmplt = pho_cuts.make_histo_analyzer("PhotonsSihihfakeGamma", shift_cut)
 
         # add to process and to path
-        setattr(process, "real" + shift_id, real_tmplt)
-        setattr(process, "fake" + shift_id, fake_tmplt)
+        setattr(process, shift_id+"real",       real_tmplt)
+        setattr(process, shift_id+"fake",       fake_tmplt)
+        setattr(process, shift_id+"fakeGamma",  fakeGamma_tmplt)
         process.sihihShiftPath *= real_tmplt
         process.sihihShiftPath *= fake_tmplt
+        process.sihihShiftPath *= fakeGamma_tmplt
 
 
-################################################################## ChHadIso ###
-template_input_collection_chhadiso = "Nm1FiltchargedHadronIsoEB"
+######################################################## chhadiso histogram ###
+_template_input_collection = "Nm1FiltchargedHadronIsoEB"
 
 # Take only one photon per event (photons are pt-ordered)
 firstPhotonForChHadIso = cms.EDProducer("FirstPhotonPicker",
-    src = cms.InputTag(template_input_collection_chhadiso)
+    src = cms.InputTag(_template_input_collection)
 )
-template_input_collection_chhadiso = "firstPhotonForChHadIso"
+_template_input_collection = "firstPhotonForChHadIso"
 
-# Filters
-matchedPhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag(template_input_collection_chhadiso),
-    cut = cms.string(matched),
+PhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
+    src = cms.InputTag(_template_input_collection),
+    cut = cms.string(""),
     filter = cms.bool(False)
 )
-unmatchedPhotonsChHadIso = matchedPhotonsChHadIso.clone(
-    cut = cms.string('!(' + matched + ')')
+
+TemplateChHadIso = pho_cuts.make_histo_analyzer(
+    "PhotonsChHadIso",
+    pho_cuts.cuts["chargedisoSCFootRmEB"]
 )
-realPhotonsChHadIso = matchedPhotonsChHadIso.clone(
-    cut = cms.string(prompt)
+
+TemplatePathChHadIso = cms.Path(
+    firstPhotonForChHadIso
+    * PhotonsChHadIso
+    * TemplateChHadIso
 )
-fakePhotonsChHadIso = matchedPhotonsChHadIso.clone(
-    cut = cms.string('!(' + prompt + ')')
+
+
+############################################## chhadiso templates (only mc) ###
+
+# Filters
+PhotonsChHadIsoreal = cms.EDFilter("PATPhotonSelector",
+    src = cms.InputTag(_template_input_collection),
+    cut = cms.string(real),
+    filter = cms.bool(False)
 )
-piZeroPhotonsChHadIso = matchedPhotonsChHadIso.clone(
-    cut = cms.string(real + "&&" + piZero)
+PhotonsChHadIsofake = PhotonsChHadIsoreal.clone(
+    cut = cms.string(fake)
+)
+PhotonsChHadIsofakeGamma = PhotonsChHadIsoreal.clone(
+    cut = cms.string(fakeGamma)
+)
+PhotonsChHadIsofakeOther = PhotonsChHadIsoreal.clone(
+    cut = cms.string(fakeOther)
 )
 
 # Analyzers
 matchQualityChHadIso = cms.EDAnalyzer(
     "CandViewHistoAnalyzer",
-    src = cms.InputTag("realPhotonsChHadIso"),
+    src = cms.InputTag("PhotonsChHadIsoreal"),
     histograms = cms.VPSet(
         cms.PSet(
             min          = cms.untracked.double(0.),
@@ -262,61 +217,30 @@ matchQualityChHadIso = cms.EDAnalyzer(
     )
 )
 
-matchedTemplateChHadIso = cms.EDAnalyzer(
-    "CandViewHistoAnalyzer",
-    src = cms.InputTag("matchedPhotonsChHadIso"),
-    histograms = cms.VPSet(
-        cms.PSet(
-            min          = cms.untracked.double(0.),
-            max          = cms.untracked.double(10.),
-            nbins        = cms.untracked.int32 (40),
-            name         = cms.untracked.string('ChHadIso'),
-            description  = cms.untracked.string(';PF charged hadron isolation (#rho corrected);number of photons'),
-            lazyParsing  = cms.untracked.bool(True),
-            plotquantity = cms.untracked.string("max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)")
-        ),
-    )
+TemplateChHadIsoreal = TemplateChHadIso.clone(
+    src = cms.InputTag("PhotonsChHadIsoreal"),
 )
-if puWeight:
-    matchedTemplateChHadIso.weights = puWeight
-unmatchedTemplateChHadIso = matchedTemplateChHadIso.clone(
-    src = cms.InputTag("unmatchedPhotonsChHadIso"),
+TemplateChHadIsofake = TemplateChHadIso.clone(
+    src = cms.InputTag("PhotonsChHadIsofake"),
 )
-realTemplateChHadIso = matchedTemplateChHadIso.clone(
-    src = cms.InputTag("realPhotonsChHadIso"),
+TemplateChHadIsofakeGamma = TemplateChHadIso.clone(
+    src = cms.InputTag("PhotonsChHadIsofakeGamma"),
 )
-fakeTemplateChHadIso = matchedTemplateChHadIso.clone(
-    src = cms.InputTag("fakePhotonsChHadIso"),
+TemplateChHadIsofakeOther = TemplateChHadIso.clone(
+    src = cms.InputTag("PhotonsChHadIsofakeOther"),
 )
-piZeroTemplateChHadIso = matchedTemplateChHadIso.clone(
-    src = cms.InputTag("piZeroPhotonsChHadIso"),
-)
-templatePathChHadIso = cms.Path(
+TemplateSequenceChHadIsoTruth = cms.Sequence(
     firstPhotonForChHadIso
-    * matchedPhotonsChHadIso
-    * unmatchedPhotonsChHadIso
-    * realPhotonsChHadIso
-    * fakePhotonsChHadIso
-    * piZeroPhotonsChHadIso
+    * PhotonsChHadIsoreal
+    * PhotonsChHadIsofake
+    * PhotonsChHadIsofakeGamma
+    * PhotonsChHadIsofakeOther
     * matchQualityChHadIso
-    * matchedTemplateChHadIso
-    * unmatchedTemplateChHadIso
-    * realTemplateChHadIso
-    * fakeTemplateChHadIso
-    * piZeroTemplateChHadIso
+    * TemplateChHadIsoreal
+    * TemplateChHadIsofake
+    * TemplateChHadIsofakeGamma
+    * TemplateChHadIsofakeOther
 )
+if runOnMC:
+    TemplatePathChHadIso *= TemplateSequenceChHadIsoTruth
 
-dataTemplateFitPhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
-    src = cms.InputTag(template_input_collection_chhadiso),
-    cut = cms.string(""),
-    filter = cms.bool(False)
-)
-dataTemplateFitHistoChHadIso = matchedTemplateChHadIso.clone(
-    src = cms.InputTag("dataTemplateFitPhotonsChHadIso")
-)
-
-dataTemplatePathChHadIso = cms.Path(
-    firstPhotonForChHadIso
-    * dataTemplateFitPhotonsChHadIso
-    * dataTemplateFitHistoChHadIso
-)

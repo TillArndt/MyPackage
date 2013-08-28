@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataSCFootRm.cc,v 1.1 2013/08/28 08:53:04 htholen Exp $
+// $Id: MyPhotonUserDataSCFootRm.cc,v 1.2 2013/08/28 09:39:25 htholen Exp $
 //
 //
 
@@ -54,11 +54,14 @@ class MyPhotonUserDataSCFootRm : public edm::EDProducer {
 
       // ----------member data ---------------------------
       edm::InputTag _srcPhoton;
+      edm::ParameterSet _SCFootRmPar;
 };
 
 MyPhotonUserDataSCFootRm::MyPhotonUserDataSCFootRm(const edm::ParameterSet& cfg) :
-    _srcPhoton(cfg.getParameter<edm::InputTag>( "srcPhoton" ))
+    _srcPhoton(cfg.getParameter<edm::InputTag>( "srcPhoton" )),
+    _SCFootRmPar(edm::ParameterSet())
 {
+  _SCFootRmPar.addUntrackedParameter<double>("isolation_cone_size_forSCremoval",0.3);
   produces<std::vector<pat::Photon> >();
 }
 
@@ -74,9 +77,10 @@ MyPhotonUserDataSCFootRm::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     Handle<vector<pat::Photon> > photons;
     iEvent.getByLabel(_srcPhoton, photons);
 
-    SuperClusterFootprintRemoval remover(iEvent,iSetup);
-    // this is the index of the vertex selected in the event
     static const int vertexforchargediso = 0;
+    SuperClusterFootprintRemoval remover(iEvent,iSetup,_SCFootRmPar);
+    // this is the index of the vertex selected in the event
+
 
     auto_ptr<vector<pat::Photon> > photonColl( new vector<pat::Photon> (*photons) );
     for (unsigned int i = 0; i< photonColl->size();++i) {

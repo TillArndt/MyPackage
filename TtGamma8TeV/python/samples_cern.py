@@ -13,7 +13,7 @@ settings.cfg_common_builtins.update({
 #     "skipChecks"   : True
 })
 
-#path_pc = "file:/user/tholen/eventFiles/fromGrid20130502/"
+path_pc_0823 = "file:/user/tholen/eventFiles/fromGrid20130823/"
 path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
 
 ttbar_xsec = settings.ttbar_xsec
@@ -150,4 +150,21 @@ class RunD(smp.Sample):
         self.input_files = path_pc + 'RunD_*.root'
         self.cfg_builtin = {}
         super(RunD, self).__init__()
+
+class TTGamRD1(smp.Sample):
+    def __init__(self):
+        self.legend      = "Real Photons"
+        self.x_sec       = 1.6
+        self.n_events    = 1719954
+        self.input_files = path_pc_0823 + "TTGamRD1*.root"
+        super(TTGamRD1, self).__init__()
+
+class TTJeRD1(smp.Sample):
+    def __init__(self):
+        self.legend      = "Fake Photons"
+        self.x_sec       = ttbar_xsec
+        self.n_events    = 6621325
+        self.input_files = path_pc_0823 + "TTJeRD1*.root"
+        super(TTJeRD1, self).__init__()
+
 

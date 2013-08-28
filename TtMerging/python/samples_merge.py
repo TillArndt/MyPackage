@@ -3,14 +3,16 @@ import os
 import cmstoolsac3b.sample as smp
 import cmstoolsac3b.settings as settings
 
-output_path = "/user/tholen/link_pcac3b04/eventFiles/fromGrid20130618/"
+dcap_path = "dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms"
+#output_path = "/user/tholen/link_pcac3b04/eventFiles/fromGrid20130618/"
+output_path = "/user/tholen/eventFiles/fromGrid20130823/"
 
 def _make_sample_inst(samplename, is_data_sample, input_files_list):
     class sample_subclass(smp.Sample):
         name = samplename
         is_data = is_data_sample
         lumi = 1000.
-        input_files = input_files_list
+        input_files = map(lambda f: dcap_path+f,input_files_list)
         output_file = output_path
     return sample_subclass() # instance
 

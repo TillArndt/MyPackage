@@ -68,13 +68,17 @@ process.load("MyPackage.TtGamma8TeV.cfi_topPtSequence")
 process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
-process.widenedCocPatPhotons.src = "photonUserDataLargestPdgId"
+#process.widenedCocPatPhotons.src = "photonUserDataLargestPdgId"
+process.widenedCocPatPhotons.src = "photonUserDataSCFootRm"
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
     cut = cms.string(""),
     filter = cms.bool(False)
 )
 
+
+
+# options for ttbar and ttgam
 if preSelOpt == "doOverlapRemoval":
     process.preSel.replace(
         process.bTagCounter,
@@ -82,17 +86,20 @@ if preSelOpt == "doOverlapRemoval":
         * process.ttgammaMerging
         * process.topPtSequenceTTBar   ## also do the top pt production
     )
+elif preSelOpt == "go4Whiz":
+    process.topPtTTbar.two2fiveMode = cms.untracked.bool(True)
+
+process.InputProducerSequence = cms.Sequence()
+if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
+#    process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
+    process.InputProducerSequence *= process.topPtSequenceTTBar
 
 # Path declarations
-process.dataMC = cms.Path(
-    process.preSel *
-    process.dataMCSequence
-)
-
 process.producerPath = cms.Path(
     process.preSel *
+    process.InputProducerSequence *
     process.puWeight *
-    process.photonUserDataLargestPdgId *
+#    process.photonUserDataLargestPdgId *
 #    process.jetSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
@@ -101,6 +108,11 @@ process.producerPath = cms.Path(
 process.selectionPath = cms.Path(
     process.preSel *
     process.photonInputDummy
+)
+
+process.dataMC = cms.Path(
+    process.preSel *
+    process.dataMCSequence
 )
 
 #process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
@@ -118,25 +130,18 @@ process.schedule = cms.Schedule(
 )
 process.schedule += [
     process.producerPath,
-    process.dataMC,
     process.selectionPath,
-#    process.overlapsPath,
+    process.dataMC,
 ]
 process.schedule += post_paths
 
 
 ######################################################### template creation ###
 process.load("MyPackage.TtGamma8TeV.cff_templateCreation")
-if runOnMC:
-    process.templatePathSihih.insert(0, process.preSel * process.Nm1FiltsihihEB)
-    process.templatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
-    process.schedule.append(process.templatePathSihih)
-    process.schedule.append(process.templatePathChHadIso)
-
-process.dataTemplatePathSihih.insert(0, process.preSel * process.Nm1FiltsihihEB)
-process.dataTemplatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
-process.schedule.append(process.dataTemplatePathSihih)
-process.schedule.append(process.dataTemplatePathChHadIso)
+process.TemplatePathSihih.insert(0, process.preSel * process.Nm1FiltsihihEB)
+process.TemplatePathChHadIso.insert(0, process.preSel * process.Nm1FiltchargedHadronIsoEB)
+process.schedule.append(process.TemplatePathSihih)
+process.schedule.append(process.TemplatePathChHadIso)
 
 ########################################### data driven background template ###
 # n-2 paths and sideband background templates
@@ -156,7 +161,7 @@ else:
 
 #################################################### real tight id counters ###
 if runOnMC:
-    process.realFullTightID = process.realPhotonsSihih.clone(
+    process.realFullTightID = process.PhotonsSihihreal.clone(
         src = "FullTightIDBlocking",
         filter = True,
     )

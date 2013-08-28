@@ -2,6 +2,7 @@
 import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.settings as settings
 import cmstoolsac3b.wrappers as wrappers
+import copy
 
 class XsecCalculator(ppc.PostProcTool):
 
@@ -44,7 +45,8 @@ class XsecCalculator(ppc.PostProcTool):
         self.configure()
 
         # store results in wrapper
-        r = self.n_sig_ttgam_wrp
+        r = copy.deepcopy(self.n_sig_ttgam_wrp)
+        print r
         r.name = self.name
         self.result = r
 
@@ -161,7 +163,7 @@ class XsecCalculatorShilpiCheck(XsecCalculator):
 XsecCalculators = ppc.PostProcChain("XsecCalculators", [
     XsecCalculatorSihih,
     XsecCalculatorSihihShift,
-    XsecCalculatorChHadIso,
-    XsecCalculatorShilpi,
-    XsecCalculatorABCD,
+#    XsecCalculatorChHadIso,
+#    XsecCalculatorShilpi,
+#    XsecCalculatorABCD,
 ])

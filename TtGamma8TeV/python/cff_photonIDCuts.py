@@ -108,7 +108,7 @@ cuts = {
     ),
     "sihihEB" : (
         "sigmaIetaIeta<0.011", # EE: 0.031
-        0., 0.03, 30,
+        0., 0.03, 60,
         "#sigma_{i #eta i #eta}",
         "sigmaIetaIeta"
     ),
@@ -129,6 +129,12 @@ cuts = {
         0., 10., 40,
         "PF photon isolation (#rho corrected) / GeV",
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
+    ),
+    "chargedisoSCFootRmEB" : (
+        "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
+        0., 10., 40,
+        "PF charged hadron isolation (#rho corrected) / GeV",
+        "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ),
 }
 

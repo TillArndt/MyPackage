@@ -26,6 +26,25 @@ class CounterReader(pp.PostProcTool):
                         sample.log_event_counts[label] = count
 
 
+class TopPtWeightNorm(pp.PostProcTool):
+    """Average top pt weight is not zero. This tool fixes sample norm."""
+    has_output_dir = False
+    can_reuse = False
+
+    def run(self):
+        token = "AverageTopPtWeight,"
+        finished_procs = list(
+            p
+                for p in settings.cmsRun_procs
+                if p.successful()
+        )
+        for p in finished_procs:
+            av_weight = p.sample.log_event_counts.get(token)
+            if av_weight:
+                p.sample.n_events   *= av_weight
+                p.sample.lumi       *= av_weight
+
+
 class SampleEventCount(pp.PostProcTool):
     """Sets number of input events on samples."""
 
@@ -37,8 +56,8 @@ class SampleEventCount(pp.PostProcTool):
     def run(self):
         finished_procs = list(
             p
-                for p in settings.cmsRun_procs
-                if p.successful()
+            for p in settings.cmsRun_procs
+            if p.successful()
         )
         for p in finished_procs:
             if p.sample.is_data:

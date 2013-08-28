@@ -44,6 +44,7 @@ def generate_data_mc_comp_tools():
             }
             tool.canvas_decorators.append(com.LumiTitleBox)
             tool.save_log_scale = True
+            tool.hook_loaded_histos = drop_empty_histos
             if "DataMC" in at.pattern:
                 tool.hook_post_canvas_build = hook_DataMC_canv_post_log
             if "Nm1Plot" == at.pattern:
@@ -59,6 +60,7 @@ def generate_data_mc_comp_tools():
 #                "sample": sample_list
             }
             tool.canvas_decorators.append(com.LumiTitleBox)
+            tool.hook_loaded_histos = drop_empty_histos
             if "DataMC" in at.pattern:
                 tool.hook_post_canvas_build = hook_DataMC_canv_post_lin
             if "CrtlPlotPost" == at.pattern:
@@ -72,6 +74,11 @@ def generate_data_mc_comp_tools():
 
 
 ############################################################ customizations ###
+def drop_empty_histos(wrps):
+    for w in wrps:
+        if w.histo.Integral():
+            yield w
+
 def hook_DataMC_canv_pre_lin(bldrs):
     for b in bldrs:
         if b.name == "Nm1PlotpassEleVeto_histo":

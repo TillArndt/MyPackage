@@ -72,6 +72,14 @@ colors["Z + Jets"]                          = ROOT.kSpring + 5
 colors["DY + Jets"]                         = ROOT.kSpring + 5
 colors["Single Top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
+
+colors.update({
+    "real"      : 409,
+    "fake"      : 625,
+    "fakeGamma" : ROOT.kMagenta + 1,
+    "fakeOther" : ROOT.kOrange + 8
+})
+
 settings.colors = colors
 
 settings.stacking_order = [
@@ -110,10 +118,10 @@ pn["pho. iso_tex"            ]    = "pho. iso"
 pn["#DeltaR(#gamma, #mu)_tex"]    = r"$\Delta R(\gamma, \mu)$"
 pn["#DeltaR(#gamma, j)_tex"  ]    = r"$\Delta R(\gamma, j)$"
 
-pn["realTemplateSihih"]         = "real"
-pn["fakeTemplateSihih"]         = "fake"
-pn["realTemplateChHadIso"]      = "real"
-pn["fakeTemplateChHadIso"]      = "fake"
+pn["TemplateSihihreal"]         = "real"
+pn["TemplateSihihfake"]         = "fake"
+#pn["realTemplateChHadIso"]      = "real"
+#pn["fakeTemplateChHadIso"]      = "fake"
 
 pn.update({
     "SysIsrFsr"             : "sho./hadr.",
