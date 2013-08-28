@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen
 //         Created:  Tue Feb 12 16:37:52 CET 2013
-// $Id: MyPhotonUserDataLargestPdgId.cc,v 1.6 2013/05/29 09:25:53 htholen Exp $
+// $Id: MyPhotonUserDataLargestPdgId.cc,v 1.1 2013/08/03 16:18:01 htholen Exp $
 //
 //
 
@@ -38,6 +38,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "PFIsolation/SuperClusterFootprintRemoval/interface/SuperClusterFootprintRemoval.h"
 
 class MyPhotonUserDataLargestPdgId : public edm::EDProducer {
    public:
@@ -72,20 +73,25 @@ MyPhotonUserDataLargestPdgId::~MyPhotonUserDataLargestPdgId()
 }
 
 void
-MyPhotonUserDataLargestPdgId::produce(edm::Event& evt, const edm::EventSetup&)
+MyPhotonUserDataLargestPdgId::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
     using namespace std;
     Handle<vector<pat::Photon> > photons;
-    evt.getByLabel(_srcPhoton, photons);
+    iEvent.getByLabel(_srcPhoton, photons);
+
+    SuperClusterFootprintRemoval remover(iEvent,iSetup);
+    // this is the index of the vertex selected in the event
+    static const int vertexforchargediso = 0;
 
     auto_ptr<vector<pat::Photon> > photonColl( new vector<pat::Photon> (*photons) );
     for (unsigned int i = 0; i< photonColl->size();++i) {
         pat::Photon & ph = (*photonColl)[i];
 
+        ////////////////////////////////////////////// largestAncestorPdgId ///
         // mc truth: find largest ancestor pdg id
         int largestPdgId = 0;
-        if (!evt.isRealData() && ph.genParticlesSize() > 0) {
+        if (!iEvent.isRealData() && ph.genParticlesSize() > 0) {
             const reco::GenParticle *gp = ph.genParticle();
             do {
                 int pdgId = abs(gp->pdgId());
@@ -98,9 +104,16 @@ MyPhotonUserDataLargestPdgId::produce(edm::Event& evt, const edm::EventSetup&)
         }
         ph.addUserFloat("largestAncestorPdgId", largestPdgId);
         _largestPdgIds[largestPdgId]++;
-    }
-    evt.put( photonColl);
 
+        ////////////////////////////////////////////// SC footprint removal ///
+        reco::SuperClusterRef scref(ph.superCluster());
+        ph.addUserFloat("chargedisoSCfootRm", remover.PFIsolation("charged",scref,vertexforchargediso));
+        ph.addUserFloat("neutralisoSCfootRm", remover.PFIsolation("neutral",scref));
+        ph.addUserFloat("photonisoSCfootRm",  remover.PFIsolation("photon",scref));
+
+    }
+
+    iEvent.put( photonColl);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
