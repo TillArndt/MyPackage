@@ -5,7 +5,7 @@ import cmstoolsac3b.generators as gen
 import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.rendering as rnd
 import cmstoolsac3b.settings as settings
-from ROOT import TF1, TPaveText
+from ROOT import TF1, TPaveText, TFractionFitter
 import itertools
 import re
 import copy
@@ -60,7 +60,7 @@ def color(key):
         return settings.get_color("fake")
 
 def get_legend_name(key):
-    if "TemplateSihih" in key:
+    if "Template" in key:
         for tag in legend_tags:
             if tag in key:
                 return settings.get_pretty_name(tag)
@@ -169,6 +169,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.fitbox_bounds  = None
         self.result         = wrp.Wrapper(name = "FitResults")
         self.n_templates    = 0
+        self.fit_builder
 
     def configure(self):
         super(TemplateFitTool, self).configure()
@@ -226,7 +227,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
             r.binIntegralScaledError.append(
                 r.binIntegralScaled[-1] * r.error[-1] / r.value[-1]
             )
-            if tmplt.legend == "real":
+            if "real" in tmplt.legend:
                 r.mc_real_photon_ttgamma  = tmplt.sub_tot_list[0]
                 r.mc_real_photon_total    = tmplt.sub_tot_list[1]
                 r.pur_ttgam = r.mc_real_photon_ttgamma / r.mc_real_photon_total
@@ -340,7 +341,6 @@ class TemplateFitToolSihihShift(TemplateFitTool):
         self.mc_tmplts      = settings.post_proc_dict["mc_templates_sihih_shift"]
         self.fitted         = gen.fs_filter_sort_load({
             "analyzer"  : "TemplateSihih",
-            "name"      : "sihihEB",
             "is_data"   : True,
         })
 
@@ -384,7 +384,7 @@ class TemplateFitToolSihihShift(TemplateFitTool):
         )
         for i in xrange(0, n_tmplts + 1):
             tf1.SetParameter(i,1.)
-        tf1.FixParameter(n_tmplts, 50.)
+        #tf1.FixParameter(n_tmplts, 50.)
 
         return tf1
 
@@ -484,7 +484,7 @@ TemplateFitTools = ppc.PostProcChain(
         TemplateFitToolSihih,
         TemplateFitToolSihihShift,
         TemplateFitToolSihihShiftSepFakes,
-#        TemplateFitToolChHadIso,
+        TemplateFitToolChHadIso,
         TemplateOverlaysNormLumi,
         TemplateOverlaysNormIntegral,
 #        DataDrvTemplates,

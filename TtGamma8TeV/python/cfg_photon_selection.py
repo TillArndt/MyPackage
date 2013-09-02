@@ -91,7 +91,7 @@ elif preSelOpt == "go4Whiz":
 
 process.InputProducerSequence = cms.Sequence()
 if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
-#    process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
+    process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
     process.InputProducerSequence *= process.topPtSequenceTTBar
 
 # Path declarations

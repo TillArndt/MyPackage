@@ -86,10 +86,10 @@ settings.stacking_order = [
     "t#bar{t}#gamma #mu+Jets (Signal)",
     "t#bar{t}#gamma (Signal)",
     "QCD",
+    "Single Top",
     "Z + Jets",
     "DY + Jets",
     "W + Jets",
-    "Single Top",
     "t#bar{t} inclusive",
     ]
 

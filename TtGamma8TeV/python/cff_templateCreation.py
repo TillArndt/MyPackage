@@ -164,6 +164,7 @@ PhotonsChHadIso = cms.EDFilter("PATPhotonSelector",
 TemplateChHadIso = pho_cuts.make_histo_analyzer(
     "PhotonsChHadIso",
     pho_cuts.cuts["chargedisoSCFootRmEB"]
+#    pho_cuts.cuts["chargedHadronIsoEB"]
 )
 
 TemplatePathChHadIso = cms.Path(

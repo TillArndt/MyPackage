@@ -44,6 +44,10 @@ class XsecCalculator(ppc.PostProcTool):
     def run(self):
         self.configure()
 
+        if not self.n_sig_ttgam_wrp:
+            self.message("WARNING Did not find result in post_proc_dict. Skipping...")
+            return
+
         # store results in wrapper
         r = copy.deepcopy(self.n_sig_ttgam_wrp)
         print r
@@ -115,19 +119,19 @@ class XsecCalculator(ppc.PostProcTool):
 class XsecCalculatorSihih(XsecCalculator):
     def configure(self):
         self.post_count_name = "Nm1CountPostsihihEB,"
-        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolSihih"]
+        self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolSihih")
 
 
 class XsecCalculatorSihihShift(XsecCalculator):
     def configure(self):
         self.post_count_name = "Nm1CountPostsihihEB,"
-        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolSihihShift"]
+        self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolSihihShift")
 
 
 class XsecCalculatorChHadIso(XsecCalculator):
     def configure(self):
         self.post_count_name = "Nm1CountPostchargedHadronIsoEB,"
-        self.n_sig_ttgam_wrp = settings.post_proc_dict["TemplateFitToolChHadIso"]
+        self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolChHadIso")
 
 
 class XsecCalculatorABCD(XsecCalculator):
@@ -148,22 +152,11 @@ class XsecCalculatorShilpi(XsecCalculator):
         self.n_sig_ttgam_wrp = settings.post_proc_dict["ShilpiMethod"]
 
 
-class XsecCalculatorShilpiMC(XsecCalculator):
-    def configure(self):
-        self.post_count_name = "FullTightIDCount,"
-        self.n_sig_ttgam_wrp = settings.post_proc_dict["ShilpiMethodMC"]
-
-
-class XsecCalculatorShilpiCheck(XsecCalculator):
-    def configure(self):
-        self.post_count_name = "FullTightIDCount,"
-        self.n_sig_ttgam_wrp = settings.post_proc_dict["ShilpiMethodCheck"]
-
 
 XsecCalculators = ppc.PostProcChain("XsecCalculators", [
     XsecCalculatorSihih,
     XsecCalculatorSihihShift,
-#    XsecCalculatorChHadIso,
+    XsecCalculatorChHadIso,
 #    XsecCalculatorShilpi,
 #    XsecCalculatorABCD,
 ])

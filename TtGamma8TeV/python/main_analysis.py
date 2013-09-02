@@ -30,7 +30,7 @@ import samples_cern
 settings.samples = {}
 settings.samples.update(load_samples(samples_cern))
 settings.active_samples = settings.samples.keys() # add all MC and data
-settings.active_samples.remove("TTPoHe")
+settings.active_samples.remove("TTPoPy")
 settings.active_samples.remove("TTMCNLO")
 settings.active_samples.remove("TTMadG")
 settings.active_samples.remove("TTGamRD1")
@@ -101,8 +101,8 @@ if settings.do_sys_uncert:
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-    plots_summary.RootPlotConverter,
-    plots_summary.CopyTool,
+#    plots_summary.RootPlotConverter,
+#    plots_summary.CopyTool,
 #    plots_summary.TexCompiler,
 ]
 

@@ -14,7 +14,9 @@ settings.cfg_common_builtins.update({
 })
 
 path_pc_0823 = "file:/user/tholen/eventFiles/fromGrid20130823/"
-path_pc = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
+path_pc_0618 = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
+path_pc = "file:/user/tholen/eventFiles/20130828Skim/"
+postfix = "/out_*.root"
 
 ttbar_xsec = settings.ttbar_xsec
 ttbar_xsec_err = settings.ttbar_xsec_err
@@ -24,7 +26,7 @@ class whiz2to5(smp.Sample):
         self.legend      = "t#bar{t}#gamma (Signal)"
         self.x_sec       = .9081 * 2.0
         self.n_events    = 1074860
-        self.input_files = path_pc + "whiz_*.root" # n_events!!!
+        self.input_files = path_pc + "WHIZ" + postfix
         self.cfg_builtin = {"preSelOpt": "go4Whiz"}
         super(whiz2to5, self).__init__()
 
@@ -33,7 +35,7 @@ class T_t(smp.Sample):
         self.legend      = "Single Top"
         self.x_sec       = 56.4
         self.n_events    = 99876
-        self.input_files = path_pc + 'T_t_*.root'
+        self.input_files = path_pc + 'T_t' + postfix
         super(T_t, self).__init__()
 
 class Tbar_t(smp.Sample):
@@ -41,7 +43,7 @@ class Tbar_t(smp.Sample):
         self.legend      = "Single Top"
         self.x_sec       = 30.7
         self.n_events    = 1935072
-        self.input_files = path_pc + 'Tbar_t_*.root'
+        self.input_files = path_pc + 'Tbar_t' + postfix
         super(Tbar_t, self).__init__()
 
 class T_tW(smp.Sample):
@@ -49,7 +51,7 @@ class T_tW(smp.Sample):
         self.legend      = "Single Top"
         self.x_sec       = 11.1
         self.n_events    = 497658
-        self.input_files = path_pc + 'T_tW_*.root'
+        self.input_files = path_pc + 'T_tW' + postfix
         self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:1085:325342-1:1085:325342")']
         super(T_tW, self).__init__()
 
@@ -58,7 +60,7 @@ class Tbar_tW(smp.Sample):
         self.legend      = "Single Top"
         self.x_sec       = 11.1
         self.n_events    = 493460
-        self.input_files = path_pc + 'Tbar_tW_*.root'
+        self.input_files = path_pc + 'Tbar_tW' + postfix
         super(Tbar_tW, self).__init__()
 
 class TTPoPy(smp.Sample):
@@ -66,7 +68,7 @@ class TTPoPy(smp.Sample):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
         self.n_events    = 6474753
-        self.input_files = path_pc + 'TTPoPy_*.root'
+        self.input_files = path_pc + 'TTPoPy' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         super(TTPoPy, self).__init__()
 
@@ -75,7 +77,7 @@ class TTPoHe(smp.Sample):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
         self.n_events    = 7000000
-        self.input_files = path_pc + 'TTPoHe_*.root'
+        self.input_files = path_pc + 'TTPoHe' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         super(TTPoHe, self).__init__()
 
@@ -84,7 +86,7 @@ class TTMadG(smp.Sample):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
         self.n_events    = 6854514
-        self.input_files = path_pc + 'TTJets_*.root'
+        self.input_files = path_pc + 'TTJets' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         #self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
         super(TTMadG, self).__init__()
@@ -94,17 +96,33 @@ class TTMCNLO(smp.Sample):
         self.legend      = "t#bar{t} inclusive"
         self.x_sec       = ttbar_xsec
         self.n_events    = 4900000
-        self.input_files = path_pc + 'TTNLO_*.root'
+        self.input_files = path_pc + 'TTNLO' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         self.cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
         super(TTMCNLO, self).__init__()
+
+class TTGamRD1(smp.Sample):
+    def __init__(self):
+        self.legend      = "Real Photons"
+        self.x_sec       = 1.6
+        self.n_events    = 1719954
+        self.input_files = path_pc + "TTGamRD1" + postfix
+        super(TTGamRD1, self).__init__()
+
+class TTJeRD1(smp.Sample):
+    def __init__(self):
+        self.legend      = "Fake Photons"
+        self.x_sec       = ttbar_xsec
+        self.n_events    = 6621325
+        self.input_files = path_pc + "TTJetsRD1" + postfix
+        super(TTJeRD1, self).__init__()
 
 class WJets(smp.Sample):
     def __init__(self):
         self.legend      = "W + Jets"
         self.x_sec       = 37509.
         self.n_events    = 57709905
-        self.input_files = path_pc + 'WJets_*.root'
+        self.input_files = path_pc + 'WJets' + postfix
         super(WJets, self).__init__()
 
 class DYJets(smp.Sample):
@@ -112,7 +130,7 @@ class DYJets(smp.Sample):
         self.legend      = "DY + Jets"
         self.x_sec       = 3503.71
         self.n_events    = 30307207
-        self.input_files = path_pc + 'DYJets_*.root'
+        self.input_files = path_pc + 'DYJets' + postfix
         super(DYJets, self).__init__()
 
 class RunA(smp.Sample):
@@ -120,7 +138,7 @@ class RunA(smp.Sample):
         self.is_data     = True
         self.legend      = "Data"
         self.lumi        = 889.301 #lumiCalc2
-        self.input_files = path_pc + 'RunA_*.root'
+        self.input_files = path_pc + 'RunA' + postfix
         self.cfg_builtin = {}
         super(RunA, self).__init__()
 
@@ -129,7 +147,7 @@ class RunB(smp.Sample):
         self.is_data     = True
         self.legend      = "Data"
         self.lumi        = 4425.7 #558.738 + 3867. #lumiCalc2
-        self.input_files = path_pc + 'RunB_*.root'
+        self.input_files = path_pc + 'RunB' + postfix
         self.cfg_builtin = {}
         super(RunB, self).__init__()
 
@@ -138,7 +156,7 @@ class RunC(smp.Sample):
         self.is_data     = True
         self.legend      = "Data"
         self.lumi        = 7147.7 #lumiCalc2
-        self.input_files = path_pc + 'RunC_*.root'
+        self.input_files = path_pc + 'RunC' + postfix
         self.cfg_builtin = {}
         super(RunC, self).__init__()
 
@@ -147,24 +165,7 @@ class RunD(smp.Sample):
         self.is_data     = True
         self.legend      = "Data"
         self.lumi        = 7318. #lumiCalc2
-        self.input_files = path_pc + 'RunD_*.root'
+        self.input_files = path_pc + 'RunD' + postfix
         self.cfg_builtin = {}
         super(RunD, self).__init__()
-
-class TTGamRD1(smp.Sample):
-    def __init__(self):
-        self.legend      = "Real Photons"
-        self.x_sec       = 1.6
-        self.n_events    = 1719954
-        self.input_files = path_pc_0823 + "TTGamRD1*.root"
-        super(TTGamRD1, self).__init__()
-
-class TTJeRD1(smp.Sample):
-    def __init__(self):
-        self.legend      = "Fake Photons"
-        self.x_sec       = ttbar_xsec
-        self.n_events    = 6621325
-        self.input_files = path_pc_0823 + "TTJeRD1*.root"
-        super(TTJeRD1, self).__init__()
-
 
