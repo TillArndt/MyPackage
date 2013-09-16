@@ -93,6 +93,11 @@ process.InputProducerSequence = cms.Sequence()
 if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
     process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
     process.InputProducerSequence *= process.topPtSequenceTTBar
+    
+    # make btag weight only (non convoluted with previous ones)
+    process.bTagWeightVanilla = process.bTagWeight.clone(weights="")
+    process.InputProducerSequence *= process.bTagWeightVanilla
+    process.bTagWeightHisto.src = "bTagWeightVanilla"
 
 # btag weight
 process.bTagWeight.weights = process.puWeight.weights
