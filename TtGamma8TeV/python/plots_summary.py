@@ -4,8 +4,7 @@ import glob
 import copy
 import subprocess
 import shutil
-import cmstoolsac3b.settings as settings
-import cmstoolsac3b.wrappers as wrappers
+from cmstoolsac3b import settings, wrappers, diskio
 import cmstoolsac3b.postprocessing as ppc
 import plots_xsec
 from plots_commons import copy_tex_to_target_dir
@@ -19,6 +18,8 @@ summed_uncerts = [
 #    "SysPhotonETCut",
     "SysSelEffSig",
     "SysSelEffBkg",
+    "SysTopPt",
+    "SysBTagWeight",
 ]
 
 result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]
@@ -154,6 +155,30 @@ class ResultTexifier(ppc.PostProcTool):
                 getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R") * 100.
                 ))+"\\,\\%")
 
+    def write_snippets_for_latexit(self):
+        res = self.result
+        wrp = wrappers.Wrapper(
+            name="LatexitSnippets",
+            xsec_ttgam=
+            r"\sigma_{t \bar t+\gamma} \;&=\; R\;\cdot \;\sigma_{t\bar t} \\ &=\; "
+            + (r"%.1f" % res.xsec)
+            + (r"\;\pm \;%.1f{\rm (stat.)}" % res.xsec_err_stat)
+            + (r" \;\pm \;%.1f{\rm (syst.)} \,\tn{pb}" % res.xsec_err_sys),
+            R_result=
+            r"\begin{align*} "
+            + (r"\pi_{t\bar t} = %.1f" % (res.pur_tt*100)) + r"\,\% \\ "
+            + (r"\pi_{t\bar t+\gamma} = %.1f" % (res.pur_ttgam*100)) + r"\,\% \\ "
+            + (r"\epsilon_\gamma = %.1f" % (res.eff_gamma*100)) + r"\,\% \\ "
+            + (r"\Rightarrow R \;=\;(%.2f " % (res.R*100))
+            + (r"\;\pm %.2f^\tn{fit})\cdot 10^{-2} " % (res.R_err_stat*100))
+            + r"\end{align*} ",
+        )
+        diskio.write(wrp)
+        with open(self.plot_output_dir + "__LATEXIT_xsec.tex", "w") as f:
+            f.write(wrp.xsec_ttgam + "\n")
+        with open(self.plot_output_dir + "__LATEXIT_R.tex", "w") as f:
+            f.write(wrp.R_result + "\n")
+
     def write_uncert_tabular(self):
         res = self.result
         table = [
@@ -218,6 +243,7 @@ class ResultTexifier(ppc.PostProcTool):
             settings.post_proc_dict["ResultSummary_" + self.xsec_calc]
         )
         self.write_tex_snippets()
+        self.write_snippets_for_latexit()
         self.write_uncert_tabular()
         copy_tex_to_target_dir(self)
 

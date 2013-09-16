@@ -19,28 +19,6 @@ class XsecCalculator(ppc.PostProcTool):
     def configure(self):
         pass
 
-#    def load_fit_results(self):
-#        fit_res = wrappers.Wrapper.create_from_file(self.fir_res_dir)
-#        parameters      = {}
-#        mc_cont         = {}
-#        data_cont       = {}
-#        data_cont_err   = {}
-#        for i, legend in enumerate(fit_res.legend):
-#            parameters[legend]      = (fit_res.value[i], fit_res.error[i])
-#            mc_cont[legend]         = fit_res.binIntegralMC[i]
-#            data_cont[legend]       = fit_res.binIntegralScaled[i]
-#            data_cont_err[legend]   = fit_res.binIntegralScaledError[i]
-#
-#        # fit result
-#        fit_param, mc_cont, data_cont, data_cont_err, fit_res = self.load_fit_results()
-#        r.N_MC_predict  = mc_cont[self.fit_template_name]
-#        r.N_fit         = data_cont[self.fit_template_name]
-#        r.N_fake        = data_cont[self.fake_template_name]
-#        r.N_data_tmpl   = fit_res.dataIntegral
-#        r.N_fit_err     = data_cont_err[self.fit_template_name]
-#
-#        return parameters, mc_cont, data_cont, data_cont_err, fit_res
-
     def run(self):
         self.configure()
 
@@ -50,7 +28,6 @@ class XsecCalculator(ppc.PostProcTool):
 
         # store results in wrapper
         r = copy.deepcopy(self.n_sig_ttgam_wrp)
-        print r
         r.name = self.name
         self.result = r
 
@@ -91,6 +68,7 @@ class XsecCalculator(ppc.PostProcTool):
         r.eff_gamma     = c.sig_post / c.sig_pre
         r.eff_gamma_fid = c.sig_post / c.sig_fid
         r.pur_tt        = (c.tt_pre + c.sig_pre) / (c.bkg_pre + c.sig_pre)
+        self.message(str(("WWWWWAAAAA ", self.plot_output_dir, "(", c.tt_pre, "+", c.sig_pre, ") / (", c.bkg_pre, "+", c.sig_pre,")")))
         r.N_presel_data = c.data_pre
         r.N_sel_data    = c.data_post
         r.StoB_gamma    = c.sig_post / c.bkg_post
@@ -134,6 +112,12 @@ class XsecCalculatorChHadIso(XsecCalculator):
         self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolChHadIso")
 
 
+class XsecCalculatorChHadIsoSbBkg(XsecCalculator):
+    def configure(self):
+        self.post_count_name = "FiltLooseIDSihihSigRegCountPost,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolChHadIsoSbBkg")
+
+
 class XsecCalculatorABCD(XsecCalculator):
     def configure(self):
         self.post_count_name = "Nm1CountPostsihihEB,"
@@ -154,9 +138,10 @@ class XsecCalculatorShilpi(XsecCalculator):
 
 
 XsecCalculators = ppc.PostProcChain("XsecCalculators", [
-    XsecCalculatorSihih,
-    XsecCalculatorSihihShift,
-    XsecCalculatorChHadIso,
+#    XsecCalculatorSihih,
+#    XsecCalculatorSihihShift,
+#    XsecCalculatorChHadIso,
+    XsecCalculatorChHadIsoSbBkg,
 #    XsecCalculatorShilpi,
 #    XsecCalculatorABCD,
 ])

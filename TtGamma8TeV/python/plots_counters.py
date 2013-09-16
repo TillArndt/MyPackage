@@ -35,14 +35,22 @@ class TopPtWeightNorm(pp.PostProcTool):
         token = "AverageTopPtWeight,"
         finished_procs = list(
             p
-                for p in settings.cmsRun_procs
-                if p.successful()
+            for p in settings.cmsRun_procs
+            if p.successful()
         )
         for p in finished_procs:
             av_weight = p.sample.log_event_counts.get(token)
             if av_weight:
+                self.message(
+                    "Applying top pt norm factor of "
+                    + str(av_weight)
+                    + " to sample "
+                    + p.name
+                )
                 p.sample.n_events   *= av_weight
                 p.sample.lumi       *= av_weight
+                for k in p.sample.log_event_counts.iterkeys():
+                    p.sample.log_event_counts[k] *= av_weight
 
 
 class SampleEventCount(pp.PostProcTool):

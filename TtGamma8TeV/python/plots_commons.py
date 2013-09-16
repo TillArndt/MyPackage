@@ -118,10 +118,14 @@ pn["pho. iso_tex"            ]    = "pho. iso"
 pn["#DeltaR(#gamma, #mu)_tex"]    = r"$\Delta R(\gamma, \mu)$"
 pn["#DeltaR(#gamma, j)_tex"  ]    = r"$\Delta R(\gamma, j)$"
 
-pn["TemplateSihihreal"]         = "real"
-pn["TemplateSihihfake"]         = "fake"
-#pn["realTemplateChHadIso"]      = "real"
-#pn["fakeTemplateChHadIso"]      = "fake"
+pn.update({
+    "TemplateSihihreal"         : "real",
+    "TemplateSihihfake"         : "fake",
+    "TemplateChHadIsoreal"      : "real",
+    "TemplateChHadIsofake"      : "fake",
+    "PlotLooseIDSihihSigRegreal": "real",
+    "PlotLooseIDSihihSidBanfake": "fake",
+})
 
 pn.update({
     "SysIsrFsr"             : "sho./hadr.",

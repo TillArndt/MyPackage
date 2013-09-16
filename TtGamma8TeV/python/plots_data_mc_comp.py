@@ -25,9 +25,10 @@ def generate_data_mc_comp_tools():
 #        re.compile("DataMCCompPhotons"),
         re.compile("DataMCJetCheck"),
         re.compile("DataMCMuonCheck"),
-        re.compile("BkgTmpltPlot"),
+        re.compile("PlotLooseID"),
 #        re.compile("DataMCPhotonCheck"),
 #        re.compile("WeightsCheck"),
+        re.compile("bTagWeightHisto"),
         ]
     list_of_tools = []
     for at in analyzer_pats:

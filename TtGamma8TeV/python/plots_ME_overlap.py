@@ -9,12 +9,12 @@ import re
 class MEOverlapComp(pstprc.PostProcTool):
     def run(self):
 
-        kicked = gen.fs_filter_sort_load(
+        kicked = gen.fs_filter_active_sort_load(
             {"sample":"TTJetsSignal",
              "analyzer":"ttbarPhotonMergerSingleCall",
              "name":re.compile("\S*Kicked")}
         )
-        whizard = gen.fs_filter_sort_load(
+        whizard = gen.fs_filter_active_sort_load(
             {"sample":"whiz2to5",
              "analyzer":"photonsSignalMEanalyzer"}
         )

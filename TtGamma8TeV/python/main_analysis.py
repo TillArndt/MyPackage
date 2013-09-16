@@ -22,7 +22,7 @@ settings.ttbar_xsec_cms_err = (
     + settings.ttbar_xsec_cms_syst**2
     + settings.ttbar_xsec_cms_lum**2
 )**.5
-settings.do_sys_uncert = False #not "--noSys" in sys.argv
+settings.do_sys_uncert = not "--noSys" in sys.argv
 
 import plots_commons  # sets style related things
 from cmstoolsac3b.sample import load_samples
@@ -30,7 +30,7 @@ import samples_cern
 settings.samples = {}
 settings.samples.update(load_samples(samples_cern))
 settings.active_samples = settings.samples.keys() # add all MC and data
-settings.active_samples.remove("TTPoPy")
+settings.active_samples.remove("TTPoHe")
 settings.active_samples.remove("TTMCNLO")
 settings.active_samples.remove("TTMadG")
 settings.active_samples.remove("TTGamRD1")
@@ -56,7 +56,6 @@ import plots_templ_fit_closure
 
 post_proc_sys = [
 #    plots_ME_overlap.MEOverlapComp,
-    plots_cutflow.cutflow_chain,
     plots_commons.TightIdPurityCount,
     plots_commons.RealTightIdPurityCount,
     plots_template_fit.TemplateFitTools,
@@ -74,15 +73,18 @@ if settings.do_sys_uncert:
     sys_uncert.makeSysSamplesDRCut()
     sys_uncert.makeSysSamplesETCut()
     sys_uncert.makeSysSamplesBTag()
+    sys_uncert.makeSysSamplesBTagWeight()
 
 post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
     plots_counters.CounterReader,
-#    plots_counters.TopPtWeightNorm,
+    plots_counters.TopPtWeightNorm,
+    plots_cutflow.cutflow_chain,
     plots_data_mc_comp.generate_data_mc_comp_tools(),
     plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
+post_proc_tools += [plots_templ_fit_closure.make_closure_test_sequence_chhadiso()]
 if settings.do_sys_uncert:
     post_proc_tools += [
         sys_uncert.SysPU(None, post_proc_sys),
@@ -90,14 +92,14 @@ if settings.do_sys_uncert:
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
+        sys_uncert.SysBTagWeight.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
         sys_uncert.SysIsrFsr(None,
             post_proc_sys + [sys_uncert.SysMCatNLO(None, post_proc_sys)]
         ),
         sys_uncert.SysMadgraph(None, post_proc_sys),
         plots_summary.ResultSummaries,
-        plots_summary.ResultTexifierMethodComp,
-        plots_summary.ResultTexifier("XsecCalculatorSihihShift"),
+        plots_summary.ResultTexifier("XsecCalculatorChHadIsoSbBkg"),
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,

@@ -1,5 +1,6 @@
 
-import cmstoolsac3b.settings as settings
+from cmstoolsac3b import settings
+from cmstoolsac3b import diskio
 import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.postproctools as ppt
 import plots_commons as com
@@ -15,8 +16,7 @@ class DataMCSigTemplate(ppt.FSStackPlotter):
             for wrp in wrps:
                 w = wrp[0]
                 name = settings.dir_result + w.analyzer
-                w.write_root_file(name + ".root")
-                w.write_info_file(name + ".info")
+                diskio.write(w, name + ".info")
                 yield wrp
         self.stream_stack = save_histos(self.stream_stack)
 

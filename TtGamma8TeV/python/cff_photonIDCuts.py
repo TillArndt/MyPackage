@@ -9,6 +9,7 @@ try:
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
 
+import copy
 import FWCore.ParameterSet.Config as cms
 
 if puWeight:
@@ -64,79 +65,91 @@ histo_post = {
 }
 
 cuts = {
-    "drmuon" : (
+    "drmuon" : [
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi) > 0.7'
         ,0.,5.,50,
         "#DeltaR(photon, muon)",
         'deltaR(eta, phi, overlaps("muons")[0].eta, overlaps("muons")[0].phi)'
-    ),
-    "drjet" : (
+    ],
+    "drjet" : [
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) > 0.7 || deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi) < 0.3',
         0.,5.,50,
         "#DeltaR(photon, jet)",
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
-    ),
+    ],
 
 # FIDUCIALIZATION / CONVENIENCE CUTS
     #"eta" : ("abs(eta)<1.4442 || 1.556<abs(eta)<2.5", -4, 4, 80, "#eta", "eta"),
     #"etaEE" : ("1.556<abs(eta)<2.5",-4, 4, 80, "#eta", "eta"),
-    "etaEB" : (
+    "etaEB" : [
         "abs(eta)<1.4442",
         -4., 4., 80,
         "#eta",
         "eta"
-    ),
-    "etcut" : (
+    ],
+    "etcut" : [
         "et>"+str(etCutValue),
         0., 700., 70,
         "E_{T} / GeV",
         "et"
-    ),
+    ],
 
 # ZE OFFICIAL PHOTON ID
-    "passEleVeto" : (
+    "passEleVeto" : [
         "userFloat('passEleVeto') > 0.5",
         -.5, 1.5, 2,
         "passes conv. ele. veto",
         "userFloat('passEleVeto')"
-    ),
-    "hadTowOverEm" : (
-        "hadTowOverEm<0.05",
+    ],
+    "hadTowOverEm" : [
+        "hadTowOverEm < 0.05",
         0., 1., 20,
         "H/E",
         "hadTowOverEm"
-    ),
-    "sihihEB" : (
-        "sigmaIetaIeta<0.011", # EE: 0.031
+    ],
+    "sihihEB" : [
+        "sigmaIetaIeta < 0.011", # EE: 0.031
         0., 0.03, 60,
         "#sigma_{i #eta i #eta}",
         "sigmaIetaIeta"
-    ),
-    "chargedHadronIsoEB" : (
+    ],
+    "chargedHadronIsoEB" : [
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 40,
-        "PF charged hadron isolation (#rho corrected) / GeV",
+        "PF charged hadron isolation / GeV",
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
-    ),
-    "neutralHadronIsoEB" : (
+    ],
+    "neutralHadronIsoEB" : [
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.) < (0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
         0., 10., 40,
-        "PF neutral hadron isolation (#rho corrected) / GeV",
+        "PF neutral hadron isolation / GeV",
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
-    ),
-    "photonIsoEB" : (
+    ],
+    "photonIsoEB" : [
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.) < (0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
         0., 10., 40,
-        "PF photon isolation (#rho corrected) / GeV",
+        "PF photon isolation / GeV",
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
-    ),
-    "chargedisoSCFootRmEB" : (
+    ],
+    "chargedisoSCFootRmEB" : [
         "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 40,
-        "PF charged hadron isolation (#rho corrected) / GeV",
+        "PF charged hadron isolation / GeV",
         "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
-    ),
+    ],
 }
+
+def update_cut(cuts_dict, cut_id, new_cut):
+    cuts_dict[cut_id][0] = cuts_dict[cut_id][5] + new_cut
+cuts_loose = dict((k,copy.deepcopy(v)) for k,v in cuts.iteritems())
+update_cut(cuts_loose, "sihihEB",               " < 0.012")
+update_cut(cuts_loose, "chargedHadronIsoEB",    " < 2.6")
+update_cut(cuts_loose, "neutralHadronIsoEB",    " < (3.5 + 0.04*pt)")
+update_cut(cuts_loose, "photonIsoEB",           " < (1.3 + 0.005*pt)")
+
+
+cuts_for_plot = cuts_loose
+
 
 def loose_deno_cuts(lower_cut_with_sieie = True):
     """Implementation of cutstrings for loose deno id"""
@@ -188,11 +201,9 @@ cut_key_order = [
     ]
 num_cut_keys = len(cut_key_order)
 
-all_cuts = ""
-for key in cuts:
-    all_cuts += cuts[key][0] + " && "
-print "\nApplied Photon Cuts (in order): \n"+"\n".join(cut_key_order)+"\n\n"
-#TODO: print cuts to, in a table, not only keys
+print "\nApplied Photon Cuts (in order): \n"+"\n".join(
+    "%20s : %s"%(k, cuts_for_plot[k][0]) for k in cut_key_order
+)+"\n\n"
 
 def make_cutflow_token(cut):
     if cut in cut_key_order:
@@ -271,7 +282,7 @@ def add_photon_cuts(process):
         new_producer = "PhotonProducer" + cut_key
         PhotonProdTmp = cms.EDFilter("PATPhotonSelector",
             src = cms.InputTag(last_producer),
-            cut = cms.string(cuts[cut_key][0]),
+            cut = cms.string(cuts_for_plot [cut_key][0]),
             filter = cms.bool(False)
         )
         setattr(process, new_producer, PhotonProdTmp)
@@ -285,7 +296,7 @@ def add_photon_cuts(process):
 
         ##################################################### selectionPath ###
         # Before Cut: Control Plot for cut on actual distribution
-        CrtlPlotTmp = make_histo_analyzer(last_producer, cuts[cut_key])
+        CrtlPlotTmp = make_histo_analyzer(last_producer, cuts_for_plot [cut_key])
         setattr(process, "CrtlPlotInter" + cut_key, CrtlPlotTmp)
 
         # Filter for selectionPath
@@ -335,7 +346,7 @@ def add_photon_cuts(process):
         # make one cut string for the N-1 plots
         cutkeys_Nm1 = cut_key_order[:]
         cutkeys_Nm1.remove(cut_key)
-        cuts_Nm1_list = list(cuts[cutkey][0] for cutkey in cutkeys_Nm1)
+        cuts_Nm1_list = list(cuts_for_plot [cutkey][0] for cutkey in cutkeys_Nm1)
         cuts_Nm1_str = "( " + ") && (".join(cuts_Nm1_list) + " )"
 
         # Filter for n - 1 plot
@@ -346,7 +357,7 @@ def add_photon_cuts(process):
         )
 
         # n - 1 Plot
-        Nm1Plot = make_histo_analyzer("Nm1Filt" + cut_key, cuts[cut_key])
+        Nm1Plot = make_histo_analyzer("Nm1Filt" + cut_key, cuts_for_plot [cut_key])
 
         # Filter for n - 1 plot
         Nm1FiltBlocking = cms.EDFilter("PATPhotonSelector",
@@ -385,7 +396,7 @@ def add_photon_cuts(process):
 
     ############################## input counter and counter after fid cuts ###
     # fiducialization cuts filter
-    cuts_fid_list = list(cuts[cutkey][0] for cutkey in ["etcut", "etaEB",])
+    cuts_fid_list = list(cuts_for_plot [cutkey][0] for cutkey in ["etcut", "etaEB",])
     cuts_fid_str = "( " + ") && (".join(cuts_fid_list) + " )"
     process.FidFiltBlocking = cms.EDFilter("PATPhotonSelector",
         src = cms.InputTag("photonInputDummy"),
@@ -424,7 +435,7 @@ def add_photon_cuts(process):
     # Blocking Filter for only complete tight ID events
     process.FullTightIDBlocking = cms.EDFilter("PATPhotonSelector",
         src = cms.InputTag("Nm1FiltsihihEB"),
-        cut = cms.string(cuts["sihihEB"][0]),
+        cut = cms.string(cuts_for_plot["sihihEB"][0]),
         filter = cms.bool(True)
     )
 

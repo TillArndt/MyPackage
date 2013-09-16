@@ -49,7 +49,7 @@ process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
 
-process.widenedCocPatPhotons.src = "photonUserDataLargestPdgId"
+process.widenedCocPatPhotons.src = "photonUserDataSCFootRm"
 process.photonInputDummy = cms.EDFilter("PATPhotonSelector",
     src = cms.InputTag("widenedCocPatPhotons"),
     cut = cms.string("et > 25. && abs(eta) < 1.4442"),

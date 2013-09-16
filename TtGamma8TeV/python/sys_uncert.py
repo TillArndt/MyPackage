@@ -1,8 +1,9 @@
 
 import copy
 import cmstoolsac3b.postprocessing as ppc
-import cmstoolsac3b.settings as settings
-import cmstoolsac3b.wrappers as wrappers
+from cmstoolsac3b import diskio
+from cmstoolsac3b import settings
+from cmstoolsac3b import wrappers
 from cmstoolsac3b.generators import _iterableize
 from plots_summary import result_quantities, xsec_calc_name_iter
 
@@ -34,7 +35,7 @@ class SysBase(ppc.PostProcChainVanilla):
         wrp.formula = "abs(new - old) / old"
         for calc in xsec_calc_name_iter():
             self.calc_uncert(calc, wrp)
-        wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
+        diskio.write(wrp, settings.dir_result + "sys_uncert_result.info")
         settings.persistent_dict[self.name] = wrp
 
     def calc_uncert(self, xsec_calc, wrp):
@@ -65,7 +66,7 @@ class SysGroup(ppc.PostProcChain):
         wrp.__dict__.update(result)
         settings.persistent_dict[self.name] = wrp
         wrp.formula = formula
-        wrp.write_info_file(settings.dir_result + "sys_uncert_result.info")
+        diskio.write(wrp, settings.dir_result + "sys_uncert_result.info")
         self.message("INFO Group uncertainty results: " + str(wrp))
 
 
@@ -125,7 +126,7 @@ class SysMCatNLO(SysBase):
 #################################################################### pileup ###
 def makeSysSamplesPU():
     mc_samples = settings.mc_samples()
-    for name, smp_old in mc_samples.iteritems():
+    for name in mc_samples.iterkeys():
         makeSysSample(
             name,
             name + "_PU",
@@ -135,12 +136,59 @@ def makeSysSamplesPU():
 class SysPU(SysBase):
     def prepare_for_systematic(self):
         mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
         pu_samples = list(s + "_PU" for s in mc_samples)
-        for s in mc_samples:
-            settings.active_samples.remove(s)
-        settings.active_samples += pu_samples
+        settings.active_samples = pu_samples + da_samples
         super(SysPU, self).prepare_for_systematic()
 
+
+########################################################## btag reweighting ###
+def makeSysSamplesBTagWeight():
+    mc_samples = settings.mc_samples()
+    for name in mc_samples.iterkeys():
+        makeSysSample(
+            name,
+            name + "_BTagWeightMinus",
+            {}
+        )
+        makeSysSample(
+            name,
+            name + "_BTagWeightPlus",
+            {}
+        )
+        settings.samples[name + "_BTagWeightMinus"].cfg_add_lines += (
+            "process.bTagWeight.errorMode = -1",
+        )
+        settings.samples[name + "_BTagWeightPlus"].cfg_add_lines += (
+            "process.bTagWeight.errorMode = +1",
+        )
+
+
+class SysBTagWeightMinus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        btag_samples = list(s + "_BTagWeightMinus" for s in mc_samples)
+        settings.active_samples = btag_samples + da_samples
+        super(SysBTagWeightMinus, self).prepare_for_systematic()
+
+
+class SysBTagWeightPlus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        btag_samples = list(s + "_BTagWeightPlus" for s in mc_samples)
+        settings.active_samples = btag_samples + da_samples
+        super(SysBTagWeightPlus, self).prepare_for_systematic()
+
+
+SysBTagWeight = SysGroupMax(
+    "SysBTagWeight",
+    [
+        SysBTagWeightMinus,
+        SysBTagWeightPlus
+    ]
+)
 
 ######################################################## top-pt reweighting ###
 def makeSysSamplesTopPt():
@@ -159,7 +207,7 @@ def makeSysSamplesTopPt():
 
 class SysTopPtMinus(SysBase):
     def prepare_for_systematic(self):
-        for name in settings.active_samples:
+        for name in settings.active_samples[:]:
             opt = settings.samples[name].cfg_builtin.get("preSelOpt")
             if opt in ("doOverlapRemoval", "go4Whiz"):
                 settings.active_samples.remove(name)
@@ -169,7 +217,7 @@ class SysTopPtMinus(SysBase):
 
 class SysTopPtPlus(SysBase):
     def prepare_for_systematic(self):
-        for name in settings.active_samples:
+        for name in settings.active_samples[:]:
             opt = settings.samples[name].cfg_builtin.get("preSelOpt")
             if opt in ("doOverlapRemoval", "go4Whiz"):
                 settings.active_samples.remove(name)
@@ -309,8 +357,9 @@ SysPhotonETCut = SysGroupMax(
 def makeSysSamplesBTag():
     for name in settings.active_samples:
         makeSysSample(name, name + "_BTags", {})
-        settings.samples[name + "_BTags"].cfg_add_lines.append(
-            "process.bTagCounter.minNumber = 2"
+        settings.samples[name + "_BTags"].cfg_add_lines += (
+            "process.bTagCounter.minNumber = 2",
+            "process.bTagWeight.twoBTagMode = True"
         )
 
 class SysBTags(SysBase):

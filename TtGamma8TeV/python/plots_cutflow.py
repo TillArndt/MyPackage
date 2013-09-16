@@ -1,11 +1,11 @@
 
-
+from cmstoolsac3b import diskio
+from cmstoolsac3b import settings
+from cmstoolsac3b import wrappers
 import cmstoolsac3b.postprocessing as pp
 import cmstoolsac3b.postproctools as ppt
 import cmstoolsac3b.generators as gen
-import cmstoolsac3b.settings as settings
 import cmstoolsac3b.decorator as dec
-import cmstoolsac3b.wrappers as wrappers
 import plots_commons as com
 import itertools
 import re
@@ -18,7 +18,6 @@ legend_key_func = lambda w: settings.get_stack_position(w.sample)
 
 class CutflowHistos(pp.PostProcTool):
     """Prepares cutflow histos for all samples, stores them in histo pool."""
-    has_output_dir = False
 
     def combine_cutflow_histo(self, grp):
         """Adds histos with single bins to a combined cutflow histogram."""
@@ -50,7 +49,7 @@ class CutflowHistos(pp.PostProcTool):
         wrps = (self.combine_cutflow_histo(g) for g in grps)
         wrps = gen.pool_store_items(wrps)
         wrps = list(wrps)
-        settings.post_proc_dict["CutflowHistos"] = wrps
+        self.result = wrps
         count = len(wrps)
         self.message("INFO: "+self.name+" stored "+str(count)+" histos in pool.")
 
@@ -85,6 +84,7 @@ class CutflowStack(ppt.FSStackPlotter):
 
 class CutflowTableContent(pp.PostProcTool):
     """Generates cutflow table data."""
+    can_reuse = False
     has_output_dir = False
 
     def __init__(self, name = None):
@@ -231,7 +231,7 @@ class CutflowTableTxt(pp.PostProcTool):
         wrp = wrappers.Wrapper(name="CutflowTableTxt")
         for i, line in enumerate(self.table_lines):
             setattr(wrp, "line_%2d"%i, line)
-        wrp.write_info_file(self.plot_output_dir + "cutflow_table.info")
+        diskio.write(wrp, self.plot_output_dir + "cutflow_table.info")
 
     def run(self):
         self.configure()
@@ -313,7 +313,7 @@ class CutflowTableTex(pp.PostProcTool):
         wrp = wrappers.Wrapper(name="CutflowTableTex")
         for i, line in enumerate(self.table_lines):
             setattr(wrp, "line_%2d"%i, line)
-        wrp.write_info_file(self.plot_output_dir + "cutflow_table.info")
+        diskio.write(wrp, self.plot_output_dir + "cutflow_table.info")
 
     def copy_to_target_dir(self):
         if not self.target_dir:

@@ -8,14 +8,14 @@ import cmstoolsac3b.postprocessing as ppc
 class RealPhotonsABCD(ppc.PostProcTool):
     def configure(self):
         self.data_sihih = gen.op.sum(
-            gen.fs_filter_sort_load({
+            gen.fs_filter_active_sort_load({
                 "analyzer"  : "dataTemplateFitHistoSihih",
                 "name"      : "sihihEB",
                 "is_data"   : True,
                 })
         )
         self.data_sihih_bkg = gen.op.sum(
-            gen.fs_filter_sort_load({
+            gen.fs_filter_active_sort_load({
                 "analyzer"  : "Nm1PlotSihihChHadIsoInv",
                 "name"      : "histo",
                 "is_data"   : True,
@@ -35,13 +35,13 @@ class RealPhotonsABCD(ppc.PostProcTool):
         data_sihih          = self.data_sihih
         data_sihih_bkg      = self.data_sihih_bkg
         mc_chhadiso_real    =  gen.op.merge(
-            gen.fs_filter_sort_load({
+            gen.fs_filter_active_sort_load({
                 "analyzer"  : "realNm2PlotchargedHadronIsoEB",
                 "name"      : "histo",
             })
         )
         mc_chhadiso_fake    = gen.op.merge(
-            gen.fs_filter_sort_load({
+            gen.fs_filter_active_sort_load({
                 "analyzer"  : "fakeNm2PlotchargedHadronIsoEB",
                 "name"      : "histo",
             })
@@ -94,7 +94,7 @@ class RealPhotonsABCDMC(RealPhotonsABCD):
         data_lumi = settings.data_lumi_sum_wrp()
         self.data_sihih = gen.op.prod((
             gen.op.merge(
-                gen.fs_filter_sort_load({
+                gen.fs_filter_active_sort_load({
                     "analyzer"  : "dataTemplateFitHistoSihih",
                     "name"      : "sihihEB",
                     "is_data"   : False,
@@ -104,7 +104,7 @@ class RealPhotonsABCDMC(RealPhotonsABCD):
         ))
         self.data_sihih_bkg = gen.op.prod((
             gen.op.merge(
-                gen.fs_filter_sort_load({
+                gen.fs_filter_active_sort_load({
                     "analyzer"  : "Nm1PlotSihihChHadIsoInv",
                     "name"      : "histo",
                     "is_data"   : False,

@@ -94,10 +94,16 @@ if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
     process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
     process.InputProducerSequence *= process.topPtSequenceTTBar
 
+# btag weight
+process.bTagWeight.weights = process.puWeight.weights
+process.puWeight.weights = cms.untracked.InputTag("bTagWeight")
+
 # Path declarations
 process.producerPath = cms.Path(
     process.preSel *
     process.InputProducerSequence *
+    process.bTagWeight *
+    process.bTagWeightHisto *
     process.puWeight *
 #    process.photonUserDataLargestPdgId *
 #    process.jetSequence *
@@ -216,6 +222,9 @@ if skipChecks:
             'doNotHandleEmptyRunsAndLumis'
         )
 
+# btag currently not needed
+#process.preSel.remove(process.bTagRequirement)
+#process.preSel.remove(process.bTagCounter)
 
 ################################################ output module for debugging ###
 #process.out = cms.OutputModule( "PoolOutputModule",

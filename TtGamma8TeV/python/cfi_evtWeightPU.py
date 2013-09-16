@@ -15,4 +15,5 @@ puWeight = cms.EDProducer("EvtWeightPU",
 	dataFile        = cms.string(path + puWeightInput),
 	GenHistName     = cms.string("pugen"),
 	DataHistName    = cms.string("pileup"),
+    weights         = cms.untracked.InputTag(""),
 )
