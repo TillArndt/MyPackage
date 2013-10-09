@@ -8,6 +8,8 @@ from cmstoolsac3b.generators import _iterableize
 from plots_summary import result_quantities, xsec_calc_name_iter
 
 
+top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+
 ################################################## base class / preparation ###
 def makeSysSample(old_name, new_name, dict_update):
     """Utility method for generating systematic samples."""
@@ -99,6 +101,17 @@ class SysGroupAdd(SysGroup):
         super(SysGroupAdd, self).finished()
 
 
+####################################################################### fit ###
+class SysFit(SysBase):
+    def calc_uncert(self, xsec_calc, wrp):
+        res = abs(settings.post_proc_dict["Evaluator_ChHadIso_1"][1].sys_dev)
+        for q in result_quantities:
+            setattr(wrp, xsec_calc+"_"+q, res)
+            self.message(
+                "INFO Uncertainty on "
+                + xsec_calc + "_" + q + " / %: " + str(res * 100.)
+            )
+
 
 ################################################# showering / hadronization ###
 class SysIsrFsr(SysBase):
@@ -109,11 +122,18 @@ class SysIsrFsr(SysBase):
 
 
 ################################################################# generator ###
-class SysMadgraph(SysBase):
+class SysTTMadG(SysBase):
     def prepare_for_systematic(self):
         settings.active_samples.remove("TTPoPy")
         settings.active_samples.append("TTMadG")
-        super(SysMadgraph, self).prepare_for_systematic()
+        super(SysTTMadG, self).prepare_for_systematic()
+
+
+class SysTTPoPy(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples.remove("TTMadG")
+        settings.active_samples.append("TTPoPy")
+        super(SysTTPoPy, self).prepare_for_systematic()
 
 
 class SysMCatNLO(SysBase):
@@ -121,6 +141,14 @@ class SysMCatNLO(SysBase):
         settings.active_samples.remove("TTPoHe")
         settings.active_samples.append("TTMCNLO")
         super(SysMCatNLO, self).prepare_for_systematic()
+
+
+################################################################## whiz pdf ###
+class SysWhizPDF(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples.remove("whiz2to5")
+        settings.active_samples.append("whiz2to5_PDF")
+        super(SysWhizPDF, self).prepare_for_systematic()
 
 
 #################################################################### pileup ###
@@ -148,47 +176,100 @@ def makeSysSamplesBTagWeight():
     for name in mc_samples.iterkeys():
         makeSysSample(
             name,
-            name + "_BTagWeightMinus",
+            name + "_BTagWeightBCMinus",
             {}
         )
         makeSysSample(
             name,
-            name + "_BTagWeightPlus",
+            name + "_BTagWeightBCPlus",
             {}
         )
-        settings.samples[name + "_BTagWeightMinus"].cfg_add_lines += (
-            "process.bTagWeight.errorMode = -1",
+        makeSysSample(
+            name,
+            name + "_BTagWeightUDSGMinus",
+            {}
         )
-        settings.samples[name + "_BTagWeightPlus"].cfg_add_lines += (
-            "process.bTagWeight.errorMode = +1",
+        makeSysSample(
+            name,
+            name + "_BTagWeightUDSGPlus",
+            {}
+        )
+        settings.samples[name + "_BTagWeightBCMinus"].cfg_add_lines += (
+            "process.bTagWeight.errorModeBC = -1",
+        )
+        settings.samples[name + "_BTagWeightBCPlus"].cfg_add_lines += (
+            "process.bTagWeight.errorModeBC = +1",
+        )
+        settings.samples[name + "_BTagWeightUDSGMinus"].cfg_add_lines += (
+            "process.bTagWeight.errorModeUDSG = -1",
+        )
+        settings.samples[name + "_BTagWeightUDSGPlus"].cfg_add_lines += (
+            "process.bTagWeight.errorModeUDSG = +1",
         )
 
 
-class SysBTagWeightMinus(SysBase):
+class SysBTagWeightBCMinus(SysBase):
     def prepare_for_systematic(self):
         mc_samples = settings.mc_samples().keys()
         da_samples = settings.data_samples().keys()
-        btag_samples = list(s + "_BTagWeightMinus" for s in mc_samples)
+        btag_samples = list(s + "_BTagWeightBCMinus" for s in mc_samples)
         settings.active_samples = btag_samples + da_samples
-        super(SysBTagWeightMinus, self).prepare_for_systematic()
+        super(SysBTagWeightBCMinus, self).prepare_for_systematic()
 
 
-class SysBTagWeightPlus(SysBase):
+class SysBTagWeightBCPlus(SysBase):
     def prepare_for_systematic(self):
         mc_samples = settings.mc_samples().keys()
         da_samples = settings.data_samples().keys()
-        btag_samples = list(s + "_BTagWeightPlus" for s in mc_samples)
+        btag_samples = list(s + "_BTagWeightBCPlus" for s in mc_samples)
         settings.active_samples = btag_samples + da_samples
-        super(SysBTagWeightPlus, self).prepare_for_systematic()
+        super(SysBTagWeightBCPlus, self).prepare_for_systematic()
 
 
-SysBTagWeight = SysGroupMax(
-    "SysBTagWeight",
+class SysBTagWeightUDSGMinus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        btag_samples = list(s + "_BTagWeightUDSGMinus" for s in mc_samples)
+        settings.active_samples = btag_samples + da_samples
+        super(SysBTagWeightUDSGMinus, self).prepare_for_systematic()
+
+
+class SysBTagWeightUDSGPlus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        btag_samples = list(s + "_BTagWeightUDSGPlus" for s in mc_samples)
+        settings.active_samples = btag_samples + da_samples
+        super(SysBTagWeightUDSGPlus, self).prepare_for_systematic()
+
+
+SysBTagWeightBC = SysGroupMax(
+    "SysBTagWeightBC",
     [
-        SysBTagWeightMinus,
-        SysBTagWeightPlus
+        SysBTagWeightBCMinus,
+        SysBTagWeightBCPlus,
     ]
 )
+
+
+SysBTagWeightUDSG = SysGroupMax(
+    "SysBTagWeightUDSG",
+    [
+        SysBTagWeightUDSGMinus,
+        SysBTagWeightUDSGPlus,
+    ]
+)
+
+
+SysBTagWeight = SysGroupAdd(
+    "SysBTagWeight",
+    [
+        SysBTagWeightBC,
+        SysBTagWeightUDSG,
+    ]
+)
+
 
 ######################################################## top-pt reweighting ###
 def makeSysSamplesTopPt():
@@ -233,11 +314,11 @@ SysTopPt = SysGroupMax(
 )
 
 ###################################################### selection efficiency ###
-# whizard
 def sys_xsec(sample, factor):
     for s in _iterableize(sample):
         settings.samples[s].lumi *= factor
         settings.samples[s].x_sec *= factor
+
 
 def sys_xsec_group(name, sample, uncert):
     if type(uncert) == tuple:
@@ -252,6 +333,7 @@ def sys_xsec_group(name, sample, uncert):
         ]
     )
 
+
 #TODO: Store xsec errors in sample def
 SysSelEffBkg = SysGroupAdd(
     "SysSelEffBkg",
@@ -260,7 +342,7 @@ SysSelEffBkg = SysGroupAdd(
         sys_xsec_group("SysSelEffTbar_t",   "Tbar_t",   (.9/30.7, 1.1/30.7)),
         sys_xsec_group("SysSelEffT_tW",     "T_tW",     0.3/11.1),
         sys_xsec_group("SysSelEffTbar_tW",  "Tbar_tW",  0.3/11.1),
-        sys_xsec_group("SysSelEffTTPoPy",   "TTPoPy",   (0.025,0.034)),
+        sys_xsec_group("SysSelEff"+top_sample,   top_sample,   (0.025,0.034)),
     ]
 )
 
@@ -275,20 +357,21 @@ SysSelEff = SysGroupAdd(
 
 ########################################################### overlap removal ###
 def makeSysSamplesDRCut():
-    makeSysSample("TTPoPy", "TTPoPy_DRCutLow", {"cutDeltaR": 0.050})
-    makeSysSample("TTPoPy", "TTPoPy_DRCutHigh", {"cutDeltaR": 0.150})
+    makeSysSample(top_sample, top_sample+"_DRCutLow", {"cutDeltaR": 0.050})
+    makeSysSample(top_sample, top_sample+"_DRCutHigh", {"cutDeltaR": 0.150})
+
 
 class SysOverlapDRCutLow(SysBase):
     def prepare_for_systematic(self):
-        settings.active_samples.remove("TTPoPy")
-        settings.active_samples.append("TTPoPy_DRCutLow")
+        settings.active_samples.remove(top_sample)
+        settings.active_samples.append(top_sample+"_DRCutLow")
         super(SysOverlapDRCutLow, self).prepare_for_systematic()
 
 
 class SysOverlapDRCutHigh(SysBase):
     def prepare_for_systematic(self):
-        settings.active_samples.remove("TTPoPy")
-        settings.active_samples.append("TTPoPy_DRCutHigh")
+        settings.active_samples.remove(top_sample)
+        settings.active_samples.append(top_sample+"_DRCutHigh")
         super(SysOverlapDRCutHigh, self).prepare_for_systematic()
 
 SysOverlapDRCut = SysGroupMax(

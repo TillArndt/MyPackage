@@ -5,7 +5,7 @@ import cmstoolsac3b.generators as gen
 import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.rendering as rnd
 import cmstoolsac3b.settings as settings
-from ROOT import TF1, TPaveText, TFractionFitter, TObjArray, Double
+from ROOT import TF1, TPaveText, TFractionFitter, TObjArray, Double, TMath
 import itertools
 import re
 import copy
@@ -14,12 +14,12 @@ import array
 
 ############################################ lists histo and analyzer names ###
 analyzers_mc = [
-#    "TemplateChHadIsoreal",
-#    "TemplateChHadIsofake",
-    "PlotLooseIDSihihSigRegreal",
-    "PlotLooseIDSihihSigRegfake",
-    "PlotLooseIDSihihSidBanreal",
-    "PlotLooseIDSihihSidBanfake",
+    "TemplateChHadIsoreal",
+    "TemplateChHadIsofake",
+    "PlotLooseIDSihihSBreal",
+    "PlotLooseIDSihihSBfake",
+    "PlotSBIDreal",
+    "PlotSBIDfake",
 #    "TemplateChHadIsofakeGamma",
 #    "TemplateChHadIsofakeOther",
 #    "TemplateSihihreal",
@@ -52,20 +52,20 @@ all_analyzers = (
 analyzers_data = [
     "TemplateSihih",
     "TemplateChHadIso",
-    "PlotLooseIDSihihSigReg"
 ]
 
 legend_tags = ["real", "fakeGamma", "fakeOther", "fake"]
+
+
 
 ##################################################### convenience functions ###
 def color(key):
     for tag in legend_tags:
         if tag in key:
             return settings.get_color(tag)
-    if "SidBan" in key:
+    if "SihihSB" in key:
         return settings.get_color("fake")
-    if "SigReg" in key:
-        return settings.get_color("real")
+    return 0
 
 def get_legend_name(key):
     if "Template" in key:
@@ -117,29 +117,38 @@ def histo_wrapperize(stk_wrps):
         h_w = gen.op.prod((h_w, data_lumi))
         h_w.sub_tot_list = s_w.sub_tot_list
         yield h_w
-############################################### template processing classes ###
 
+
+############################################### template processing classes ###
 ### rebin chhadiso templates
+do_chhadisorebinnig = True
+do_dist_reweighting = True
+
 chhadiso_bins = array.array(
     "d",
-    [0., 0.25, 0.5, 0.75, 1.25, 1.75, 2.25, 3., 4., 5., 6., 7., 8.5, 10.]
+    [0., 0.25, 0.5, 0.75, 1., 1.5, 2., 2.5, 3., 3.75, 4.5, 5.25, 6., 7., 8., 9., 10.]
 )
-def rebin_chhadiso(wrps):
+def rebin_chhadiso(wrps, skip_it=not do_chhadisorebinnig, norm_by_bin_width=False):
     for w in wrps:
-        if "TemplateChHadIso" in w.analyzer or "PlotLooseIDSihih" in w.analyzer:
-            # rebinning
-            histo = w.histo.Rebin(
-                len(chhadiso_bins) - 1,
-                w.name+"rebin",
-                chhadiso_bins
-            )
-            # divide by bin width  ### WARNING: DIFFERENT INTEGRAL!!
-#            for i in xrange(histo.GetNbinsX()+1):
-#                factor = histo.GetBinWidth(i) / 0.25
-#                histo.SetBinContent(i, histo.GetBinContent(i) / factor)
-#                histo.SetBinError(i, histo.GetBinError(i) / factor)
-            w.histo = histo
+        if not skip_it:  # want rebinning ??
+            if ("TemplateChHadIso" in w.analyzer
+                or "PlotLooseID" in w.analyzer
+                or "PlotSBID" in w.analyzer):
+                # rebinning
+                histo = w.histo.Rebin(
+                    len(chhadiso_bins) - 1,
+                    w.name+"rebin",
+                    chhadiso_bins
+                )
+                # divide by bin width  ### WARNING: DIFFERENT INTEGRAL!!
+                if norm_by_bin_width:
+                    for i in xrange(histo.GetNbinsX()+1):
+                        factor = histo.GetBinWidth(i) / 0.25
+                        histo.SetBinContent(i, histo.GetBinContent(i) / factor)
+                        histo.SetBinError(i, histo.GetBinError(i) / factor)
+                w.histo = histo
         yield w
+
 
 ### fetch templates from fileservice, stack, plot #########
 class TemplateStacks(ppt.FSStackPlotter):
@@ -173,14 +182,6 @@ class TemplateStacks(ppt.FSStackPlotter):
         )
         self.result = mc_tmplts_plot
         self.stream_stack = mc_tmplts_plot
-
-#        settings.post_proc_dict["mc_templates_sihih_shift"] = list(
-#            gen.filter(mc_tmplts, {"analyzer" : analyzers_mc_sihih_shift})
-#        )
-#
-#        settings.post_proc_dict["mc_templates_sihih_shift_sep_fakes"] = list(
-#            gen.filter(mc_tmplts, {"analyzer" : analyzers_mc_sihih_shift_sep_fakes})
-#        )
 
 
 ### fitting tools #########################################
@@ -220,14 +221,13 @@ class Fitter(object):
 
     def calc_chi2(self, x_min, x_max, templates, fitted):
         """"""
-        ratio = gen.op.div((fitted, gen.op.sum(templates))).histo
-        chi2 = 0.
-        bin_min = ratio.GetXaxis().FindBin(x_min)
-        bin_max = ratio.GetXaxis().FindBin(x_max) + 1
-        for i in xrange(bin_min, bin_max):
-            if ratio.GetBinError(i) > 1e-43:
-                chi2 += ((1 - ratio.GetBinContent(i))/ratio.GetBinError(i))**2
-        return chi2
+        print templates
+        return gen.op.chi2(
+            (
+                gen.op.sum(templates),
+                fitted
+            ), x_min, x_max
+        ).float
 
     def get_val_err(self, fit_func, i_par):
         return fit_func.GetParameter(i_par), fit_func.GetParError(i_par)
@@ -237,6 +237,7 @@ class Fitter(object):
         fit_function = tool.fit_func
         r.Chi2 = chi2
         r.NDF = fit_function.GetNDF()
+        r.FitProb = TMath.Prob(chi2, r.NDF)
         r.dataIntegral = tool.fitted.histo.Integral()
         r.legend = []
         r.value = []
@@ -447,7 +448,74 @@ class TemplateFitToolChHadIso(TemplateFitTool):
         bkg = next(self.gen_bkg_tmplt)
         tmplts[1].__dict__.update(sig.__dict__)
         tmplts[0].__dict__.update(bkg.__dict__)
+        tmplts[0].is_data = False
         return list(cosmetica2(tmplts))
+
+
+sb_anzlrs = (
+    "PlotLooseIDSliceSihihSB12to13",
+#    "PlotLooseIDSliceSihihSB13to14",
+#    "PlotLooseIDSliceSihihSB14to15",
+#    "PlotLooseIDSliceSihihSB15to16",
+#    "PlotLooseIDSliceSihihSB16to17",
+#    "PlotLooseIDSliceSihihSB17to18",
+#    "PlotLooseIDSliceSihihSB18to19",
+#    "PlotLooseIDSliceSihihSB19to20",
+)
+
+
+class TemplateFitToolChHadIsoSbBkgInputBkgWeight(ppc.PostProcTool):
+    def run(self):
+            top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+            wrp_fake = next(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "TemplateChHadIsofake",
+                "sample":   top_sample,#"TTMadG",
+            })))
+            wrp_sb = gen.op.merge(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": sb_anzlrs,
+                "sample": top_sample,#"TTMadG",
+            })))
+            wrp = gen.op.div((
+                gen.op.norm_to_integral(wrp_fake),
+                gen.op.norm_to_integral(wrp_sb),
+            ))
+            wrp.lumi = 1.
+            self.result = wrp
+            gen.consume_n_count(
+                gen.save(
+                    gen.canvas(((wrp,),)),
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+
+
+class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
+    def run(self):
+        wrp = next(rebin_chhadiso(
+            gen.gen_sum(
+                [
+                    gen.fs_filter_active_sort_load({
+                        "analyzer"  : "PlotLooseIDSihihSB",
+                        "is_data"   : True
+                    })
+                ]
+            )
+        ))
+        # multiply with weight
+        if do_dist_reweighting:
+            wrp = gen.op.prod((
+                settings.post_proc_dict["TemplateFitToolChHadIsoSbBkgInputBkgWeight"],
+                wrp,
+            ))
+        wrp.lumi = settings.data_lumi_sum()
+
+        self.result = [wrp]
+        gen.consume_n_count(
+            gen.save(
+                gen.canvas((self.result,)),
+                lambda c: self.plot_output_dir + c.name
+            )
+        )
 
 
 class TemplateFitToolChHadIsoSbBkg(TemplateFitToolChHadIso):
@@ -458,25 +526,100 @@ class TemplateFitToolChHadIsoSbBkg(TemplateFitToolChHadIso):
 
         self.mc_tmplts      = gen.filter(
             settings.post_proc_dict["TemplateStacks"], {
-                "analyzer"  : ("PlotLooseIDSihihSigRegreal", "PlotLooseIDSihihSidBanfake"),
+                "analyzer"  : ("TemplateChHadIsoreal", "PlotLooseIDSihihSBfake"),
                 })
         self.fitted         = rebin_chhadiso(
             gen.fs_filter_active_sort_load({
-                "analyzer"  : "PlotLooseIDSihihSigReg",
+                "analyzer"  : "TemplateChHadIso",
                 "is_data"   : True,
                 })
         )
 
-        self.gen_bkg_tmplt = rebin_chhadiso(
-            gen.gen_sum([
-                gen.fs_filter_active_sort_load({
-                    "analyzer"  : "PlotLooseIDSihihSidBan",
-                    "is_data"   : True
-                })]))
+        self.gen_bkg_tmplt = iter(settings.post_proc_dict["TemplateFitToolChHadIsoSbBkgInputBkg"])
         self.gen_sig_tmplt = rebin_chhadiso(
             gen.gen_norm_to_data_lumi(
                 gen.fs_filter_active_sort_load({
-                    "analyzer"  : "PlotLooseIDSihihSigRegreal",
+                    "analyzer"  : "TemplateChHadIsoreal",
+                    "sample"    : re.compile("whiz2to5"),
+                })))
+
+
+class TemplateFitToolChHadIsoSBIDInputBkgWeight(ppc.PostProcTool):
+    def run(self):
+            top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+            wrp_fake = next(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "TemplateChHadIsofake",
+                "sample":   top_sample,#"TTMadG",
+            })))
+            wrp_sb = gen.op.merge(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "PlotSBID",
+                "sample": top_sample,#"TTMadG",
+            })))
+            wrp = gen.op.div((
+                gen.op.norm_to_integral(wrp_fake),
+                gen.op.norm_to_integral(wrp_sb),
+            ))
+            wrp.lumi = 1.
+            self.result = wrp
+            gen.consume_n_count(
+                gen.save(
+                    gen.canvas(((wrp,),)),
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+
+
+class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
+    def run(self):
+        wrp = next(rebin_chhadiso(
+            gen.gen_sum(
+                [
+                    gen.fs_filter_active_sort_load({
+                        "analyzer"  : "PlotSBID",
+                        "is_data"   : True
+                    })
+                ]
+            )
+        ))
+        # multiply with weight
+        if do_dist_reweighting:
+            wrp = gen.op.prod((
+                settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkgWeight"],
+                wrp,
+            ))
+        wrp.lumi = settings.data_lumi_sum()
+
+        self.result = [wrp]
+        gen.consume_n_count(
+            gen.save(
+                gen.canvas((self.result,)),
+                lambda c: self.plot_output_dir + c.name
+            )
+        )
+
+
+class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
+    def configure(self):
+        super(TemplateFitToolChHadIso, self).configure()
+        self.fitter = FractionFitter()
+        self.fitbox_bounds  = 0.33, 0.62, 0.88
+
+        self.mc_tmplts      = gen.filter(
+            settings.post_proc_dict["TemplateStacks"], {
+                "analyzer"  : ("TemplateChHadIsoreal", "PlotSBIDfake"),
+                })
+        self.fitted         = rebin_chhadiso(
+            gen.fs_filter_active_sort_load({
+                "analyzer"  : "TemplateChHadIso",
+                "is_data"   : True,
+                })
+        )
+
+        self.gen_bkg_tmplt = iter(settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkg"])
+        self.gen_sig_tmplt = rebin_chhadiso(
+            gen.gen_norm_to_data_lumi(
+                gen.fs_filter_active_sort_load({
+                    "analyzer"  : "TemplateChHadIsoreal",
                     "sample"    : re.compile("whiz2to5"),
                 })))
 
@@ -568,7 +711,6 @@ class TemplateFitToolSihihShift(TemplateFitTool):
 
 
 class TemplateFitToolSihihShiftSepFakes(TemplateFitToolSihihShift):
-
     def configure(self):
         super(TemplateFitToolSihihShiftSepFakes, self).configure()
         mc_tmplts = settings.post_proc_dict["mc_templates_sihih_shift_sep_fakes"]
@@ -643,7 +785,6 @@ class SideBandOverlay(TemplateOverlays):
         self.stream_stack = mc_tmplts
 
 
-
 TemplateFitTools = ppc.PostProcChain(
     "TemplateFitTools",
     [
@@ -651,25 +792,125 @@ TemplateFitTools = ppc.PostProcChain(
 #        TemplateFitToolSihih,
 #        TemplateFitToolSihihShift,
 #        TemplateFitToolSihihShiftSepFakes,
-#        TemplateFitToolChHadIso,
+        TemplateFitToolChHadIso,
+        TemplateFitToolChHadIsoSbBkgInputBkgWeight,
+        TemplateFitToolChHadIsoSbBkgInputBkg,
         TemplateFitToolChHadIsoSbBkg,
+        TemplateFitToolChHadIsoSBIDInputBkgWeight,
+        TemplateFitToolChHadIsoSBIDInputBkg,
+        TemplateFitToolChHadIsoSBID,
         TemplateOverlaysNormLumi,
         TemplateOverlaysNormIntegral,
         SideBandOverlay,
-#        DataDrvTemplates,
-#        TemplateFitToolSihihDaDrv,
-#        TemplateFitToolChHadIsoDaDrv,
     ]
 )
 
 
+class SideBandVSFake(TemplateOverlays):
+    def set_up_stacking(self):
+        mc_tmplts = gen.fs_filter_sort_load({
+            "sample"    : self.sample_name,
+            "analyzer"  : ("TemplateChHadIsofake", "PlotLooseIDSihihSB", "PlotSBID")
+        })
+        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        mc_tmplts = rebin_chhadiso(mc_tmplts)
+        mc_tmplts = gen.apply_histo_linecolor(mc_tmplts, [625, 618, 596])
+        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.name)
+        self.stream_stack = mc_tmplts
+
+
+def make_SideBandVSFake(samplename):
+    tool = SideBandVSFake("SideBandVSFake" + samplename)
+    tool.sample_name = samplename
+    return tool
+
+
+class SigRegCmp(TemplateOverlays):
+    def set_up_stacking(self):
+        mc_tmplts = gen.fs_filter_sort_load({
+            "sample"    : ("whiz2to5", "TTGamRD1"),
+            "analyzer"  : "TemplateChHadIsoreal",
+            })
+        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        def leg(wrps):
+            for w in wrps:
+                w.legend = w.sample
+                yield w
+        mc_tmplts = leg(mc_tmplts)
+        mc_tmplts = rebin_chhadiso(mc_tmplts)
+        mc_tmplts = gen.apply_histo_linecolor(mc_tmplts, [409, 625, 618, 596, 430])
+        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.analyzer)
+        self.stream_stack = mc_tmplts
+
+
+class SihihSidebandSlices(TemplateOverlays):
+    def set_up_stacking(self):
+        def sum_up_two(wrps):
+            while True:
+                try:
+                    h = gen.op.sum((next(wrps), next(wrps)))
+                except StopIteration:
+                    return
+                yield h
+        mc_tmplts = list(sum_up_two(gen.fs_filter_sort_load({
+            "sample"    : self.sample_name,
+            "analyzer"  : re.compile("PlotLooseIDSliceSihihSB"),
+            })))
+        mc_tmplts = itertools.chain(gen.fs_filter_sort_load({
+            "sample"    : self.sample_name,
+            "analyzer"  : "TemplateChHadIsofake",
+            }),
+            mc_tmplts
+        )
+        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        mc_tmplts = rebin_chhadiso(mc_tmplts)
+        mc_tmplts = gen.apply_histo_linecolor(mc_tmplts, [409, 625, 618, 596, 430])
+        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.sample)
+        self.stream_stack = mc_tmplts
+
+def make_SihihSidebandSlices(samplename):
+    tool = SihihSidebandSlices("SihihSidebandSlices" + samplename)
+    tool.sample_name = samplename
+    return tool
+
+
+class SihihSidebandVarSlices(TemplateOverlays):
+    def set_up_stacking(self):
+        mc_tmplts = self.__dict__["input_func"]()
+        mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
+        mc_tmplts = cosmetica1(mc_tmplts)
+        mc_tmplts = rebin_chhadiso(mc_tmplts)
+        mc_tmplts = gen.apply_histo_linecolor(mc_tmplts, [409, 625, 618, 596, 430])
+        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.sample)
+        self.stream_stack = mc_tmplts
+
+
+def make_SihihSidebandVarSlices(samplename, input_func):
+    tool = SihihSidebandSlices("SihihSidebandSlices" + samplename)
+    tool.sample_name = samplename
+    tool.input_func = input_func
+    return tool
+
+
+tt_sample_names = ["TTPoPy", "TTJeRD1", "TTMCNLO", "TTPoHe", "TTMadG"]
+TemplateFitPlots = ppc.PostProcChain(
+    "TemplateFitPlots",
+    [
+        SigRegCmp,
+    ]
+    + list(make_SideBandVSFake(s) for s in tt_sample_names)
+    + list(make_SihihSidebandSlices(s) for s in tt_sample_names)
+)
 
 
 ################################ data-driven templates (not needed anymore) ###
 #class DataDrvTemplates(ppt.FSStackPlotter):
 #    def __init__(self, name=None):
 #        super(DataDrvTemplates, self).__init__(name)
-#        self.canvas_decorators = self.canvas_decorators[1:]
+#        self.canvas_decorators = s..   elf.canvas_decorators[1:]
 #        self.canvas_decorators.append(com.SimpleTitleBox)
 #
 #    def set_up_stacking(self):

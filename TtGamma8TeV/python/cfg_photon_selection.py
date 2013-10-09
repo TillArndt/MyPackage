@@ -164,35 +164,44 @@ else:
     process.schedule += ddrvTmpl.add_nm2_path_core(process)
 
 # paths for sihih background template with loose id
-import MyPackage.TtGamma8TeV.cff_templateDatDrvBkgLooseID as ddrvTmplLoose
+import MyPackage.TtGamma8TeV.cff_templateDatDrvBkgSihihSB as ddrvTmplSihihSB
 if runOnMC:
-    process.schedule += ddrvTmplLoose.add_path_truth(process)
+    process.schedule += ddrvTmplSihihSB.add_path_truth(process)
 else:
-    process.schedule += ddrvTmplLoose.add_path_core(process)
+    process.schedule += ddrvTmplSihihSB.add_path_core(process)
+
+# paths for sihih background template with loose id
+import MyPackage.TtGamma8TeV.cff_templateDatDrvBkgSBID as ddrvTmplSBID
+if runOnMC:
+    process.schedule += ddrvTmplSBID.add_path_truth(process)
+else:
+    process.schedule += ddrvTmplSBID.add_path_core(process)
+
+
+##################################### sihih shifted histos for template fit ###
+#if runOnMC:
+#    from MyPackage.TtGamma8TeV.cff_templateCreation import add_sihih_shifted_histos
+#    add_sihih_shifted_histos(process)
+#    process.sihihShiftPath.insert(0, process.preSel)
+#    process.schedule += [process.sihihShiftPath]
+
 
 #################################################### real tight id counters ###
 if runOnMC:
-    process.realFullTightID = process.PhotonsSihihreal.clone(
-        src = "FullTightIDBlocking",
+    process.FullIDreal = process.PhotonsSihihreal.clone(
+        src = "FullIDBlocking",
         filter = True,
     )
-    process.realFullTightIDCount = process.FullTightIDCount.clone()
-    process.realFullTightIDCountPrnt = process.FullTightIDCountPrnt.clone(
-        src = "realFullTightIDCount"
+    process.FullIDCountreal = process.FullIDCount.clone()
+    process.FullIDCountrealPrnt = process.FullIDCountPrnt.clone(
+        src = "FullIDCountreal"
     )
-    process.realFullTightIDSequence = cms.Sequence(
-        process.realFullTightID
-        * process.realFullTightIDCount
-        * process.realFullTightIDCountPrnt
+    process.FullIDrealSequence = cms.Sequence(
+        process.FullIDreal
+        * process.FullIDCountreal
+        * process.FullIDCountrealPrnt
     )
-    process.pathLooseID *= process.realFullTightIDSequence
-
-##################################### sihih shifted histos for template fit ###
-if runOnMC:
-    from MyPackage.TtGamma8TeV.cff_templateCreation import add_sihih_shifted_histos
-    add_sihih_shifted_histos(process)
-    process.sihihShiftPath.insert(0, process.preSel)
-    process.schedule += [process.sihihShiftPath]
+    process.pathLooseID *= process.FullIDrealSequence
 
 
 ############################################################### event count ###

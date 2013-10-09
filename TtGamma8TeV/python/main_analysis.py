@@ -31,10 +31,12 @@ settings.samples = {}
 settings.samples.update(load_samples(samples_cern))
 settings.active_samples = settings.samples.keys() # add all MC and data
 settings.active_samples.remove("TTPoHe")
+#settings.active_samples.remove("TTMadG")
+settings.active_samples.remove("TTPoPy")
 settings.active_samples.remove("TTMCNLO")
-settings.active_samples.remove("TTMadG")
 settings.active_samples.remove("TTGamRD1")
 settings.active_samples.remove("TTJeRD1")
+settings.active_samples.remove("whiz2to5_PDF")
 work = "/afs/cern.ch/work/h/htholen/"
 cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
 settings.web_target_dir     = work + "public/www/MainAnalysis/"
@@ -53,12 +55,14 @@ import plots_match_quality
 import plots_ABCD
 import plots_shilpi
 import plots_templ_fit_closure
+import sys_uncert
 
 post_proc_sys = [
 #    plots_ME_overlap.MEOverlapComp,
-    plots_commons.TightIdPurityCount,
-    plots_commons.RealTightIdPurityCount,
+    plots_commons.IdPurityCount,
+    plots_commons.RealIdPurityCount,
     plots_template_fit.TemplateFitTools,
+    plots_template_fit.TemplateFitPlots,
 #    plots_shilpi.ShilpiMethodTools,
 #    plots_ABCD.RealPhotonsABCD,
 #    plots_ABCD.RealPhotonsABCDMC,
@@ -67,7 +71,6 @@ post_proc_sys = [
 ]
 
 if settings.do_sys_uncert:
-    import sys_uncert
     sys_uncert.makeSysSamplesPU()
     sys_uncert.makeSysSamplesTopPt()
     sys_uncert.makeSysSamplesDRCut()
@@ -84,7 +87,45 @@ post_proc_tools = [
     plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
-post_proc_tools += [plots_templ_fit_closure.make_closure_test_sequence_chhadiso()]
+closure_seq = post_proc_sys[:]
+if not plots_template_fit.do_dist_reweighting:
+    closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
+#    closure_seq += [plots_templ_fit_closure.seq_sbbkg_MC]
+closure_seq += [plots_templ_fit_closure.seq_sbid_altMC]
+#closure_seq += [plots_templ_fit_closure.seq_sbbkg_altMC]
+
+post_proc_tools += [sys_uncert.SysFit(
+    None,
+    closure_seq
+)]
+if "TTMadG" in settings.active_samples:
+    post_proc_tools += [
+        sys_uncert.SysTTPoPy(
+            None,
+            post_proc_sys + [sys_uncert.SysIsrFsr(
+                None,
+                post_proc_sys + [sys_uncert.SysMCatNLO(
+                    None,
+                    post_proc_sys
+                )]
+            )],
+        ),
+    ]
+else:
+    post_proc_tools += [
+        sys_uncert.SysTTMadG(
+            None,
+            post_proc_sys
+        ),
+        sys_uncert.SysIsrFsr(
+            None,
+            post_proc_sys + [sys_uncert.SysMCatNLO(
+                None,
+                post_proc_sys
+            )]
+        ),
+    ]
+
 if settings.do_sys_uncert:
     post_proc_tools += [
         sys_uncert.SysPU(None, post_proc_sys),
@@ -94,10 +135,7 @@ if settings.do_sys_uncert:
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
         sys_uncert.SysBTagWeight.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
-        sys_uncert.SysIsrFsr(None,
-            post_proc_sys + [sys_uncert.SysMCatNLO(None, post_proc_sys)]
-        ),
-        sys_uncert.SysMadgraph(None, post_proc_sys),
+        sys_uncert.SysWhizPDF(None, post_proc_sys),
         plots_summary.ResultSummaries,
         plots_summary.ResultTexifier("XsecCalculatorChHadIsoSbBkg"),
     ]

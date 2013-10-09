@@ -14,14 +14,14 @@ if puWeight:
 
 # change charged hadron isolation cut according to shilpi's method
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonFakeRateLstar
-cuts = pho_cuts.cuts
+cuts = pho_cuts.cuts_for_plot
 chhadiso_tuple = list(cuts["chargedHadronIsoEB"])
 chhadiso_cut = chhadiso_tuple[-1]
 chhadiso_tuple[0] = chhadiso_cut + " > 2.0 && 6.0 > " + chhadiso_cut
 cuts["chargedHadronIsoEBInv"] = tuple(chhadiso_tuple)
 sihih_tuple = list(cuts["sihihEB"])
 sihih_cut = sihih_tuple[-1]
-sihih_tuple[0] = sihih_cut + ">0.011"
+sihih_tuple[0] = sihih_cut + " > 0.012 && 2.0 > " + sihih_cut
 cuts["sihihEBInv"] = tuple(sihih_tuple)
 
 cut_key_order = pho_cuts.cut_key_order[:]

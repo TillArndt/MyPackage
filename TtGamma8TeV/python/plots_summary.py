@@ -20,6 +20,8 @@ summed_uncerts = [
     "SysSelEffBkg",
     "SysTopPt",
     "SysBTagWeight",
+    "SysFit",
+    "SysWhizPDF"
 ]
 
 result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]

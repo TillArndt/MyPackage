@@ -19,7 +19,8 @@ bTagCounter = cms.EDFilter("PATCandViewCountFilter",
 bTagWeight = cms.EDProducer("BTagWeight",
     src = cms.InputTag("bTagRequirement"),
     weights = cms.untracked.InputTag(""),
-    errorMode = cms.untracked.int32(0),
+    errorModeBC = cms.untracked.int32(0),
+    errorModeUDSG = cms.untracked.int32(0),
     twoBTagMode = cms.untracked.bool(False),
 )
 
@@ -27,9 +28,9 @@ bTagWeightHisto = cms.EDAnalyzer("DoubleValueHisto",
     src     = cms.InputTag("bTagWeight"),
     name    = cms.untracked.string("histo"),
     title   = cms.untracked.string(";btag weight;events"),
-    nbins   = cms.untracked.int32(50),
-    min     = cms.untracked.double(0.),
-    max     = cms.untracked.double(2.),
+    nbins   = cms.untracked.int32(100),
+    min     = cms.untracked.double(0.5),
+    max     = cms.untracked.double(1.5),
 )
 
 bTagSequence = cms.Sequence(

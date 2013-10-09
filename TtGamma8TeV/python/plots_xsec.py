@@ -114,8 +114,14 @@ class XsecCalculatorChHadIso(XsecCalculator):
 
 class XsecCalculatorChHadIsoSbBkg(XsecCalculator):
     def configure(self):
-        self.post_count_name = "FiltLooseIDSihihSigRegCountPost,"
+        self.post_count_name = "Nm1CountPostchargedHadronIsoEB,"
         self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolChHadIsoSbBkg")
+
+
+class XsecCalculatorChHadIsoSBID(XsecCalculator):
+    def configure(self):
+        self.post_count_name = "Nm1CountPostchargedHadronIsoEB,"
+        self.n_sig_ttgam_wrp = settings.post_proc_dict.get("TemplateFitToolChHadIsoSBID")
 
 
 class XsecCalculatorABCD(XsecCalculator):
@@ -142,6 +148,7 @@ XsecCalculators = ppc.PostProcChain("XsecCalculators", [
 #    XsecCalculatorSihihShift,
 #    XsecCalculatorChHadIso,
     XsecCalculatorChHadIsoSbBkg,
+    XsecCalculatorChHadIsoSBID,
 #    XsecCalculatorShilpi,
 #    XsecCalculatorABCD,
 ])

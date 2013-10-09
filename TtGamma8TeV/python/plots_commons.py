@@ -36,11 +36,11 @@ class PurityCount(ppc.PostProcTool):
         self.get_purity_counts(r)
         r.pur_ttgam = r.mc_ttgam / r.mc_sum
 
-class TightIdPurityCount(PurityCount):
-    cnt_name = "FullTightIDCount,"
+class IdPurityCount(PurityCount):
+    cnt_name = "FullIDCount,"
 
-class RealTightIdPurityCount(PurityCount):
-    cnt_name = "realFullTightIDCount,"
+class RealIdPurityCount(PurityCount):
+    cnt_name = "FullIDCountreal,"
 
 
 def count_ttgamma_photons(wrps, sub_tot_list_ref):

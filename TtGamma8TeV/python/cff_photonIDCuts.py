@@ -431,9 +431,8 @@ def add_photon_cuts(process):
     post_paths.append(process.pathFidCount)
 
     ############################################## shilpi's loose id events ###
-
     # Blocking Filter for only complete tight ID events
-    process.FullTightIDBlocking = cms.EDFilter("PATPhotonSelector",
+    process.FullIDBlocking = cms.EDFilter("PATPhotonSelector",
         src = cms.InputTag("Nm1FiltsihihEB"),
         cut = cms.string(cuts_for_plot["sihihEB"][0]),
         filter = cms.bool(True)
@@ -458,22 +457,22 @@ def add_photon_cuts(process):
         weights = puWeight,
     )
 
-    # tight id counter and printer
-    process.FullTightIDCount = cms.EDProducer("WeightedEventCountProducer")
+    # id counter and printer
+    process.FullIDCount = cms.EDProducer("WeightedEventCountProducer")
     if puWeight:
-        process.FullTightIDCount.weights = puWeight
-    process.FullTightIDCountPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
-        src = cms.InputTag("FullTightIDCount")
+        process.FullIDCount.weights = puWeight
+    process.FullIDCountPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
+        src = cms.InputTag("FullIDCount")
     )
 
     process.pathLooseID = cms.Path(
         process.preSel
-        * process.FullTightIDBlocking
-        * process.FullTightIDCount
+        * process.FullIDBlocking
+        * process.FullIDCount
         * process.LooseIDlower
         * process.LooseIDupper
         * process.ShilpiWeight
-        * process.FullTightIDCountPrnt
+        * process.FullIDCountPrnt
     )
     post_paths.append(process.pathLooseID)
 

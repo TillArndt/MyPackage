@@ -21,6 +21,7 @@ postfix = "/out_*.root"
 ttbar_xsec = settings.ttbar_xsec
 ttbar_xsec_err = settings.ttbar_xsec_err
 
+
 class whiz2to5(smp.Sample):
     def __init__(self):
         self.legend      = "t#bar{t}#gamma (Signal)"
@@ -30,6 +31,17 @@ class whiz2to5(smp.Sample):
         self.cfg_builtin = {"preSelOpt": "go4Whiz"}
         super(whiz2to5, self).__init__()
 
+
+class whiz2to5_PDF(smp.Sample):
+    def __init__(self):
+        self.legend      = "t#bar{t}#gamma (Signal)"
+        self.x_sec       = .9081 * 2.0
+        self.n_events    = 1039890
+        self.input_files = path_pc + "WHIZPDF" + postfix
+        self.cfg_builtin = {"preSelOpt": "go4Whiz"}
+        super(whiz2to5_PDF, self).__init__()
+
+
 class T_t(smp.Sample):
     def __init__(self):
         self.legend      = "Single Top"
@@ -38,6 +50,7 @@ class T_t(smp.Sample):
         self.input_files = path_pc + 'T_t' + postfix
         super(T_t, self).__init__()
 
+
 class Tbar_t(smp.Sample):
     def __init__(self):
         self.legend      = "Single Top"
@@ -45,6 +58,7 @@ class Tbar_t(smp.Sample):
         self.n_events    = 1935072
         self.input_files = path_pc + 'Tbar_t' + postfix
         super(Tbar_t, self).__init__()
+
 
 class T_tW(smp.Sample):
     def __init__(self):
@@ -55,6 +69,7 @@ class T_tW(smp.Sample):
         self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:1085:325342-1:1085:325342")']
         super(T_tW, self).__init__()
 
+
 class Tbar_tW(smp.Sample):
     def __init__(self):
         self.legend      = "Single Top"
@@ -62,6 +77,7 @@ class Tbar_tW(smp.Sample):
         self.n_events    = 493460
         self.input_files = path_pc + 'Tbar_tW' + postfix
         super(Tbar_tW, self).__init__()
+
 
 class TTPoPy(smp.Sample):
     def __init__(self):
@@ -72,6 +88,7 @@ class TTPoPy(smp.Sample):
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         super(TTPoPy, self).__init__()
 
+
 class TTPoHe(smp.Sample):
     def __init__(self):
         self.legend      = "t#bar{t} inclusive"
@@ -80,6 +97,7 @@ class TTPoHe(smp.Sample):
         self.input_files = path_pc + 'TTPoHe' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
         super(TTPoHe, self).__init__()
+
 
 class TTMadG(smp.Sample):
     def __init__(self):
@@ -91,6 +109,7 @@ class TTMadG(smp.Sample):
         #self.cfg_add_lines = ['process.source.eventsToSkip = cms.untracked.VEventRange("1:58828:17644617-1:58828:17644617")']
         super(TTMadG, self).__init__()
 
+
 class TTMCNLO(smp.Sample):
     def __init__(self):
         self.legend      = "t#bar{t} inclusive"
@@ -101,6 +120,7 @@ class TTMCNLO(smp.Sample):
         self.cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
         super(TTMCNLO, self).__init__()
 
+
 class TTGamRD1(smp.Sample):
     def __init__(self):
         self.legend      = "Real Photons"
@@ -108,6 +128,7 @@ class TTGamRD1(smp.Sample):
         self.n_events    = 1719954
         self.input_files = path_pc + "TTGamRD1" + postfix
         super(TTGamRD1, self).__init__()
+
 
 class TTJeRD1(smp.Sample):
     def __init__(self):
@@ -117,6 +138,7 @@ class TTJeRD1(smp.Sample):
         self.input_files = path_pc + "TTJetsRD1" + postfix
         super(TTJeRD1, self).__init__()
 
+
 class WJets(smp.Sample):
     def __init__(self):
         self.legend      = "W + Jets"
@@ -125,6 +147,7 @@ class WJets(smp.Sample):
         self.input_files = path_pc + 'WJets' + postfix
         super(WJets, self).__init__()
 
+
 class DYJets(smp.Sample):
     def __init__(self):
         self.legend      = "DY + Jets"
@@ -132,6 +155,7 @@ class DYJets(smp.Sample):
         self.n_events    = 30307207
         self.input_files = path_pc + 'DYJets' + postfix
         super(DYJets, self).__init__()
+
 
 class RunA(smp.Sample):
     def __init__(self):
@@ -142,6 +166,7 @@ class RunA(smp.Sample):
         self.cfg_builtin = {}
         super(RunA, self).__init__()
 
+
 class RunB(smp.Sample):
     def __init__(self):
         self.is_data     = True
@@ -150,6 +175,7 @@ class RunB(smp.Sample):
         self.input_files = path_pc + 'RunB' + postfix
         self.cfg_builtin = {}
         super(RunB, self).__init__()
+
 
 class RunC(smp.Sample):
     def __init__(self):
@@ -160,6 +186,7 @@ class RunC(smp.Sample):
         self.cfg_builtin = {}
         super(RunC, self).__init__()
 
+
 class RunD(smp.Sample):
     def __init__(self):
         self.is_data     = True
@@ -168,4 +195,5 @@ class RunD(smp.Sample):
         self.input_files = path_pc + 'RunD' + postfix
         self.cfg_builtin = {}
         super(RunD, self).__init__()
+
 

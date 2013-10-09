@@ -7,7 +7,9 @@ import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.postproctools as ppt
 import plots_template_fit as tmpl_fit
+from cmstoolsac3b import settings
 from ROOT import TH1D, TVectorD
+
 
 def make_fitter_class(base_class):
     class Fitter(base_class):
@@ -20,20 +22,65 @@ def make_fitter_class(base_class):
         def configure(self):
             super(Fitter, self).configure()
             self.fitted = self.mixer.make_mixed_histo(self.scale_factors)
-            sample = self.fitted[0].sample
-            if hasattr(self, "gen_bkg_tmplt"):
-                wrps = gen.fs_content()
-                wrps = gen.filter(wrps, {
-                    "analyzer"  : "PlotLooseIDSihihSidBan",
-                    "sample"    : sample,
-                })
-                wrps = gen.sort(wrps)
-                wrps = gen.load(wrps)
-                wrps = gen.gen_norm_to_data_lumi(wrps)
-                wrps = tmpl_fit.rebin_chhadiso(wrps)
-                self.gen_bkg_tmplt = wrps
 
     return Fitter
+
+
+def make_input_maker_sbbkg(sample):
+    class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
+        def run(self):
+            wrps = tmpl_fit.rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": tmpl_fit.sb_anzlrs,
+                "sample": sample,
+            }))
+            wrp = gen.op.merge(wrps)
+
+            # multiply with weight
+            if tmpl_fit.do_dist_reweighting:
+                wrp = gen.op.prod((
+                    settings.post_proc_dict["TemplateFitToolChHadIsoSbBkgInputBkgWeight"],
+                    wrp,
+                ))
+
+            wrps = gen.gen_norm_to_data_lumi((wrp,))
+            wrps = list(wrps)
+            self.result = wrps
+            gen.consume_n_count(
+                gen.save(
+                    gen.canvas((wrps,)),
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+    return TemplateFitToolChHadIsoSbBkgInputBkg
+
+
+def make_input_maker_sbid(sample):
+    class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
+        def run(self):
+            wrps = tmpl_fit.rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "PlotSBID",
+                "sample": sample,
+            }))
+            wrp = gen.op.merge(wrps)
+
+            # multiply with weight
+            if tmpl_fit.do_dist_reweighting:
+                wrp = gen.op.prod((
+                    settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkgWeight"],
+                    wrp,
+                ))
+
+            wrps = gen.gen_norm_to_data_lumi((wrp,))
+            wrps = list(wrps)
+            self.result = wrps
+            gen.consume_n_count(
+                gen.save(
+                    gen.canvas((wrps,)),
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+    return TemplateFitToolChHadIsoSBIDInputBkg
+
 
 def gen_mixer_input(input_dict):
         for d in input_dict:
@@ -45,6 +92,7 @@ def gen_mixer_input(input_dict):
                     gen.fs_content(),
                     d
                     )))))
+
 
 def make_mixer_class(gen_tmplt_input):
     class HistoMixer(ppt.FSStackPlotter):
@@ -62,6 +110,7 @@ def make_mixer_class(gen_tmplt_input):
             mix.legend      = "mix:"+(len(scale_factors)*" %d") % tuple(scale_factors)
             mix.name        = "pseudo data"
             mix.draw_option = "E1X0"
+            mix.draw_option_legend = "p"
             #mix.draw_option_legend = ""
             mix.histo.SetMarkerStyle(24)
             return [mix]
@@ -72,6 +121,7 @@ def make_mixer_class(gen_tmplt_input):
                 gen_inp(w) for w in self.result
             )
     return HistoMixer
+
 
 class TemplateFitClosureEvaluation(ppc.PostProcTool):
     def __init__(self, name=None, fitters=None):
@@ -123,7 +173,7 @@ class TemplateFitClosureEvaluation(ppc.PostProcTool):
             pull = TH1D(
                 "PullDist%d"%i_sf,
                 ";(MC truth minus fit result)/(fit result error);number of fit results",
-                n_fitters, -1., 1.
+                60, -3., 3.
             )
             fitted.SetMarkerStyle(4)
 
@@ -169,11 +219,27 @@ class TemplateFitClosureEvaluation(ppc.PostProcTool):
         cnv = gen.save(cnv, lambda c: self.plot_output_dir + c.name)
         gen.consume_n_count(cnv)
 
+    def store_sys_err_result(self):
+        self.result = []
+        for i_sf in range(len(self.fitters[0].scale_factors)):
+            truth   = self.plots_truth_vs_fitted[i_sf][0].histo
+            fitted  = self.plots_truth_vs_fitted[i_sf][1].histo
+            bin = truth.GetNbinsX() / 2
+            central_val = truth.GetBinContent(bin) 
+            total_dev = central_val - fitted.GetBinContent(bin)
+            sys_dev = total_dev / central_val
+            self.result.append(wrp.Wrapper(
+                central_val=central_val,
+                total_dev=total_dev,
+                sys_dev=sys_dev
+            ))
+
     def run(self):
         self.configure()
         self.make_chi2_plot()
         self.make_fit_num_plot()
         self.store_results()
+        self.store_sys_err_result()
 
 
 def make_sequence(name, histo_mixer, nth_histo, range_func, center_values, fitter):
@@ -197,109 +263,161 @@ def make_sequence(name, histo_mixer, nth_histo, range_func, center_values, fitte
     )
 
 
-dicts_sihih_shift_sep_fakes = [
-    {
-        "sample"    : "TTGamRD1",
-        "analyzer"  : "TemplateSihihreal",
-    },
-    {
-        "sample"    : "TTJeRD1",
-        "analyzer"  : "TemplateSihihfakeGamma",
-    },
-    {
-        "sample"    : "TTJeRD1",
-        "analyzer"  : "TemplateSihihfakeOther",
-    },
-]
-
-def make_closure_test_sequence_sihih_shift_sep_fakes():
-    histo_mixer = make_mixer_class(
-        gen_mixer_input(
-            dicts_sihih_shift_sep_fakes
-        )
-    )("MixerSihihShiftSepFakes")
-    tools = [
-        histo_mixer,
-        make_sequence(
-             "SihihShiftSepFake", histo_mixer, 2, xrange(300,1050,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
-        make_sequence(
-             "SihihShiftSepFake", histo_mixer, 1, xrange(100, 550,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
-        make_sequence(
-             "SihihShiftSepFake", histo_mixer, 0, xrange(500,1550,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
-    ]
-    return ppc.PostProcChain(
-        "TemplateFitClosureSequences",
-        tools
-    )
-
-
-
-dicts_sihih_shift = [
-    {
-        "sample"    : "TTGamRD1",
-        "analyzer"  : "TemplateSihihreal",
-    },
-    {
-        "sample"    : "TTJeRD1",
-        "analyzer"  : "TemplateSihihfake",
-    },
-]
-
-def make_closure_test_sequence_sihih_shift():
-    histo_mixer = make_mixer_class(
-        gen_mixer_input(
-            dicts_sihih_shift
-        )
-    )("MixerSihihShift")
-    name = "SihihShift"
-    tools = [
-        histo_mixer,
-        make_sequence(
-            name, histo_mixer, 1, xrange(500,1500,100), [1000,1000], tmpl_fit.TemplateFitToolSihihShift),
-        make_sequence(
-            name, histo_mixer, 0, xrange(500,1500,100), [1000,1000], tmpl_fit.TemplateFitToolSihihShift),
-    ]
-    return ppc.PostProcChain(
-        "TemplateFitClosureSequencesSihihShift",
-        tools
-    )
-
-
-
-dicts_chhadiso = [
-    {
-#        "sample"    : "TTJeRD1",
-        "sample"    : "TTPoHe",
-        "analyzer"  : "PlotLooseIDSihihSigRegfake",
-    },
-    {
-#        "sample"    : "TTGamRD1",
-        "sample"    : "whiz2to5",
-        "analyzer"  : "PlotLooseIDSihihSigRegreal",
-    },
-]
-
-def make_closure_test_sequence_chhadiso():
+def make_closure_test_sequence_chhadiso_sbbkg(seq_name, input_dicts):
     histo_mixer = make_mixer_class(tmpl_fit.rebin_chhadiso(
         gen_mixer_input(
-            dicts_chhadiso
+            input_dicts
         )
     ))("MixerChHadIso")
     name = "ChHadIso"
     tools = [
         histo_mixer,
+        make_input_maker_sbbkg(input_dicts[0]["sample"]),
         make_sequence(
             name, histo_mixer, 1,
-            xrange(1200,2900,100), [4000,2000],
+            xrange(1200, 2900, 100), [4000, 2000],
             tmpl_fit.TemplateFitToolChHadIsoSbBkg
         ),
         make_sequence(
             name, histo_mixer, 0,
-            xrange(2100,6100,200), [4000,2000],
+            xrange(2100, 6100, 200), [4000, 2000],
             tmpl_fit.TemplateFitToolChHadIsoSbBkg
         ),
     ]
     return ppc.PostProcChain(
-        "TemplateFitClosureSequences",
+        "TemplateFitClosureSequences" + seq_name,
         tools
     )
+
+
+def make_closure_test_sequence_chhadiso_sbid(seq_name, input_dicts):
+    histo_mixer = make_mixer_class(tmpl_fit.rebin_chhadiso(
+        gen_mixer_input(
+            input_dicts
+        )
+    ))("MixerChHadIso")
+    name = "ChHadIso"
+    tools = [
+        histo_mixer,
+        make_input_maker_sbid(input_dicts[0]["sample"]),
+        make_sequence(
+            name, histo_mixer, 1,
+            xrange(1200, 2900, 100), [4000, 2000],
+            tmpl_fit.TemplateFitToolChHadIsoSBID
+        ),
+        make_sequence(
+            name, histo_mixer, 0,
+            xrange(2100, 6100, 200), [4000, 2000],
+            tmpl_fit.TemplateFitToolChHadIsoSBID
+        ),
+    ]
+    return ppc.PostProcChain(
+        "TemplateFitClosureSequences" + seq_name,
+        tools
+    )
+
+
+def make_seq_MC(central_maker):
+    top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+    return central_maker(
+        "MC",
+        [
+            {
+                "sample"    : top_sample,
+                "analyzer"  : "TemplateChHadIsofake",
+            },
+            {
+                "sample"    : "whiz2to5",
+                "analyzer"  : "TemplateChHadIsoreal",
+            },
+        ]
+    )
+
+
+def make_seq_altMC(central_maker):
+    return central_maker(
+        "altMC",
+        [
+            {
+                "sample"    : "TTJeRD1",
+                "analyzer"  : "TemplateChHadIsofake",
+            },
+            {
+                "sample"    : "TTGamRD1",
+                "analyzer"  : "TemplateChHadIsoreal",
+            },
+        ]
+    )
+
+seq_sbbkg_MC    = make_seq_MC(make_closure_test_sequence_chhadiso_sbbkg)
+seq_sbbkg_altMC = make_seq_altMC(make_closure_test_sequence_chhadiso_sbbkg)
+seq_sbid_MC     = make_seq_MC(make_closure_test_sequence_chhadiso_sbid)
+seq_sbid_altMC  = make_seq_altMC(make_closure_test_sequence_chhadiso_sbid)
+
+#dicts_sihih_shift_sep_fakes = [
+#    {
+#        "sample"    : "TTGamRD1",
+#        "analyzer"  : "TemplateSihihreal",
+#        },
+#    {
+#        "sample"    : "TTJeRD1",
+#        "analyzer"  : "TemplateSihihfakeGamma",
+#        },
+#    {
+#        "sample"    : "TTJeRD1",
+#        "analyzer"  : "TemplateSihihfakeOther",
+#        },
+#    ]
+#
+#def make_closure_test_sequence_sihih_shift_sep_fakes():
+#    histo_mixer = make_mixer_class(
+#        gen_mixer_input(
+#            dicts_sihih_shift_sep_fakes
+#        )
+#    )("MixerSihihShiftSepFakes")
+#    tools = [
+#        histo_mixer,
+#        make_sequence(
+#            "SihihShiftSepFake", histo_mixer, 2, xrange(300,1050,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
+#        make_sequence(
+#            "SihihShiftSepFake", histo_mixer, 1, xrange(100, 550,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
+#        make_sequence(
+#            "SihihShiftSepFake", histo_mixer, 0, xrange(500,1550,50), [1000, 300, 700], tmpl_fit.TemplateFitToolSihihShiftSepFakes),
+#        ]
+#    return ppc.PostProcChain(
+#        "TemplateFitClosureSequences",
+#        tools
+#    )
+#
+#
+#
+#dicts_sihih_shift = [
+#    {
+#        "sample"    : "TTGamRD1",
+#        "analyzer"  : "TemplateSihihreal",
+#        },
+#    {
+#        "sample"    : "TTJeRD1",
+#        "analyzer"  : "TemplateSihihfake",
+#        },
+#    ]
+#
+#def make_closure_test_sequence_sihih_shift():
+#    histo_mixer = make_mixer_class(
+#        gen_mixer_input(
+#            dicts_sihih_shift
+#        )
+#    )("MixerSihihShift")
+#    name = "SihihShift"
+#    tools = [
+#        histo_mixer,
+#        make_sequence(
+#            name, histo_mixer, 1, xrange(500,1500,100), [1000,1000], tmpl_fit.TemplateFitToolSihihShift),
+#        make_sequence(
+#            name, histo_mixer, 0, xrange(500,1500,100), [1000,1000], tmpl_fit.TemplateFitToolSihihShift),
+#        ]
+#    return ppc.PostProcChain(
+#        "TemplateFitClosureSequencesSihihShift",
+#        tools
+#    )
+#
