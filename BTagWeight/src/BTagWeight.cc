@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen,32 4-B20,+41227676487,
 //         Created:  Sun Aug 18 18:01:25 CEST 2013
-// $Id: BTagWeight.cc,v 1.2 2013/10/07 13:46:16 htholen Exp $
+// $Id: BTagWeight.cc,v 1.3 2013/10/09 13:51:58 htholen Exp $
 //
 //
 
@@ -382,7 +382,8 @@ class BTagWeight : public edm::EDProducer {
       TF1* SFlight08_;
       TF1* SFlight16_;
       TF1* SFlight24_;
-      float ptmax_;
+      float ptmax_16_;
+      float ptmax_24_;
       float sf_gt_ptmax_08_;
       float sf_gt_ptmax_16_;
       float sf_gt_ptmax_24_;
@@ -401,27 +402,28 @@ BTagWeight::BTagWeight(const edm::ParameterSet& iConfig):
 {
     edm::Service<TFileService> fs;
     partonFlavour_ = fs->make<TH1D>("partonFlavour", ";partonFlavour;number of b-tagged jets", 45, -22.5, 22.5);
-    ptmax_ = 800.;
+    ptmax_16_ = 1000.;
+    ptmax_24_ = 850.;
     SFlight08_   = GetSFlmean("CSV","M",0.0, 0.8, "ABCD");
     SFlight16_   = GetSFlmean("CSV","M",0.8, 1.6, "ABCD");
     SFlight24_   = GetSFlmean("CSV","M",1.6, 2.4, "ABCD");
-    sf_gt_ptmax_08_ = SFlight08_->Eval(ptmax_); 
-    sf_gt_ptmax_16_ = SFlight16_->Eval(ptmax_);
-    sf_gt_ptmax_24_ = SFlight24_->Eval(ptmax_);
+    sf_gt_ptmax_08_ = SFlight08_->Eval(ptmax_16_); 
+    sf_gt_ptmax_16_ = SFlight16_->Eval(ptmax_16_);
+    sf_gt_ptmax_24_ = SFlight24_->Eval(ptmax_24_);
     if (errorModeUDSG_ < 0) {
         SFlight08_   = GetSFlmin("CSV","M",0.0, 0.8, "ABCD"); 
         SFlight16_   = GetSFlmin("CSV","M",0.8, 1.6, "ABCD");
         SFlight24_   = GetSFlmin("CSV","M",1.6, 2.4, "ABCD");
-        sf_gt_ptmax_08_ -= 2*(sf_gt_ptmax_08_ - SFlight08_->Eval(ptmax_)); 
-        sf_gt_ptmax_16_ -= 2*(sf_gt_ptmax_16_ - SFlight16_->Eval(ptmax_));
-        sf_gt_ptmax_24_ -= 2*(sf_gt_ptmax_24_ - SFlight24_->Eval(ptmax_));
+        sf_gt_ptmax_08_ -= 2*(sf_gt_ptmax_08_ - SFlight08_->Eval(ptmax_16_)); 
+        sf_gt_ptmax_16_ -= 2*(sf_gt_ptmax_16_ - SFlight16_->Eval(ptmax_16_));
+        sf_gt_ptmax_24_ -= 2*(sf_gt_ptmax_24_ - SFlight24_->Eval(ptmax_24_));
     } else if (errorModeUDSG_ > 0) {
         SFlight08_   = GetSFlmax("CSV","M",0.0, 0.8, "ABCD");
         SFlight16_   = GetSFlmax("CSV","M",0.8, 1.6, "ABCD");
         SFlight24_   = GetSFlmax("CSV","M",1.6, 2.4, "ABCD");
-        sf_gt_ptmax_08_ += 2*(SFlight08_->Eval(ptmax_) - sf_gt_ptmax_08_); 
-        sf_gt_ptmax_16_ += 2*(SFlight16_->Eval(ptmax_) - sf_gt_ptmax_16_);
-        sf_gt_ptmax_24_ += 2*(SFlight24_->Eval(ptmax_) - sf_gt_ptmax_24_);
+        sf_gt_ptmax_08_ += 2*(SFlight08_->Eval(ptmax_16_) - sf_gt_ptmax_08_); 
+        sf_gt_ptmax_16_ += 2*(SFlight16_->Eval(ptmax_16_) - sf_gt_ptmax_16_);
+        sf_gt_ptmax_24_ += 2*(SFlight24_->Eval(ptmax_24_) - sf_gt_ptmax_24_);
     }
     produces<double>();
 }
@@ -505,16 +507,16 @@ float BTagWeight::scaleFactorB_CSVM_Err(const float pt)
 float BTagWeight::scaleFactorUDSG_CSVM(const float pt, const float eta)
 {
     if (abs(eta) < 0.8) {
-        if (pt > ptmax_) return sf_gt_ptmax_08_;
+        if (pt > ptmax_16_) return sf_gt_ptmax_08_;
         return SFlight08_->Eval(pt);
     }
 
     if (abs(eta) < 1.6) {
-        if (pt > ptmax_) return sf_gt_ptmax_16_;
+        if (pt > ptmax_16_) return sf_gt_ptmax_16_;
         return SFlight16_->Eval(pt);
     }
 
-    if (pt > ptmax_) return sf_gt_ptmax_24_;
+    if (pt > ptmax_24_) return sf_gt_ptmax_24_;
     return SFlight24_->Eval(pt);
 }
 
