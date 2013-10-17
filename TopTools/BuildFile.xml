@@ -1,0 +1,14 @@
+<use name="AnalysisDataFormats/TopObjects"/>
+<use name="rootrflx"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="PhysicsTools/UtilAlgos"/>
+<use name="PhysicsTools/Utilities"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="rootmath"/>
+<use name="SimGeneral/HepPDTRecord"/>
+<export>
+   <lib name= "1"/>
+</export>
