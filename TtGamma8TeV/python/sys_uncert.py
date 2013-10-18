@@ -103,14 +103,7 @@ class SysGroupAdd(SysGroup):
 
 ####################################################################### fit ###
 class SysFit(SysBase):
-    def calc_uncert(self, xsec_calc, wrp):
-        res = abs(settings.post_proc_dict["Evaluator_ChHadIso_1"][1].sys_dev)
-        for q in result_quantities:
-            setattr(wrp, xsec_calc+"_"+q, res)
-            self.message(
-                "INFO Uncertainty on "
-                + xsec_calc + "_" + q + " / %: " + str(res * 100.)
-            )
+    pass
 
 
 ################################################# showering / hadronization ###

@@ -28,6 +28,7 @@ print "<"+__name__+">: Samplename is:", sample
 
 import FWCore.ParameterSet.Config as cms
 
+puWeightInstance = puWeight
 if puWeight:
     puWeight = cms.untracked.InputTag("puWeight", puWeight)
 
@@ -103,6 +104,16 @@ if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
 process.bTagWeight.weights = process.puWeight.weights
 process.puWeight.weights = cms.untracked.InputTag("bTagWeight")
 
+# final weight histogram
+process.eventWeightHisto = cms.EDAnalyzer("DoubleValueHisto",
+    src     = cms.InputTag("puWeight", puWeightInstance),
+    name    = cms.untracked.string("histo"),
+    title   = cms.untracked.string(";final event weight;events"),
+    nbins   = cms.untracked.int32(50),
+    min     = cms.untracked.double(0.),
+    max     = cms.untracked.double(2.),
+)
+
 # Path declarations
 process.producerPath = cms.Path(
     process.preSel *
@@ -110,6 +121,7 @@ process.producerPath = cms.Path(
     process.bTagWeight *
     process.bTagWeightHisto *
     process.puWeight *
+    process.eventWeightHisto *
 #    process.photonUserDataLargestPdgId *
 #    process.jetSequence *
     process.widenedCocPatPhotons *

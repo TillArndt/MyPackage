@@ -68,7 +68,6 @@ class XsecCalculator(ppc.PostProcTool):
         r.eff_gamma     = c.sig_post / c.sig_pre
         r.eff_gamma_fid = c.sig_post / c.sig_fid
         r.pur_tt        = (c.tt_pre + c.sig_pre) / (c.bkg_pre + c.sig_pre)
-        self.message(str(("WWWWWAAAAA ", self.plot_output_dir, "(", c.tt_pre, "+", c.sig_pre, ") / (", c.bkg_pre, "+", c.sig_pre,")")))
         r.N_presel_data = c.data_pre
         r.N_sel_data    = c.data_post
         r.StoB_gamma    = c.sig_post / c.bkg_post

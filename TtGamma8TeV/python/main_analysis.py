@@ -82,52 +82,58 @@ post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
     plots_counters.CounterReader,
     plots_counters.TopPtWeightNorm,
-    plots_cutflow.cutflow_chain,
-    plots_data_mc_comp.generate_data_mc_comp_tools(),
-    plots_match_quality.MatchQualityStack,
+#    plots_cutflow.cutflow_chain,
+#    plots_data_mc_comp.generate_data_mc_comp_tools(),
+#    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
-closure_seq = post_proc_sys[:]
-if not plots_template_fit.do_dist_reweighting:
-    closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
-#    closure_seq += [plots_templ_fit_closure.seq_sbbkg_MC]
-closure_seq += [plots_templ_fit_closure.seq_sbid_altMC]
-#closure_seq += [plots_templ_fit_closure.seq_sbbkg_altMC]
-
-post_proc_tools += [sys_uncert.SysFit(
-    None,
-    closure_seq
-)]
-if "TTMadG" in settings.active_samples:
-    post_proc_tools += [
-        sys_uncert.SysTTPoPy(
-            None,
-            post_proc_sys + [sys_uncert.SysIsrFsr(
-                None,
-                post_proc_sys + [sys_uncert.SysMCatNLO(
-                    None,
-                    post_proc_sys
-                )]
-            )],
-        ),
-    ]
-else:
-    post_proc_tools += [
-        sys_uncert.SysTTMadG(
-            None,
-            post_proc_sys
-        ),
-        sys_uncert.SysIsrFsr(
-            None,
-            post_proc_sys + [sys_uncert.SysMCatNLO(
-                None,
-                post_proc_sys
-            )]
-        ),
-    ]
+#closure_seq = post_proc_sys[:]
+#if not plots_template_fit.do_dist_reweighting:
+#    closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
+##    closure_seq += [plots_templ_fit_closure.seq_sbbkg_MC]
+#closure_seq += [plots_templ_fit_closure.seq_sbid_altMC]
+##closure_seq += [plots_templ_fit_closure.seq_sbbkg_altMC]
+#post_proc_tools += closure_seq
+#post_proc_tools += [sys_uncert.SysFit(
+#    None,
+#    [
+#        plots_template_fit.TemplateFitTools,
+#        plots_templ_fit_closure.sys_fit_sbbkg,
+#        plots_templ_fit_closure.sys_fit_sbid,
+#        plots_xsec.XsecCalculators,
+#    ]
+#)]
+#if "TTMadG" in settings.active_samples:
+#    post_proc_tools += [
+#        sys_uncert.SysTTPoPy(
+#            None,
+#            post_proc_sys + [sys_uncert.SysIsrFsr(
+#                None,
+#                post_proc_sys + [sys_uncert.SysMCatNLO(
+#                    None,
+#                    post_proc_sys
+#                )]
+#            )],
+#        ),
+#    ]
+#else:
+#    post_proc_tools += [
+#        sys_uncert.SysTTMadG(
+#            None,
+#            post_proc_sys
+#        ),
+#        sys_uncert.SysIsrFsr(
+#            None,
+#            post_proc_sys + [sys_uncert.SysMCatNLO(
+#                None,
+#                post_proc_sys
+#            )]
+#        ),
+#    ]
 
 if settings.do_sys_uncert:
     post_proc_tools += [
+        ppt.SimpleWebCreator, # see output before looong sys calculation
         sys_uncert.SysPU(None, post_proc_sys),
         sys_uncert.SysTopPt.push_tools(post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
@@ -146,6 +152,7 @@ post_proc_tools += [
 #    plots_summary.TexCompiler,
 ]
 
+
 def drop_toolchain():
     settings.postprocessor.tool_chain = []
 
@@ -154,7 +161,6 @@ def analysis_main():
         post_proc_tools = post_proc_tools,
         max_num_processes = 4,
         try_reuse_results = True,
-#        suppress_cmsRun_exec = True,
         cfg_main_import_path="MyPackage.TtGamma8TeV.cfg_photon_selection",
     )
 

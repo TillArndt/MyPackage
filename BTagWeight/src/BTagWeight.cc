@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen,32 4-B20,+41227676487,
 //         Created:  Sun Aug 18 18:01:25 CEST 2013
-// $Id: BTagWeight.cc,v 1.3 2013/10/09 13:51:58 htholen Exp $
+// $Id: BTagWeight.cc,v 1.4 2013/10/10 07:53:18 htholen Exp $
 //
 //
 
@@ -581,26 +581,28 @@ BTagWeight::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace edm;
     double newEventWeight = 1.;
 
-    // calculate event weight
-    edm::Handle<std::vector<pat::Jet> > src;
-    iEvent.getByLabel(src_, src);
-    std::vector<float> btagSFs;
-    std::vector<pat::Jet>::const_iterator jets = src->begin();
-    for (; jets != src->end(); ++jets) {
-        btagSFs.push_back(scaleFactor_CSVM(*jets));
-    }
-    newEventWeight *= bTagWeight(btagSFs);
-
-    // if chained to prior weight function
-    if (!emptyWeightInputTag_) {
-        float weight = 1.;
-        edm::Handle<double> weightHandle;
-        iEvent.getByLabel(weights_, weightHandle);
-        weight = *weightHandle.product();
-        if (isnan(weight)) {
-            weight = 1.;
+    if(!iEvent.isRealData()) {
+        // calculate event weight
+        edm::Handle<std::vector<pat::Jet> > src;
+        iEvent.getByLabel(src_, src);
+        std::vector<float> btagSFs;
+        std::vector<pat::Jet>::const_iterator jets = src->begin();
+        for (; jets != src->end(); ++jets) {
+            btagSFs.push_back(scaleFactor_CSVM(*jets));
         }
-        newEventWeight *= weight;
+        newEventWeight *= bTagWeight(btagSFs);
+
+        // if chained to prior weight function
+        if (!emptyWeightInputTag_) {
+            float weight = 1.;
+            edm::Handle<double> weightHandle;
+            iEvent.getByLabel(weights_, weightHandle);
+            weight = *weightHandle.product();
+            if (isnan(weight)) {
+                weight = 1.;
+            }
+            newEventWeight *= weight;
+        }
     }
 
     // store in event

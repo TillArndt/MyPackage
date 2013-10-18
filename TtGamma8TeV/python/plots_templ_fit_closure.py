@@ -10,6 +10,29 @@ import plots_template_fit as tmpl_fit
 from cmstoolsac3b import settings
 from ROOT import TH1D, TVectorD
 
+top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+dicts_sample_MC = [
+    {
+        "sample"    : top_sample,
+        "analyzer"  : "TemplateChHadIsofake",
+    },
+    {
+        "sample"    : "whiz2to5",
+        "analyzer"  : "TemplateChHadIsoreal",
+    },
+]
+dicts_sample_altMC = [
+    {
+        "sample"    : "TTJeRD1",
+        "analyzer"  : "TemplateChHadIsofake",
+    },
+    {
+        "sample"    : "TTGamRD1",
+        "analyzer"  : "TemplateChHadIsoreal",
+    },
+]
+
+
 
 def make_fitter_class(base_class):
     class Fitter(base_class):
@@ -29,11 +52,7 @@ def make_fitter_class(base_class):
 def make_input_maker_sbbkg(sample):
     class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
         def run(self):
-            wrps = tmpl_fit.rebin_chhadiso(gen.fs_filter_sort_load({
-                "analyzer": tmpl_fit.sb_anzlrs,
-                "sample": sample,
-            }))
-            wrp = gen.op.merge(wrps)
+            wrp = tmpl_fit.get_merged_sbbkg_histo(sample)
 
             # multiply with weight
             if tmpl_fit.do_dist_reweighting:
@@ -94,7 +113,8 @@ def gen_mixer_input(input_dict):
                     )))))
 
 
-def make_mixer_class(gen_tmplt_input):
+def make_mixer_class(input_dict):
+    gen_tmplt_input = tmpl_fit.rebin_chhadiso(gen_mixer_input(input_dict))
     class HistoMixer(ppt.FSStackPlotter):
         def configure(self):
             self.result = []
@@ -264,11 +284,7 @@ def make_sequence(name, histo_mixer, nth_histo, range_func, center_values, fitte
 
 
 def make_closure_test_sequence_chhadiso_sbbkg(seq_name, input_dicts):
-    histo_mixer = make_mixer_class(tmpl_fit.rebin_chhadiso(
-        gen_mixer_input(
-            input_dicts
-        )
-    ))("MixerChHadIso")
+    histo_mixer = make_mixer_class(input_dicts)("MixerChHadIsoSbBkg")
     name = "ChHadIso"
     tools = [
         histo_mixer,
@@ -291,11 +307,7 @@ def make_closure_test_sequence_chhadiso_sbbkg(seq_name, input_dicts):
 
 
 def make_closure_test_sequence_chhadiso_sbid(seq_name, input_dicts):
-    histo_mixer = make_mixer_class(tmpl_fit.rebin_chhadiso(
-        gen_mixer_input(
-            input_dicts
-        )
-    ))("MixerChHadIso")
+    histo_mixer = make_mixer_class(input_dicts)("MixerChHadIsoSBID")
     name = "ChHadIso"
     tools = [
         histo_mixer,
@@ -318,41 +330,50 @@ def make_closure_test_sequence_chhadiso_sbid(seq_name, input_dicts):
 
 
 def make_seq_MC(central_maker):
-    top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
-    return central_maker(
-        "MC",
-        [
-            {
-                "sample"    : top_sample,
-                "analyzer"  : "TemplateChHadIsofake",
-            },
-            {
-                "sample"    : "whiz2to5",
-                "analyzer"  : "TemplateChHadIsoreal",
-            },
-        ]
-    )
+    return central_maker("MC", dicts_sample_MC)
 
 
 def make_seq_altMC(central_maker):
-    return central_maker(
-        "altMC",
-        [
-            {
-                "sample"    : "TTJeRD1",
-                "analyzer"  : "TemplateChHadIsofake",
-            },
-            {
-                "sample"    : "TTGamRD1",
-                "analyzer"  : "TemplateChHadIsoreal",
-            },
-        ]
-    )
+    return central_maker("altMC", dicts_sample_altMC)
 
 seq_sbbkg_MC    = make_seq_MC(make_closure_test_sequence_chhadiso_sbbkg)
 seq_sbbkg_altMC = make_seq_altMC(make_closure_test_sequence_chhadiso_sbbkg)
 seq_sbid_MC     = make_seq_MC(make_closure_test_sequence_chhadiso_sbid)
 seq_sbid_altMC  = make_seq_altMC(make_closure_test_sequence_chhadiso_sbid)
+
+
+def make_sys_uncert_fitter(fitter_base_class):
+    fitter_name = fitter_base_class.__name__
+    class Fitter(fitter_base_class):
+        def __init__(self, name=None, *args):
+            super(Fitter, self).__init__(name)
+            if args:
+                self.mixer = args[0]
+
+        def configure(self):
+            super(Fitter, self).configure()
+            res_data = settings.post_proc_dict[fitter_name]
+            self.fitted = self.mixer.make_mixed_histo(res_data.binIntegralScaled)
+
+    # make mixer and tool chain
+    histo_mixer = make_mixer_class(dicts_sample_altMC)("Mixer"+fitter_name)
+    if "SBID" in fitter_name:
+        input_maker = make_input_maker_sbid(dicts_sample_altMC[0]["sample"])
+    else:
+        input_maker = make_input_maker_sbbkg(dicts_sample_altMC[0]["sample"])
+    fitter = Fitter(fitter_name, histo_mixer)
+    return ppc.PostProcChain(
+        "SysFit" + fitter_name,
+        [
+            histo_mixer,
+            input_maker,
+            fitter
+        ]
+    )
+
+
+sys_fit_sbbkg = make_sys_uncert_fitter(tmpl_fit.TemplateFitToolChHadIsoSbBkg)
+sys_fit_sbid = make_sys_uncert_fitter(tmpl_fit.TemplateFitToolChHadIsoSBID)
 
 #dicts_sihih_shift_sep_fakes = [
 #    {

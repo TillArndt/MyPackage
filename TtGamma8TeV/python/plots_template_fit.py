@@ -4,7 +4,8 @@ import cmstoolsac3b.postprocessing as ppc
 import cmstoolsac3b.generators as gen
 import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.rendering as rnd
-import cmstoolsac3b.settings as settings
+from cmstoolsac3b import settings
+from cmstoolsac3b import diskio
 from ROOT import TF1, TPaveText, TFractionFitter, TObjArray, Double, TMath
 import itertools
 import re
@@ -104,7 +105,7 @@ def find_x_range(data_hist):
         if data_hist.GetBinContent(i):
             x_min = data_hist.GetXaxis().GetBinLowEdge(i)
             break
-    for i in xrange(data_hist.GetNbinsX()-1, 0, -1):
+    for i in xrange(data_hist.GetNbinsX(), 0, -1):
         if data_hist.GetBinContent(i):
             x_max = data_hist.GetXaxis().GetBinUpEdge(i)
             break
@@ -186,10 +187,19 @@ class TemplateStacks(ppt.FSStackPlotter):
 
 ### fitting tools #########################################
 class Fitter(object):
-    def build_fit_function(self, tool, mc_tmplts):
+    def __init__(self):
+        self.x_min = 0.
+        self.x_max = 0.
+        self.fit_func = None
+        self.fitted = None
+        self.mc_tmplts = None
+
+    def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
         templates = [tw.histo for tw in mc_tmplts]
         size = len(templates)
-        tool.n_templates = size
+        self.x_min, self.x_max = x_min, x_max
+        self.fitted = fitted
+        self.mc_tmplts = mc_tmplts
 
         def fit_func(x, par):
             value = 0.
@@ -197,48 +207,45 @@ class Fitter(object):
                 value += par[i] * hist.GetBinContent(hist.FindBin(x[0]))
             return value
 
-        tf1 = TF1(
+        self.fit_func = TF1(
             "MyFitFunc",
             fit_func,
-            tool.x_min,
-            tool.x_max,
+            x_min,
+            x_max,
             size
         )
         for i in xrange(0, size):
-            tf1.SetParameter(i,1.)
+            self.fit_func.SetParameter(i, 1.)
 
-        return tf1
-
-    def do_the_fit(self, tool, mc_tmplts):
-        tool.fitted.histo.Fit(
-            tool.fit_func, "WL M N", "", tool.x_min, tool.x_max
+    def do_the_fit(self):
+        self.fitted.histo.Fit(
+            self.fit_func, "WL M N", "", self.x_min, self.x_max
         )
-        settings.post_proc_dict[tool.name+"_mc_tmplts"] = mc_tmplts[:]
 
-    def scale_templates_to_fit(self, fit_function, templates):
+    def scale_templates_to_fit(self, templates):
         for i in range(0, len(templates)):
-            templates[i].histo.Scale(fit_function.GetParameter(i))
+            templates[i].histo.Scale(self.fit_func.GetParameter(i))
 
-    def calc_chi2(self, x_min, x_max, templates, fitted):
-        """"""
-        print templates
-        return gen.op.chi2(
+    def get_val_err(self, i_par):
+        return (
+            self.fit_func.GetParameter(i_par),
+            self.fit_func.GetParError(i_par)
+        )
+
+    def get_ndf(self):
+        return self.fit_func.GetNDF()
+
+    def make_fit_result(self, result_wrp, mc_tmplts):
+        r = result_wrp
+        r.Chi2 = gen.op.chi2(
             (
-                gen.op.sum(templates),
-                fitted
-            ), x_min, x_max
+                gen.op.sum(mc_tmplts),
+                self.fitted
+            ), self.x_min, self.x_max
         ).float
-
-    def get_val_err(self, fit_func, i_par):
-        return fit_func.GetParameter(i_par), fit_func.GetParError(i_par)
-
-    def make_fit_result(self, tool, mc_tmplts, chi2):
-        r = tool.result
-        fit_function = tool.fit_func
-        r.Chi2 = chi2
-        r.NDF = fit_function.GetNDF()
-        r.FitProb = TMath.Prob(chi2, r.NDF)
-        r.dataIntegral = tool.fitted.histo.Integral()
+        r.NDF = self.get_ndf()
+        r.FitProb = TMath.Prob(r.Chi2, r.NDF)
+        r.dataIntegral = self.fitted.histo.Integral()
         r.legend = []
         r.value = []
         r.error = []
@@ -247,7 +254,7 @@ class Fitter(object):
         r.binIntegralScaledError = []
         for i, tmplt in enumerate(mc_tmplts):
             r.legend.append(tmplt.legend)
-            val, err = self.get_val_err(fit_function, i)
+            val, err = self.get_val_err(i)
             r.value.append(val)
             r.error.append(err)
             r.binIntegralMC.append(tmplt.histo.Integral() / r.value[-1])
@@ -266,32 +273,93 @@ class Fitter(object):
 
 
 class FractionFitter(Fitter):
-    def build_fit_function(self, tool, mc_tmplts):
-        self.fitted = tool.fitted
+    def __init__(self):
+        super(FractionFitter, self).__init__()
+        self.vals = []
+        self.errs = []
+
+    def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
+        self.fitted = fitted
+        self.mc_tmplts = mc_tmplts
         mc_array = TObjArray(len(mc_tmplts))
         for tmplt in mc_tmplts:
             mc_array.Add(tmplt.histo)
-        self.fit = TFractionFitter(tool.fitted.histo, mc_array)
-        return self.fit
+        self.fit_func = TFractionFitter(fitted.histo, mc_array)
 
-    def do_the_fit(self, tool, mc_tmplts):
-        self.fit.Fit()
-        settings.post_proc_dict[tool.name+"_mc_tmplts"] = mc_tmplts[:]
+    def do_the_fit(self):
+        self.fit_func.Fit()
 
-    def scale_templates_to_fit(self, fit_function, templates):
-        self.vals = []
-        self.errs = []
+    def scale_templates_to_fit(self, templates):
         val = Double(0.)
         err = Double(0.)
         for i, tmplt in enumerate(templates):
-            fit_function.GetResult(i, val, err)
+            self.fit_func.GetResult(i, val, err)
             orig_frac = tmplt.histo.Integral() / self.fitted.histo.Integral()
             self.vals.append(val / orig_frac)
             self.errs.append(err / orig_frac)
             templates[i].histo.Scale(self.vals[-1])
 
-    def get_val_err(self, fit_func, i_par):
+    def get_val_err(self, i_par):
         return self.vals[i_par], self.errs[i_par]
+
+
+class ThetaFitter(Fitter):
+    def __init__(self):
+        super(ThetaFitter, self).__init__()
+
+    def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
+        # save histos to root file
+        pass
+
+    def do_the_fit(self):
+        # exec theta_auto inline
+        pass
+
+    def scale_templates_to_fit(self, templates):
+        # just scale...
+        pass
+
+    def get_val_err(self, i_par):
+        pass
+
+    def get_ndf(self):
+        pass
+
+
+class CombineFitter(Fitter):
+    def __init__(self):
+        super(CombineFitter, self).__init__()
+
+    def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
+        combine_cfg = [
+
+        ]
+        # save histos to root file
+        combine_root_wrp = wrp.Wrapper(
+            name="CombineHistos",
+            data_obs=fitted.histo,
+            signal=mc_tmplts[1].histo,
+            background=mc_tmplts[0].histo,
+            n_data_obs=fitted.histo.Integral(),
+            n_signal=mc_tmplts[1].histo.Integral(),
+            n_background=mc_tmplts[0].histo.Integral(),
+        )
+        diskio.write(combine_root_wrp)
+        raise Exception("STOP!")
+
+    def do_the_fit(self):
+        # exec theta_auto inline
+        pass
+
+    def scale_templates_to_fit(self, templates):
+        # just scale...
+        pass
+
+    def get_val_err(self, i_par):
+        pass
+
+    def get_ndf(self):
+        pass
 
 
 class TemplateFitTool(ppt.FSStackPlotter):
@@ -303,6 +371,8 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.result         = wrp.Wrapper()
         self.n_templates    = 0
         self.fitter         = Fitter()
+        self.x_min          = 0.
+        self.x_max          = 0.
 
     def configure(self):
         super(TemplateFitTool, self).configure()
@@ -312,21 +382,6 @@ class TemplateFitTool(ppt.FSStackPlotter):
     def fetch_mc_templates(self):
         mc_tmplts = histo_wrapperize(self.mc_tmplts)
         return list(cosmetica2(mc_tmplts))
-
-    def build_fit_function(self, mc_tmplts):
-        return self.fitter.build_fit_function(self, mc_tmplts)
-
-    def do_the_fit(self, mc_tmplts):
-        return self.fitter.do_the_fit(self, mc_tmplts)
-
-    def scale_templates_to_fit(self, *args):
-        return self.fitter.scale_templates_to_fit(*args)
-
-    def calc_chi2(self, *args):
-        return self.fitter.calc_chi2(*args)
-
-    def make_fit_results(self, mc_tmplts, chi2):
-        return self.fitter.make_fit_result(self, mc_tmplts, chi2)
 
     def make_fit_textbox(self):
         res = self.result
@@ -357,24 +412,28 @@ class TemplateFitTool(ppt.FSStackPlotter):
                 + "} = %d #pm %d"%(
                     res.binIntegralScaled[i],
                     res.binIntegralScaledError[i]
-                    )
+                )
             )
         for txt in reversed(text):
             textbox.AddText(txt)
         return textbox
 
     def set_up_stacking(self):
+        self.result.fitter = self.fitter.__class__.__name__
         mc_tmplts = self.fetch_mc_templates()
+        self.n_templates = len(mc_tmplts)
+        settings.post_proc_dict[self.name+"_mc_tmplts"] = mc_tmplts[:]
 
         # do fit procedure
         self.fitted = gen.op.sum(self.fitted)
         self.x_min, self.x_max = find_x_range(self.fitted.histo)
-        self.fit_func = self.build_fit_function(mc_tmplts)
-        self.do_the_fit(mc_tmplts)
+        self.fitter.build_fit_function(
+            self.fitted, mc_tmplts, self.x_min, self.x_max
+        )
+        self.fitter.do_the_fit()
 
-        self.scale_templates_to_fit(self.fit_func, mc_tmplts)
-        chi2 = self.calc_chi2(self.x_min, self.x_max, mc_tmplts, self.fitted)
-        self.make_fit_results(mc_tmplts, chi2)
+        self.fitter.scale_templates_to_fit(mc_tmplts)
+        self.fitter.make_fit_result(self.result, mc_tmplts)
 
         fit_textbox = self.make_fit_textbox()
         textboxes = {mc_tmplts[0].name: fit_textbox}
@@ -386,7 +445,6 @@ class TemplateFitTool(ppt.FSStackPlotter):
         stream_stack = [(tmplt_stacks[0], self.fitted)]
         self.stream_stack = gen.pool_store_items(stream_stack)
 
-        del self.fit_func
         del self.fitter
 
 
@@ -408,8 +466,8 @@ class TemplateFitToolSihih(TemplateFitTool):
 class TemplateFitToolChHadIso(TemplateFitTool):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = FractionFitter()
-        self.fitbox_bounds  = 0.33, 0.62, 0.88
+        self.fitter = Fitter()
+        self.fitbox_bounds = 0.33, 0.62, 0.88
 
         # here the stacked templates are taken for purity calculation
         # but they are replaced in fetch_mc_templates(..)
@@ -454,14 +512,20 @@ class TemplateFitToolChHadIso(TemplateFitTool):
 
 sb_anzlrs = (
     "PlotLooseIDSliceSihihSB12to13",
-#    "PlotLooseIDSliceSihihSB13to14",
-#    "PlotLooseIDSliceSihihSB14to15",
-#    "PlotLooseIDSliceSihihSB15to16",
-#    "PlotLooseIDSliceSihihSB16to17",
-#    "PlotLooseIDSliceSihihSB17to18",
+    "PlotLooseIDSliceSihihSB13to14",
+    "PlotLooseIDSliceSihihSB14to15",
+    "PlotLooseIDSliceSihihSB15to16",
+    "PlotLooseIDSliceSihihSB16to17",
+    "PlotLooseIDSliceSihihSB17to18",
 #    "PlotLooseIDSliceSihihSB18to19",
 #    "PlotLooseIDSliceSihihSB19to20",
 )
+def get_merged_sbbkg_histo(sample):
+    wrps = rebin_chhadiso(gen.fs_filter_sort_load({
+        "analyzer": sb_anzlrs,
+        "sample": sample,
+    }))
+    return gen.op.merge(wrps)
 
 
 class TemplateFitToolChHadIsoSbBkgInputBkgWeight(ppc.PostProcTool):
@@ -480,13 +544,17 @@ class TemplateFitToolChHadIsoSbBkgInputBkgWeight(ppc.PostProcTool):
                 gen.op.norm_to_integral(wrp_sb),
             ))
             wrp.lumi = 1.
+            wrp.draw_option = "E1"
             self.result = wrp
+            cnvs = list(gen.canvas(((wrp,),)),)
+            cnvs[0].canvas.SetGridy(1)
             gen.consume_n_count(
                 gen.save(
                     gen.canvas(((wrp,),)),
                     lambda c: self.plot_output_dir + c.name
                 )
             )
+            del wrp.draw_option
 
 
 class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
@@ -495,7 +563,7 @@ class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
             gen.gen_sum(
                 [
                     gen.fs_filter_active_sort_load({
-                        "analyzer"  : "PlotLooseIDSihihSB",
+                        "analyzer"  : sb_anzlrs,
                         "is_data"   : True
                     })
                 ]
@@ -521,7 +589,7 @@ class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSbBkg(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = FractionFitter()
+        self.fitter = Fitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
@@ -560,35 +628,54 @@ class TemplateFitToolChHadIsoSBIDInputBkgWeight(ppc.PostProcTool):
                 gen.op.norm_to_integral(wrp_sb),
             ))
             wrp.lumi = 1.
+            wrp.draw_option = "E1"
             self.result = wrp
+            cnvs = list(gen.canvas(((wrp,),)),)
+            cnvs[0].canvas.SetGridy(1)
             gen.consume_n_count(
                 gen.save(
-                    gen.canvas(((wrp,),)),
+                    cnvs,
                     lambda c: self.plot_output_dir + c.name
                 )
             )
+            del wrp.draw_option
 
 
 class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
     def run(self):
         wrp = next(rebin_chhadiso(
             gen.gen_sum(
-                [
-                    gen.fs_filter_active_sort_load({
-                        "analyzer"  : "PlotSBID",
-                        "is_data"   : True
-                    })
-                ]
+                [gen.fs_filter_active_sort_load({
+                    "analyzer"  : "PlotSBID",
+                    "is_data"   : True
+                })]
             )
         ))
+        # normalize to mc expectation
+        integral_fake = next(
+            gen.gen_integral(
+                gen.gen_norm_to_data_lumi(
+                    gen.filter(
+                        settings.post_proc_dict["TemplateStacks"],
+                        {"analyzer": "TemplateChHadIsofake"}
+                    )
+                )
+            )
+        )
+        print integral_fake
+        wrp = gen.op.prod((
+            gen.op.norm_to_integral(wrp),
+            integral_fake
+        ))
+
         # multiply with weight
         if do_dist_reweighting:
             wrp = gen.op.prod((
                 settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkgWeight"],
                 wrp,
             ))
-        wrp.lumi = settings.data_lumi_sum()
 
+        wrp.lumi = settings.data_lumi_sum()
         self.result = [wrp]
         gen.consume_n_count(
             gen.save(
@@ -601,27 +688,32 @@ class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = FractionFitter()
+        self.fitter = CombineFitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
             settings.post_proc_dict["TemplateStacks"], {
                 "analyzer"  : ("TemplateChHadIsoreal", "PlotSBIDfake"),
-                })
+            }
+        )
         self.fitted         = rebin_chhadiso(
             gen.fs_filter_active_sort_load({
                 "analyzer"  : "TemplateChHadIso",
                 "is_data"   : True,
-                })
+            })
         )
 
-        self.gen_bkg_tmplt = iter(settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkg"])
+        self.gen_bkg_tmplt = iter(
+            settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkg"]
+        )
         self.gen_sig_tmplt = rebin_chhadiso(
             gen.gen_norm_to_data_lumi(
                 gen.fs_filter_active_sort_load({
                     "analyzer"  : "TemplateChHadIsoreal",
                     "sample"    : re.compile("whiz2to5"),
-                })))
+                })
+            )
+        )
 
 
 class TemplateFitToolSihihShift(TemplateFitTool):
@@ -806,17 +898,40 @@ TemplateFitTools = ppc.PostProcChain(
 )
 
 
+def apply_overlay_draw_mode(wrps):
+
+    def style_boxed_errors(w):
+        w.draw_option = "E2"
+        w.histo.SetFillColor(922)
+        w.histo.SetFillStyle(3008)
+        w.histo.SetLineWidth(0)
+
+    def style_error_bars(w):
+        w.draw_option = "E1"
+
+    for w in wrps:
+        w.histo.SetMarkerSize(0)
+        if "TemplateChHadIsofake" in w.analyzer:
+            style_boxed_errors(w)
+        else:
+            style_error_bars(w)
+        yield w
+
+
 class SideBandVSFake(TemplateOverlays):
     def set_up_stacking(self):
         mc_tmplts = gen.fs_filter_sort_load({
             "sample"    : self.sample_name,
-            "analyzer"  : ("TemplateChHadIsofake", "PlotLooseIDSihihSB", "PlotSBID")
+            "analyzer"  : ("TemplateChHadIsofake", "PlotSBID")
         })
+        sb_wrp = get_merged_sbbkg_histo(self.sample_name)
+        mc_tmplts = [sb_wrp] + list(mc_tmplts)
         mc_tmplts = gen.gen_norm_to_integral(mc_tmplts)
         mc_tmplts = cosmetica1(mc_tmplts)
         mc_tmplts = rebin_chhadiso(mc_tmplts)
         mc_tmplts = gen.apply_histo_linecolor(mc_tmplts, [625, 618, 596])
-        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.name)
+        mc_tmplts = apply_overlay_draw_mode(mc_tmplts)
+        mc_tmplts = gen.group(mc_tmplts, key_func=lambda w: w.sample)
         self.stream_stack = mc_tmplts
 
 
@@ -837,6 +952,7 @@ class SigRegCmp(TemplateOverlays):
         def leg(wrps):
             for w in wrps:
                 w.legend = w.sample
+                w.draw_option = "E1"
                 yield w
         mc_tmplts = leg(mc_tmplts)
         mc_tmplts = rebin_chhadiso(mc_tmplts)

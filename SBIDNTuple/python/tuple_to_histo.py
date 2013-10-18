@@ -7,9 +7,9 @@ from ROOT import TFile, TH1D
 import itertools
 
 
-range_sieie  = list(x*0.001 for x in xrange(13, 21, 1))
-range_phoiso = list(x*0.1   for x in xrange(10, 20, 5))
-range_neuiso = list(x*0.1   for x in xrange(60, 70, 5))
+range_sieie  = list(x*0.001 for x in xrange(12, 21, 1))
+range_phoiso = list(x*0.1   for x in xrange(10, 70, 5))
+range_neuiso = list(x*0.1   for x in xrange(10, 70, 5))
 
 
 def histo_key(s, p, n):
@@ -141,7 +141,29 @@ class Chi2Producer(postprocessing.PostProcTool):
 
 
 class Chi2EvaluatorBase(postprocessing.PostProcTool):
-    def make_histo(self, histo_key_list, range_list, name):
+    def make_histo_1d(self, min_wrp, name):
+
+        # assign variables
+        if "sieie" == name:
+            histo_key_list = list(
+                histo_key(s, min_wrp.phoiso, min_wrp.neuiso)
+                for s in range_sieie
+            )
+            range_list = range_sieie
+        elif "phoiso" == name:
+            histo_key_list = list(
+                histo_key(min_wrp.sieie, p, min_wrp.neuiso)
+                for p in range_phoiso
+            )
+            range_list = range_phoiso
+        else:
+            histo_key_list = list(
+                histo_key(min_wrp.sieie, min_wrp.phoiso, n)
+                for n in range_neuiso
+            )
+            range_list = range_neuiso
+
+        # make histogram and wrapper
         half_step = (range_list[1] - range_list[0])/2
         histo = TH1D(
             "histo_in_"+name,
@@ -155,27 +177,14 @@ class Chi2EvaluatorBase(postprocessing.PostProcTool):
         )
         return wrp
 
-    def do_evaluation(self, wrp_list):
+    def do_evaluation(self, wrp_list, maker_func=None):
+        if not maker_func:
+            maker_func = self.make_histo_1d
         self.wrp_dict = dict((w.histo_key, w) for w in wrp_list)
         min_wrp = min(wrp_list, key=lambda w: w.float)
-        histo_in_s = self.make_histo(
-            list(
-                histo_key(s, min_wrp.phoiso, min_wrp.neuiso)
-                for s in range_sieie
-            ), range_sieie, "sieie"
-        )
-        histo_in_p = self.make_histo(
-            list(
-                histo_key(min_wrp.sieie, p, min_wrp.neuiso)
-                for p in range_phoiso
-            ), range_phoiso, "phoiso"
-        )
-        histo_in_n = self.make_histo(
-            list(
-                histo_key(min_wrp.sieie, min_wrp.phoiso, n)
-                for n in range_neuiso
-            ), range_neuiso, "neuiso"
-        )
+        histo_in_s = maker_func(min_wrp, "sieie")
+        histo_in_p = maker_func(min_wrp, "phoiso")
+        histo_in_n = maker_func(min_wrp, "neuiso")
         histo_in_s.min_token = min_wrp.histo_key
         histo_in_p.min_token = min_wrp.histo_key
         histo_in_n.min_token = min_wrp.histo_key

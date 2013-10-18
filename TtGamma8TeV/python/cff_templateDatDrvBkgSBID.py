@@ -23,7 +23,7 @@ cutsieie        = "0.012"
 cutneutralIso   = "(4.5 + 0.04*pt)"
 cutphoIso       = "(4.5 + 0.005*pt)"
 
-maxsieie        = "0.013" # orig: 0.015
+maxsieie        = "0.014" # orig: 0.015
 maxneutralIso   = "min(0.2*et, 6*" + cutneutralIso  + ")" # orig : 5*cut
 maxphoIso       = "min(0.2*et, 1*" + cutphoIso      + ")" # orig : 5*cut
 maxhoe          = cuthoe

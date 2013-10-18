@@ -125,6 +125,8 @@ pn.update({
     "TemplateChHadIsofake"      : "fake",
     "PlotLooseIDSihihSigRegreal": "real",
     "PlotLooseIDSihihSidBanfake": "fake",
+    "PlotSBID"                  : "SBID",
+    "PlotLooseIDSliceSihihSB12to13": "#sigma_{i#eta i#eta} SB"
 })
 
 pn.update({

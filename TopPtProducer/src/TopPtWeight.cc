@@ -13,7 +13,7 @@
 //
 // Original Author:  Heiner Tholen,32 4-B20,+41227676487,
 //         Created:  Mon Aug 19 15:44:44 CEST 2013
-// $Id$
+// $Id: TopPtWeight.cc,v 1.1 2013/10/09 14:06:38 htholen Exp $
 //
 //
 
@@ -99,33 +99,35 @@ TopPtWeight::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace edm;
     double newEventWeight = 1.;
 
-    // calculate event weight
-    if (uncertMode_ > -1) {
-        edm::Handle<double> ptTop;
-        edm::Handle<double> ptAntiTop;
-        iEvent.getByLabel(edm::InputTag("topPtTTbar", "ptTop"), ptTop);
-        iEvent.getByLabel(edm::InputTag("topPtTTbar", "ptAntiTop"), ptAntiTop);
-        newEventWeight = sqrt(
-            sf(*ptTop.product()) * sf(*ptAntiTop.product())
-        );
-    }
-    if (uncertMode_ > 0) {
-        newEventWeight = newEventWeight * newEventWeight;
-    }
-
-    weightsSum_ += newEventWeight;
-    nEvents_ += 1.;
-
-    // if chained to prior weight function
-    if (!emptyWeightInputTag_) {
-        float weight = 1.;
-        edm::Handle<double> weightHandle;
-        iEvent.getByLabel(weights_, weightHandle);
-        weight = *weightHandle.product();
-        if (isnan(weight)) {
-            weight = 1.;
+    if(!iEvent.isRealData()) {
+        // calculate event weight
+        if (uncertMode_ > -1) {
+            edm::Handle<double> ptTop;
+            edm::Handle<double> ptAntiTop;
+            iEvent.getByLabel(edm::InputTag("topPtTTbar", "ptTop"), ptTop);
+            iEvent.getByLabel(edm::InputTag("topPtTTbar", "ptAntiTop"), ptAntiTop);
+            newEventWeight = sqrt(
+                sf(*ptTop.product()) * sf(*ptAntiTop.product())
+            );
         }
-        newEventWeight *= weight;
+        if (uncertMode_ > 0) {
+            newEventWeight = newEventWeight * newEventWeight;
+        }
+
+        weightsSum_ += newEventWeight;
+        nEvents_ += 1.;
+
+        // if chained to prior weight function
+        if (!emptyWeightInputTag_) {
+            float weight = 1.;
+            edm::Handle<double> weightHandle;
+            iEvent.getByLabel(weights_, weightHandle);
+            weight = *weightHandle.product();
+            if (isnan(weight)) {
+                weight = 1.;
+            }
+            newEventWeight *= weight;
+        }
     }
 
     // store in event
