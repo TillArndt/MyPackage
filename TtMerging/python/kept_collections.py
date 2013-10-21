@@ -51,5 +51,18 @@ kept_collections = [
 'keep recoVertexs_offlinePrimaryVertices__RECO',
 'keep triggerTriggerEvent_hltTriggerSummaryAOD__*',
 'keep edmMergeableCounter_*_*_*',
+
+'drop recoPFCandidates_particleFlow__RECO',
+'drop patJets_smearedPatJets__PAT',
+'drop patJets_patJetsTR__PAT',
+'drop recoPFCandidates_pfAllNeutralHadronsAndPhotonsTR__PAT',
+'drop triggerTriggerEvent_hltTriggerSummaryAOD__HLT',
+'drop recoPFCandidates_pfAllPhotonsTR__PAT',
+'drop recoPFJets_*PFJets__RECO',
+'drop recoPFJets_pfJetsTR__PAT',
+'drop patMuons_selectedPatMuonsTR__PAT',
+'drop patMuons_patMuonsTR__PAT',
+'drop *_photonUserData*_*_*',
+'keep *_photonUserDataSCFootRm_*_*',
 ]
 
