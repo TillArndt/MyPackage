@@ -688,7 +688,7 @@ class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = CombineFitter()
+        self.fitter = Fitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(

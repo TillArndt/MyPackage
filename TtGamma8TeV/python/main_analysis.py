@@ -87,49 +87,49 @@ post_proc_tools = [
 #    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
-#closure_seq = post_proc_sys[:]
-#if not plots_template_fit.do_dist_reweighting:
-#    closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
-##    closure_seq += [plots_templ_fit_closure.seq_sbbkg_MC]
-#closure_seq += [plots_templ_fit_closure.seq_sbid_altMC]
-##closure_seq += [plots_templ_fit_closure.seq_sbbkg_altMC]
-#post_proc_tools += closure_seq
-#post_proc_tools += [sys_uncert.SysFit(
-#    None,
-#    [
-#        plots_template_fit.TemplateFitTools,
-#        plots_templ_fit_closure.sys_fit_sbbkg,
-#        plots_templ_fit_closure.sys_fit_sbid,
-#        plots_xsec.XsecCalculators,
-#    ]
-#)]
-#if "TTMadG" in settings.active_samples:
-#    post_proc_tools += [
-#        sys_uncert.SysTTPoPy(
-#            None,
-#            post_proc_sys + [sys_uncert.SysIsrFsr(
-#                None,
-#                post_proc_sys + [sys_uncert.SysMCatNLO(
-#                    None,
-#                    post_proc_sys
-#                )]
-#            )],
-#        ),
-#    ]
-#else:
-#    post_proc_tools += [
-#        sys_uncert.SysTTMadG(
-#            None,
-#            post_proc_sys
-#        ),
-#        sys_uncert.SysIsrFsr(
-#            None,
-#            post_proc_sys + [sys_uncert.SysMCatNLO(
-#                None,
-#                post_proc_sys
-#            )]
-#        ),
-#    ]
+closure_seq = post_proc_sys[:]
+if not plots_template_fit.do_dist_reweighting:
+    closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
+    closure_seq += [plots_templ_fit_closure.seq_sbbkg_MC]
+closure_seq += [plots_templ_fit_closure.seq_sbid_altMC]
+closure_seq += [plots_templ_fit_closure.seq_sbbkg_altMC]
+post_proc_tools += closure_seq
+post_proc_tools += [sys_uncert.SysFit(
+    None,
+    [
+        plots_template_fit.TemplateFitTools,
+        plots_templ_fit_closure.sys_fit_sbbkg,
+        plots_templ_fit_closure.sys_fit_sbid,
+        plots_xsec.XsecCalculators,
+    ]
+)]
+if "TTMadG" in settings.active_samples:
+    post_proc_tools += [
+        sys_uncert.SysTTPoPy(
+            None,
+            post_proc_sys + [sys_uncert.SysIsrFsr(
+                None,
+                post_proc_sys + [sys_uncert.SysMCatNLO(
+                    None,
+                    post_proc_sys
+                )]
+            )],
+        ),
+    ]
+else:
+    post_proc_tools += [
+        sys_uncert.SysTTMadG(
+            None,
+            post_proc_sys
+        ),
+        sys_uncert.SysIsrFsr(
+            None,
+            post_proc_sys + [sys_uncert.SysMCatNLO(
+                None,
+                post_proc_sys
+            )]
+        ),
+    ]
 
 if settings.do_sys_uncert:
     post_proc_tools += [
