@@ -1,8 +1,0 @@
-
-
-* Photon selection: good shower shape and isolation already done in pat?
-* t->had T->lep: do 50/50
-* require one b-tag
-
-
-
