@@ -22,10 +22,14 @@ git commit -m 'Merge SCFootprintRemoval in CMSSW'
 git checkout PFIsolation
 
 git remote add -f EGamma-EGammaAnalysisTools https://github.com/ETHZ/EGamma-EGammaAnalysisTools
-git merge -s ours --no-commit V00-00-21 EGamma-EGammaAnalysisTools/master
-git read-tree --prefix=EGamma/EGammaAnalysisTools V00-00-21
+git merge -s ours --no-commit EGamma-EGammaAnalysisTools/V00-00-30
+git read-tree --prefix=EGamma/EGammaAnalysisTools -u EGamma-EGammaAnalysisTools/V00-00-30
 git commit -m 'Merge EGammaAnalysisTools in CMSSW'
 git checkout EGamma
+scram b -j 9
 
-git pull
+git clone https://github.com/HeinAtCERN/TTGammaModules.git
+git clone https://github.com/HeinAtCERN/MyProducts.git
+git clone https://github.com/HeinAtCERN/MyPackage.git
+scram b -j 9
 

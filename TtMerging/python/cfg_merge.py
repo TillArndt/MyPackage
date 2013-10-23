@@ -37,7 +37,7 @@ process.BTagJet = cms.EDFilter("PATCandViewCountFilter",
 add_with_counter("BTagJet")
 
 
-TODO: require photon candidate with ET > 20 GeV and abs(eta) < 1.5 or so!!
+#TODO: require photon candidate with ET > 20 GeV and abs(eta) < 1.5 or so!!
 
 #process.load("Configuration.Geometry.GeometryIdeal_cff")
 #process.load("MagneticField.Engine.uniformMagneticField_cfi")
