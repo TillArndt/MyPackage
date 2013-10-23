@@ -5,8 +5,9 @@ source /afs/cern.ch/cms/cmsset_default.sh
 cmsrel CMSSW_5_3_11_patch6
 cd CMSSW_5_3_11_patch6/
 git clone https://github.com/heinzK1X/CmsToolsAC3b.git
-ln -s CmsToolsAC3b/cmstoolsac3b python/
-cd src
+cd python
+ln -s ../CmsToolsAC3b/cmstoolsac3b
+cd ../src
 cmsenv
 git cms-addpkg PhysicsTools/PatAlgos
 git cms-merge-topic -u vadler:53X-tagset133511
