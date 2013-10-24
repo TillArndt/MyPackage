@@ -1,5 +1,4 @@
-
-# commands to check out full analysis
+# commands  check out full analysis
 
 source /afs/cern.ch/cms/cmsset_default.sh
 cmsrel CMSSW_5_3_11_patch6
