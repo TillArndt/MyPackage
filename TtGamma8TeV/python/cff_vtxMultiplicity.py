@@ -9,29 +9,29 @@ vertexHisto = cms.EDAnalyzer(
 vertexHistoGood = vertexHisto.clone(
     src = cms.InputTag("goodOfflinePrimaryVertices"),
 )
-vertexHisto1BX = cms.EDAnalyzer(
+vertexHistoPu = cms.EDAnalyzer(
     "MyVertexCountHisto",
     src = cms.InputTag("offlinePrimaryVertices"),
-    weights = cms.untracked.InputTag("puWeight", "Reweight1BX")
+    weights = cms.untracked.InputTag("puWeight", "PUWeight")
 )
-vertexHisto3D = vertexHisto1BX.clone(
-    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
+vertexHistoPuTrue = vertexHistoPu.clone(
+    weights = cms.untracked.InputTag("puWeight", "PUWeightTrue")
 )
-vertexHistoGood1BX  = vertexHisto1BX.clone(
+vertexHistoGoodPu  = vertexHistoPu.clone(
     src = cms.InputTag("goodOfflinePrimaryVertices"),
 )
-vertexHistoGood3D   = vertexHistoGood1BX.clone(
-    weights = cms.untracked.InputTag("puWeight", "Reweight3D")
+vertexHistoGoodPuTrue   = vertexHistoGoodPu.clone(
+    weights = cms.untracked.InputTag("puWeight", "PUWeightTrue")
 )
 
 from MyPackage.TtGamma8TeV.cff_preSel import preSel
 
 vtxMultPath = cms.Path(
-    * preSel
+     preSel
     * vertexHisto
     * vertexHistoGood
-    * vertexHisto1BX
-    * vertexHisto3D
-    * vertexHistoGood1BX
-    * vertexHistoGood3D
+    * vertexHistoPu
+    * vertexHistoPuTrue
+    * vertexHistoGoodPu
+    * vertexHistoGoodPuTrue
 )
