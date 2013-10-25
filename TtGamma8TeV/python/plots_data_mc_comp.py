@@ -25,6 +25,7 @@ def generate_data_mc_comp_tools():
 #        re.compile("DataMCCompPhotons"),
         re.compile("DataMCJetCheck"),
         re.compile("DataMCMuonCheck"),
+	re.compile("vertexHisto"),
         re.compile("PlotLooseID"),
 #        re.compile("DataMCPhotonCheck"),
 #        re.compile("WeightsCheck"),

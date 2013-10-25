@@ -138,9 +138,7 @@ process.dataMC = cms.Path(
     process.dataMCSequence
 )
 
-#process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
-#if puWeight:
-#    process.schedule.append(process.vtxMultPath)
+process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
 
 
 ################################################################### ID CUTS ###
@@ -158,6 +156,8 @@ process.schedule += [
 ]
 process.schedule += post_paths
 
+if puWeight:
+    process.schedule.append(process.vtxMultPath)
 
 ######################################################### template creation ###
 process.load("MyPackage.TtGamma8TeV.cff_templateCreation")
