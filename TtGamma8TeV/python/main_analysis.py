@@ -38,10 +38,11 @@ settings.active_samples.remove("TTGamRD1")
 settings.active_samples.remove("TTJeRD1")
 settings.active_samples.remove("whiz2to5_PDF")
 work = "/afs/cern.ch/work/h/htholen/"
-cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
-settings.web_target_dir     = work + "public/www/MainAnalysis/"
-settings.tex_target_dir     = cmsAN + "auto_snippets/"
-settings.plot_target_dir    = cmsAN + "auto_images/"
+#cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
+#settings.web_target_dir     = work + "public/www/MainAnalysis/"
+settings.web_target_dir     = work + "public/www/TillSpace"
+#settings.tex_target_dir     = cmsAN + "auto_snippets/"
+#settings.plot_target_dir    = cmsAN + "auto_images/"
 
 import cmstoolsac3b.postproctools as ppt
 import plots_ME_overlap
@@ -83,7 +84,7 @@ post_proc_tools = [
     plots_counters.CounterReader,
     plots_counters.TopPtWeightNorm,
 #    plots_cutflow.cutflow_chain,
-#    plots_data_mc_comp.generate_data_mc_comp_tools(),
+    plots_data_mc_comp.generate_data_mc_comp_tools(),
 #    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
