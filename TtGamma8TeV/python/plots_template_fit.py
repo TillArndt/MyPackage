@@ -6,9 +6,9 @@ import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.rendering as rnd
 from cmstoolsac3b import settings
 from cmstoolsac3b import diskio
-from ROOT import TF1, TPaveText, TFractionFitter, TObjArray, Double, TMath
+from ROOT import TF1, TH1, TPaveText, TFractionFitter, TObjArray, Double, TMath, TFile
 import itertools
-import re
+import re, os
 import copy
 import plots_commons as com
 import array
@@ -68,6 +68,7 @@ def color(key):
         return settings.get_color("fake")
     return 0
 
+
 def get_legend_name(key):
     if "Template" in key:
         for tag in legend_tags:
@@ -75,6 +76,7 @@ def get_legend_name(key):
                 return settings.get_pretty_name(tag)
     else:
         return settings.get_pretty_name(key)
+
 
 def cosmetica1(wrps):
     for w in wrps:
@@ -87,6 +89,7 @@ def cosmetica1(wrps):
         w.histo.SetFillStyle(0)
         yield w
 
+
 def cosmetica2(wrps):
     for w in wrps:
         name = get_legend_name(w.analyzer)
@@ -97,6 +100,7 @@ def cosmetica2(wrps):
         w.histo.SetFillColor(color(w.analyzer))
         w.histo.SetFillStyle(1001)
         yield w
+
 
 def find_x_range(data_hist):
     x_min = data_hist.GetXaxis().GetXmin()
@@ -111,6 +115,7 @@ def find_x_range(data_hist):
             break
     return x_min - 1e-10, x_max + 1e-10
 
+
 def histo_wrapperize(stk_wrps):
     data_lumi = settings.data_lumi_sum_wrp()
     for s_w in stk_wrps:
@@ -118,6 +123,17 @@ def histo_wrapperize(stk_wrps):
         h_w = gen.op.prod((h_w, data_lumi))
         h_w.sub_tot_list = s_w.sub_tot_list
         yield h_w
+
+
+def store_histos_for_theta(wrp):
+    filename = os.path.join(settings.dir_result, wrp.name + ".root")
+    f = TFile.Open(filename, "RECREATE")
+    f.cd()
+    for key, value in wrp.__dict__.iteritems():
+        if isinstance(value, TH1):
+            value.SetName(key)
+            value.Write()
+    f.Close()
 
 
 ############################################### template processing classes ###
@@ -308,8 +324,14 @@ class ThetaFitter(Fitter):
         super(ThetaFitter, self).__init__()
 
     def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
-        # save histos to root file
-        pass
+        theta_root_wrp = wrp.Wrapper(
+            name="ThetaHistos",
+            chhadiso__DATA=fitted.histo,
+            chhadiso__signal=mc_tmplts[1].histo,
+            chhadiso__background=mc_tmplts[0].histo,
+        )
+        store_histos_for_theta(theta_root_wrp)
+        raise Exception("ThetaFitter not implemented.")
 
     def do_the_fit(self):
         # exec theta_auto inline
@@ -589,7 +611,7 @@ class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSbBkg(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = Fitter()
+        self.fitter = ThetaFitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
