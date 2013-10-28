@@ -82,9 +82,9 @@ post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
     plots_counters.CounterReader,
     plots_counters.TopPtWeightNorm,
-#    plots_cutflow.cutflow_chain,
-#    plots_data_mc_comp.generate_data_mc_comp_tools(),
-#    plots_match_quality.MatchQualityStack,
+    plots_cutflow.cutflow_chain,
+    plots_data_mc_comp.generate_data_mc_comp_tools(),
+    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
 closure_seq = post_proc_sys[:]
@@ -147,9 +147,9 @@ if settings.do_sys_uncert:
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-#    plots_summary.RootPlotConverter,
-#    plots_summary.CopyTool,
-#    plots_summary.TexCompiler,
+    plots_summary.RootPlotConverter,
+    plots_summary.CopyTool,
+    plots_summary.TexCompiler,
 ]
 
 
