@@ -338,7 +338,7 @@ class RootPlotConverter(ppc.PostProcTool):
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateOverlaysNormIntegral/", "overlay_int_"),
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihih/", "fit_Sihih_"),
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihihShift/", "fit_SihihShift_"),
-(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIso/", "fit_ChHadIso_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIsoSBID/", "fit_ChHadIso_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_logscale/","nm1_log_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_linscale/","nm1_lin_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_CrtlPlotPost_linscale/","post_lin_"),
