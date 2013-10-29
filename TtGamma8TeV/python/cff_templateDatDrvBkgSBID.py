@@ -1,16 +1,9 @@
 
-puWeight    = None
-try:
-    puWeight    = cms_var.get("puWeight", puWeight)
-except NameError:
-    print "<"+__name__+">: cms_var not in __builtin__!"
 
 import cff_photonIDCuts as pho_cuts
 import cff_templateCreation as tmpl_cr
 
 import FWCore.ParameterSet.Config as cms
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
 
 
 hoe             = "hadTowOverEm"

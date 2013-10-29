@@ -1,10 +1,8 @@
 
 runOnMC     = True
-puWeight    = None
 etCutValue  = 25.
 try:
     runOnMC     = not cms_var["is_data"]
-    puWeight    = cms_var.get("puWeight", puWeight)
     etCutValue  = cms_var.get("etCutValue", etCutValue)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"
@@ -12,8 +10,8 @@ except NameError:
 import copy
 import FWCore.ParameterSet.Config as cms
 
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
+weightComb = cms.untracked.InputTag("weightComb")
+
 
 ################## cuts / histo defs
 # example : (cut, low, high, n-bins, x-axis-label, plotquantity)
@@ -217,6 +215,7 @@ def make_histo_analyzer(src, tokens):
     histoAnalyzer = cms.EDAnalyzer(
         "CandViewHistoAnalyzer",
         src = cms.InputTag(src),
+	weights=weightComb,
         histograms = cms.VPSet(
             cms.PSet(
                 lazyParsing  = cms.untracked.bool(True),
@@ -231,8 +230,6 @@ def make_histo_analyzer(src, tokens):
             )
         )
     )
-    if puWeight:
-        histoAnalyzer.weights = puWeight
     return histoAnalyzer
 
 def add_photon_cuts(process):
@@ -367,13 +364,13 @@ def add_photon_cuts(process):
         )
 
         # post filter counter
-        Nm1CountPost = cms.EDProducer("WeightedEventCountProducer")
+        Nm1CountPost = cms.EDProducer("WeightedEventCountProducer",
+		weights=weightComb		
+	)
         Nm1CountPostPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
             src = cms.InputTag("Nm1CountPost" + cut_key)
         )
 
-        if puWeight:
-            Nm1CountPost.weights    = puWeight
 
         # add to process
         setattr(process, "Nm1Filt" + cut_key, Nm1Filt)
@@ -405,11 +402,12 @@ def add_photon_cuts(process):
     )
 
     # pre and post counters
-    process.FidCountPre = cms.EDProducer("WeightedEventCountProducer")
-    process.FidCountPost = cms.EDProducer("WeightedEventCountProducer")
-    if puWeight:
-        process.FidCountPre.weights     = puWeight
-        process.FidCountPost.weights    = puWeight
+    process.FidCountPre = cms.EDProducer("WeightedEventCountProducer",
+	weights=weightComb
+    )
+    process.FidCountPost = cms.EDProducer("WeightedEventCountProducer",
+	weights=weightComb
+    )
 
     # ... and printers
     process.FidCountPrePrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
@@ -453,14 +451,14 @@ def add_photon_cuts(process):
 
     # Shilpi's Weight function
     process.ShilpiWeight = cms.EDProducer("ShilpiWeight",
-        src = cms.InputTag("LooseIDupper"),
-        weights = puWeight,
+        src = cms.InputTag("LooseIDupper"),        
+	weights = weightComb,
     )
 
     # id counter and printer
-    process.FullIDCount = cms.EDProducer("WeightedEventCountProducer")
-    if puWeight:
-        process.FullIDCount.weights = puWeight
+    process.FullIDCount = cms.EDProducer("WeightedEventCountProducer",
+	weights=weightComb
+    )
     process.FullIDCountPrnt = cms.EDAnalyzer("WeightedEventCountPrinter",
         src = cms.InputTag("FullIDCount")
     )

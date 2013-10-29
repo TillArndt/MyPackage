@@ -1,16 +1,9 @@
 
-puWeight    = None
-try:
-    puWeight    = cms_var.get("puWeight", puWeight)
-except NameError:
-    print "<"+__name__+">: cms_var not in __builtin__!"
 
 import cff_photonIDCuts as pho_cuts
 from cff_templateCreation import prompt as prompt_photon_cut_str
 
 import FWCore.ParameterSet.Config as cms
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
 
 # change charged hadron isolation cut according to shilpi's method
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonFakeRateLstar

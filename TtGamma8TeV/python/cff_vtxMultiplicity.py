@@ -17,12 +17,19 @@ vertexHistoPu = cms.EDAnalyzer(
 vertexHistoPuTrue = vertexHistoPu.clone(
     weights = cms.untracked.InputTag("puWeight", "PUWeightTrue")
 )
+vertexHistoComb = vertexHistoPu.clone(
+    weights = cms.untracked.InputTag("weightComb")
+)
 vertexHistoGoodPu  = vertexHistoPu.clone(
     src = cms.InputTag("goodOfflinePrimaryVertices"),
 )
 vertexHistoGoodPuTrue   = vertexHistoGoodPu.clone(
     weights = cms.untracked.InputTag("puWeight", "PUWeightTrue")
 )
+vertexHistoGoodComb = vertexHistoGood.clone(
+    weights = cms.untracked.InputTag("weightComb")
+)
+
 
 from MyPackage.TtGamma8TeV.cff_preSel import preSel
 
@@ -32,6 +39,8 @@ vtxMultPath = cms.Path(
     * vertexHistoGood
     * vertexHistoPu
     * vertexHistoPuTrue
+    * vertexHistoComb
     * vertexHistoGoodPu
     * vertexHistoGoodPuTrue
+    * vertexHistoGoodComb
 )
