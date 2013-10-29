@@ -9,9 +9,7 @@ import cmstoolsac3b.sample as smp
 # this is already set as default in the cmssw configs.
 import cmstoolsac3b.settings as settings
 
-path_pc_0823 = "file:/user/tholen/eventFiles/fromGrid20130823/"
-path_pc_0618 = "file:/disk1/tholen/eventFiles/fromGrid20130618/"
-path_pc = "file:/user/tholen/eventFiles/20130828Skim/"
+path_pc = settings.sample_data_path
 postfix = "/out_*.root"
 
 ttbar_xsec = settings.ttbar_xsec

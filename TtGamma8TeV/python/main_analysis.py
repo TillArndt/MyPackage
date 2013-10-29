@@ -24,6 +24,10 @@ settings.ttbar_xsec_cms_err = (
 )**.5
 settings.do_sys_uncert = not "--noSys" in sys.argv
 
+settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
+#settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
+
+
 import plots_commons  # sets style related things
 from cmstoolsac3b.sample import load_samples
 import samples_cern
@@ -41,6 +45,8 @@ work = "/afs/cern.ch/work/h/htholen/"
 #cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
 #settings.web_target_dir     = work + "public/www/MainAnalysis/"
 settings.web_target_dir     = work + "public/www/TillSpace"
+settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
+#settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
 #settings.tex_target_dir     = cmsAN + "auto_snippets/"
 #settings.plot_target_dir    = cmsAN + "auto_images/"
 
@@ -160,7 +166,7 @@ def drop_toolchain():
 def analysis_main():
     main.main(
         post_proc_tools = post_proc_tools,
-        max_num_processes = 4,
+        max_num_processes = 8,
         try_reuse_results = True,
         cfg_main_import_path="MyPackage.TtGamma8TeV.cfg_photon_selection",
     )
