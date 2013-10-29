@@ -4,9 +4,9 @@ runOnMC     = True
 legend      = NameError
 useMerging  = ""
 preSelOpt   = None
-puWeight    = None
-sample      = ""
-skipChecks  = False
+sample = ""
+skipChecks = False
+
 
 try:
     print "cms_var options: "
@@ -14,7 +14,6 @@ try:
     runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
-    puWeight    = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
     skipChecks  = cms_var.get("skipChecks", skipChecks)
 except NameError:
@@ -28,9 +27,6 @@ print "<"+__name__+">: Samplename is:", sample
 
 import FWCore.ParameterSet.Config as cms
 
-puWeightInstance = puWeight
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
 
 process = cms.Process('PhotonSelection')
 process.source = cms.Source("PoolSource",
@@ -62,12 +58,12 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 process.load("MyPackage.TtGamma8TeV.cfi_cocPatPhotons")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
 process.load("MyPackage.TtGamma8TeV.cfi_photonUserData")
-process.load("MyPackage.TtGamma8TeV.cfi_evtWeightPU")
+process.load("MyPackage.TtGamma8TeV.cff_weightComb")
 process.load("MyPackage.TtGamma8TeV.cff_dataMCComp")
 process.load("MyPackage.TtGamma8TeV.cfi_ttgammaMerging")
-process.load("MyPackage.TtGamma8TeV.cfi_topPtSequence")
 process.load("MyPackage.TtGamma8TeV.cff_jets")
 process.load("MyPackage.TtGamma8TeV.cff_preSel")
+process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
 
 #process.widenedCocPatPhotons.src = "photonUserDataLargestPdgId"
 process.widenedCocPatPhotons.src = "photonUserDataSCFootRm"
@@ -85,48 +81,24 @@ if preSelOpt == "doOverlapRemoval":
         process.bTagCounter,
         process.bTagCounter
         * process.ttgammaMerging
-        * process.topPtSequenceTTBar   ## also do the top pt production
     )
-elif preSelOpt == "go4Whiz":
-    process.topPtTTbar.two2fiveMode = cms.untracked.bool(True)
 
 process.InputProducerSequence = cms.Sequence()
-if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
-    process.puWeight.weights = cms.untracked.InputTag("topPtWeight")
-    process.InputProducerSequence *= process.topPtSequenceTTBar
     
-    # make btag weight only (non convoluted with previous ones)
-    process.bTagWeightVanilla = process.bTagWeight.clone(weights="")
-    process.InputProducerSequence *= process.bTagWeightVanilla
-    process.bTagWeightHisto.src = "bTagWeightVanilla"
 
-# btag weight
-process.bTagWeight.weights = process.puWeight.weights
-process.puWeight.weights = cms.untracked.InputTag("bTagWeight")
-
-# final weight histogram
-process.eventWeightHisto = cms.EDAnalyzer("DoubleValueHisto",
-    src     = cms.InputTag("puWeight", puWeightInstance),
-    name    = cms.untracked.string("histo"),
-    title   = cms.untracked.string(";final event weight;events"),
-    nbins   = cms.untracked.int32(50),
-    min     = cms.untracked.double(0.),
-    max     = cms.untracked.double(2.),
-)
 
 # Path declarations
 process.producerPath = cms.Path(
     process.preSel *
     process.InputProducerSequence *
-    process.bTagWeight *
-    process.bTagWeightHisto *
-    process.puWeight *
-    process.eventWeightHisto *
+    process.weightCombSequence *
 #    process.photonUserDataLargestPdgId *
 #    process.jetSequence *
     process.widenedCocPatPhotons *
     process.photonInputDummy
 )
+
+
 
 process.selectionPath = cms.Path(
     process.preSel *
@@ -137,9 +109,6 @@ process.dataMC = cms.Path(
     process.preSel *
     process.dataMCSequence
 )
-
-process.load("MyPackage.TtGamma8TeV.cff_vtxMultiplicity")
-
 
 ################################################################### ID CUTS ###
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import add_photon_cuts
@@ -156,8 +125,7 @@ process.schedule += [
 ]
 process.schedule += post_paths
 
-if puWeight:
-    process.schedule.append(process.vtxMultPath)
+process.schedule.append(process.vtxMultPath)
 
 ######################################################### template creation ###
 process.load("MyPackage.TtGamma8TeV.cff_templateCreation")

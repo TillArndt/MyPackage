@@ -8,10 +8,6 @@ import cmstoolsac3b.sample as smp
 
 # this is already set as default in the cmssw configs.
 import cmstoolsac3b.settings as settings
-settings.cfg_common_builtins.update({
-     "puWeight"     : "PUWeightTrue",
-#     "skipChecks"   : True
-})
 
 path_pc_0823 = "file:/user/tholen/eventFiles/fromGrid20130823/"
 path_pc_0618 = "file:/disk1/tholen/eventFiles/fromGrid20130618/"

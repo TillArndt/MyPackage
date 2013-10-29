@@ -1,7 +1,6 @@
 # fetch variables from CmsRunController
 runOnMC     = True
 legend      = ""
-puWeight    = None
 sample      = ""
 
 try:
@@ -9,7 +8,6 @@ try:
     print cms_var
     runOnMC     = not cms_var["is_data"]
     legend      = cms_var["legend"]
-    puReweight  = cms_var.get("puWeight", puWeight)
     sample      = cms_var.get("sample", sample)
 except NameError:
     print "<"+__name__+">: cms_var not in __builtin__!"

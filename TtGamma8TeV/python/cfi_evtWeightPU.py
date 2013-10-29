@@ -1,4 +1,3 @@
-
 puWeightInput = "PU_Run2012_69400.root"
 try:
     puWeightInput  = cms_var.get("puWeightInput", puWeightInput)
@@ -16,4 +15,19 @@ puWeight = cms.EDProducer("EvtWeightPU",
 	GenHistName     = cms.string("pugen"),
 	DataHistName    = cms.string("pileup"),
     weights         = cms.untracked.InputTag(""),
+)
+
+
+puWeightHisto = cms.EDAnalyzer("DoubleValueHisto",
+    src = cms.InputTag("puWeight","PUWeightTrue"),
+    name = cms.untracked.string("histo"),
+    title = cms.untracked.string(";PU Weight ;events"),
+    nbins = cms.untracked.int32(100),
+    min = cms.untracked.double(0.),
+    max = cms.untracked.double(2.),
+)
+
+puWeightSequence = cms.Sequence(
+	puWeight*
+	puWeightHisto
 )
