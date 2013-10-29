@@ -1,16 +1,7 @@
 
-puWeight  = None
-try:
-    puWeight  = cms_var.get("puWeight", puWeight)
-except NameError:
-    print "<"+__name__+">: cms_var not in __builtin__!"
 
 from MyPackage.TtGamma8TeV.cff_photonIDCuts import make_histo_analyzer
 import FWCore.ParameterSet.Config as cms
-
-if puWeight:
-    puWeight = cms.untracked.InputTag("puWeight", puWeight)
-
 
 JetAnaChEmFrac = make_histo_analyzer(
     "selectedPatJetsForAnalysis20",
