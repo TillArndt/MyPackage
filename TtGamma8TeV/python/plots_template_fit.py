@@ -6,12 +6,15 @@ import cmstoolsac3b.wrappers as wrp
 import cmstoolsac3b.rendering as rnd
 from cmstoolsac3b import settings
 from cmstoolsac3b import diskio
-from ROOT import TF1, TPaveText, TFractionFitter, TObjArray, Double, TMath
+from ROOT import TF1, TH1, TPaveText, TFractionFitter, TObjArray, Double, TMath, TFile
 import itertools
-import re
+import re, os
 import copy
 import plots_commons as com
 import array
+import theta_auto
+theta_auto.config.theta_dir = os.environ["CMSSW_BASE"] + "/theta"
+
 
 ############################################ lists histo and analyzer names ###
 analyzers_mc = [
@@ -68,6 +71,7 @@ def color(key):
         return settings.get_color("fake")
     return 0
 
+
 def get_legend_name(key):
     if "Template" in key:
         for tag in legend_tags:
@@ -75,6 +79,7 @@ def get_legend_name(key):
                 return settings.get_pretty_name(tag)
     else:
         return settings.get_pretty_name(key)
+
 
 def cosmetica1(wrps):
     for w in wrps:
@@ -87,6 +92,7 @@ def cosmetica1(wrps):
         w.histo.SetFillStyle(0)
         yield w
 
+
 def cosmetica2(wrps):
     for w in wrps:
         name = get_legend_name(w.analyzer)
@@ -97,6 +103,7 @@ def cosmetica2(wrps):
         w.histo.SetFillColor(color(w.analyzer))
         w.histo.SetFillStyle(1001)
         yield w
+
 
 def find_x_range(data_hist):
     x_min = data_hist.GetXaxis().GetXmin()
@@ -110,6 +117,7 @@ def find_x_range(data_hist):
             x_max = data_hist.GetXaxis().GetBinUpEdge(i)
             break
     return x_min - 1e-10, x_max + 1e-10
+
 
 def histo_wrapperize(stk_wrps):
     data_lumi = settings.data_lumi_sum_wrp()
@@ -306,24 +314,73 @@ class FractionFitter(Fitter):
 class ThetaFitter(Fitter):
     def __init__(self):
         super(ThetaFitter, self).__init__()
+        self.model = None
+        self.fit_res = None
+        self.ndf = 0
+        self.sig_val = None
+        self.sig_err = None
+        self.bkg_val = None
+        self.bkg_err = None
+
+    def _store_histos_for_theta(self, wrp):
+        filename = os.path.join(settings.dir_result, wrp.name + ".root")
+        f = TFile.Open(filename, "RECREATE")
+        f.cd()
+        for key, value in wrp.__dict__.iteritems():
+            if isinstance(value, TH1):
+                value.SetName(key)
+                value.Write()
+        f.Close()
 
     def build_fit_function(self, fitted, mc_tmplts, x_min, x_max):
-        # save histos to root file
-        pass
+        self.x_min, self.x_max = x_min, x_max
+        self.fitted = fitted
+        self.mc_tmplts = mc_tmplts
+
+        theta_root_wrp = wrp.Wrapper(
+            name="ThetaHistos",
+            chhadiso__DATA=fitted.histo,
+            chhadiso__real=mc_tmplts[1].histo,
+            chhadiso__fake=mc_tmplts[0].histo,
+        )
+        self._store_histos_for_theta(theta_root_wrp)
+        theta_auto.config.workdir = settings.dir_result
+        self.model = theta_auto.build_model_from_rootfile(
+            os.path.join(settings.dir_result, "ThetaHistos.root"),
+            include_mc_uncertainties=True
+        )
+        self.model.set_signal_processes(["real"])
+        self.model.add_lognormal_uncertainty("fake_rate", 1., "fake")
+        self.model.distribution.set_distribution_parameters(
+            'fake_rate',
+            width=theta_auto.inf
+        )
+        self.ndf = fitted.histo.GetNbinsX() - 2
 
     def do_the_fit(self):
-        # exec theta_auto inline
-        pass
+        self.fit_res = theta_auto.mle(self.model, "data", 1, chi2=True)
+        print self.fit_res
 
     def scale_templates_to_fit(self, templates):
-        # just scale...
-        pass
+        par_values = {
+            "beta_signal":self.fit_res["real"]["beta_signal"][0][0],
+            "fake_rate":self.fit_res["real"]["fake_rate"][0][0]
+        }
+        self.bkg_val = self.model.get_coeff("chhadiso", "fake").get_value(par_values)
+        self.bkg_err = self.bkg_val * self.fit_res["real"]["fake_rate"][0][1] / self.fit_res["real"]["fake_rate"][0][0]
+        self.sig_val = self.fit_res["real"]["beta_signal"][0][0]
+        self.sig_err = self.fit_res["real"]["beta_signal"][0][1]
+        templates[1].histo.Scale(self.sig_val)
+        templates[0].histo.Scale(self.bkg_val)
 
     def get_val_err(self, i_par):
-        pass
+        if i_par == 1:
+            return self.sig_val, self.sig_err
+        elif i_par == 0:
+            return self.bkg_val, self.bkg_err
 
     def get_ndf(self):
-        pass
+        return self.ndf
 
 
 class CombineFitter(Fitter):
@@ -589,7 +646,7 @@ class TemplateFitToolChHadIsoSbBkgInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSbBkg(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = Fitter()
+        self.fitter = ThetaFitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
@@ -688,7 +745,7 @@ class TemplateFitToolChHadIsoSBIDInputBkg(ppc.PostProcTool):
 class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
-        self.fitter = Fitter()
+        self.fitter = ThetaFitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
