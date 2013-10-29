@@ -900,6 +900,10 @@ class TemplateOverlays(ppt.FSStackPlotter):
         ))
         mc_tmplts = self.norm_func(mc_tmplts)
         mc_tmplts = cosmetica1(mc_tmplts)
+        def histo_namer(wrp):
+            wrp.analyzer = wrp.post_proc_key[:-10]
+            return wrp
+        mc_tmplts = (histo_namer(w) for w in mc_tmplts)
         mc_tmplts = sorted(mc_tmplts, key=key_func)
         mc_tmplts = gen.group(mc_tmplts, key_func=key_func)
         self.stream_stack = mc_tmplts
@@ -1077,60 +1081,3 @@ TemplateFitPlots = ppc.PostProcChain(
     + list(make_SideBandVSFake(s) for s in tt_sample_names)
     + list(make_SihihSidebandSlices(s) for s in tt_sample_names)
 )
-
-
-################################ data-driven templates (not needed anymore) ###
-#class DataDrvTemplates(ppt.FSStackPlotter):
-#    def __init__(self, name=None):
-#        super(DataDrvTemplates, self).__init__(name)
-#        self.canvas_decorators = s..   elf.canvas_decorators[1:]
-#        self.canvas_decorators.append(com.SimpleTitleBox)
-#
-#    def set_up_stacking(self):
-#        def cosmeticaDatDrv(wrps):
-#            for w in wrps:
-#                name = settings.get_pretty_name(w.analyzer)
-#                w.histo.SetTitle(name)
-#                w.legend = name
-#                w.is_data = False
-#                w.histo.SetLineColor(color(w.analyzer))
-#                w.histo.SetLineWidth(3)
-#                w.histo.SetFillStyle(0)
-#                yield w
-#        tmplts = settings.post_proc_dict["mc_templates"]
-#        tmplts = gen.filter(tmplts, {"is_data": True})
-#        tmplts = (wrp.HistoWrapper(w.histo, **w.all_info()) for w in tmplts)
-#        tmplts = gen.gen_norm_to_integral(tmplts)
-#        tmplts = cosmeticaDatDrv(tmplts)
-#        self.stream_stack = tmplts
-#
-#
-#class TemplateFitToolSihihDaDrv(TemplateFitTool):
-#    def __init__(self, name = None):
-#        super(TemplateFitToolSihihDaDrv, self).__init__(name)
-#        self.name_real      = "realTemplateSihih"
-#        self.name_fake      = "Nm1PlotSihihChHadIsoInv"
-#        self.name_data      = "dataTemplateFitHistoSihih"
-#        self.name_histo     = ("sihihEB", "histo")
-#        self.fitbox_bounds  = 0.63, 0.93, 0.60
-#        mc_tmplts = gen.filter(settings.post_proc_dict["mc_templates"], {
-#            "analyzer"  : (self.name_real, self.name_fake),
-#            "name"      : self.name_histo
-#        })
-#
-#
-#class TemplateFitToolChHadIsoDaDrv(TemplateFitTool):
-#    def __init__(self, name = None):
-#        super(TemplateFitToolChHadIsoDaDrv, self).__init__(name)
-#        self.name_real      = "realTemplateChHadIso"
-#        self.name_fake      = "Nm1PlotChHadIsoSihihInv"
-#        self.name_data      = "dataTemplateFitHistoChHadIso"
-#        self.name_histo     = ("ChHadIso", "histo")
-#        self.fitbox_bounds  = 0.33, 0.62, 0.88
-#        mc_tmplts = gen.filter(settings.post_proc_dict["mc_templates"], {
-#            "analyzer"  : (self.name_real, self.name_fake),
-#            "name"      : self.name_histo
-#        })
-#
-
-
