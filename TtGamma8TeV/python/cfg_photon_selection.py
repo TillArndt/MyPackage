@@ -118,6 +118,7 @@ pre_paths, post_paths = add_photon_cuts(process)
 process.schedule = cms.Schedule(
     *pre_paths
 )
+process.selectionPath *= process.vtxMultPhotonSequence
 process.schedule += [
     process.producerPath,
     process.selectionPath,
