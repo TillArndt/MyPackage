@@ -150,7 +150,7 @@ if settings.do_sys_uncert:
         sys_uncert.SysBTags(None, post_proc_sys),
         sys_uncert.SysWhizPDF(None, post_proc_sys),
         plots_summary.ResultSummaries,
-       # plots_summary.ResultTexifier("XsecCalculatorChHadIsoSbBkg"),
+       # plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,

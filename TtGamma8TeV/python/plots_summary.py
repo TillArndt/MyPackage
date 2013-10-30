@@ -13,7 +13,7 @@ summed_uncerts = [
     "SysIsrFsr",
     "SysMCatNLO",
 #    "SysMadgraph",
-    "SysOverlapDRCut",
+#    "SysOverlapDRCut",
     "SysPU",
 #    "SysPhotonETCut",
     "SysSelEffSig",
@@ -334,17 +334,25 @@ class RootPlotConverter(ppc.PostProcTool):
         super(RootPlotConverter, self).__init__(tool_name)
         self.target_dir = settings.plot_target_dir
         self.pdf_copy_dirs = [
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTMadG/", "sb_vs_fake_MadG_"),
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoPy/", "sb_vs_fake_PoPy_"),
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoHe/", "sb_vs_fake_PoHe_"),
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTMCNLO/", "sb_vs_fake_MCNLO_"),
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTJeRD1/", "sb_vs_fake_JeRD1_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIsoSBIDInputBkgWeight/", "sb_rw_sbid_"),
+(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIsoSbBkgInputBkgWeight/", "sb_rw_sbbkg_"),
+(settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTJeRD1/", "sb_vs_fake_JeRD1_"),
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateStacks/", ""),
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateOverlaysNormIntegral/", "overlay_int_"),
-(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihih/", "fit_Sihih_"),
-(settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolSihihShift/", "fit_SihihShift_"),
 (settings.DIR_PLOTS + "TemplateFitTools/TemplateFitToolChHadIsoSBID/", "fit_ChHadIso_"),
+(settings.DIR_PLOTS + "TemplateFitClosureSequencesaltMC/Sequence1/Evaluator_ChHadIso_1/", "closure_real_"),
+(settings.DIR_PLOTS + "TemplateFitClosureSequencesaltMC/Sequence0/Evaluator_ChHadIso_0/", "closure_fake_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_logscale/","nm1_log_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_Nm1Plot_linscale/","nm1_lin_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_CrtlPlotPost_linscale/","post_lin_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCMuonCheck_logscale/","datamc_muon_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCJetCheck_logscale/","datamc_jet_"),
-(settings.DIR_PLOTS + "MatchQualityStack", "match_"),
+(settings.DIR_PLOTS + "MatchQualityStack/", "match_"),
         ]
 
     def convert_eps_to_pdf(self):
