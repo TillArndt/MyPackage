@@ -45,7 +45,7 @@ work = "/afs/cern.ch/work/h/htholen/"
 #cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
 #settings.web_target_dir     = work + "public/www/MainAnalysis/"
 settings.web_target_dir     = work + "public/www/TillSpace"
-settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
+#settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
 #settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
 #settings.tex_target_dir     = cmsAN + "auto_snippets/"
 #settings.plot_target_dir    = cmsAN + "auto_images/"
@@ -150,13 +150,13 @@ if settings.do_sys_uncert:
         sys_uncert.SysBTags(None, post_proc_sys),
         sys_uncert.SysWhizPDF(None, post_proc_sys),
         plots_summary.ResultSummaries,
-        plots_summary.ResultTexifier("XsecCalculatorChHadIsoSbBkg"),
+       # plots_summary.ResultTexifier("XsecCalculatorChHadIsoSbBkg"),
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-    plots_summary.RootPlotConverter,
-    plots_summary.CopyTool,
-    plots_summary.TexCompiler,
+   # plots_summary.RootPlotConverter,
+   # plots_summary.CopyTool,
+   # plots_summary.TexCompiler,
 ]
 
 
