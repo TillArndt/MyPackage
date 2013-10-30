@@ -31,6 +31,12 @@ vertexHistoGoodComb = vertexHistoGood.clone(
 )
 
 
+vertexHistoGoodCombPhoton = vertexHistoGoodComb.clone(
+)
+vertexHistoGoodPuTruePhoton   = vertexHistoGoodPuTrue.clone(
+)
+
+
 from MyPackage.TtGamma8TeV.cff_preSel import preSel
 
 vtxMultPath = cms.Path(
@@ -44,3 +50,8 @@ vtxMultPath = cms.Path(
     * vertexHistoGoodPuTrue
     * vertexHistoGoodComb
 )
+vtxMultPhotonSequence=cms.Sequence(
+	vertexHistoGoodCombPhoton*
+	vertexHistoGoodPuTruePhoton
+)
+
