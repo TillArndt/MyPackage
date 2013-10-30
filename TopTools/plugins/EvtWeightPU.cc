@@ -84,7 +84,6 @@ EvtWeightPU::EvtWeightPU(const edm::ParameterSet& iConfig):
 	dataFile_(iConfig.getParameter<std::string>("dataFile")),
 	GenHistName_(iConfig.getParameter<std::string>("GenHistName")),  
 	DataHistName_(iConfig.getParameter<std::string>("DataHistName")),
-	isMCatNLO_(iConfig.getUntrackedParameter<bool>("isMCatNLO", false)),
 	genInfo_(edm::InputTag("generator")),
 	weights_(iConfig.getUntrackedParameter<edm::InputTag>("weights", edm::InputTag())),
 	emptyWeightInputTag_(weights_.encode() == std::string(""))
@@ -137,16 +136,6 @@ EvtWeightPU::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     MyPileUpWeightTrue = LumiWeights_.weight( Tnpv );
 
-    if (isMCatNLO_) {
-       Handle<GenEventInfoProduct> genInfoHndl;
-       iEvent.getByLabel(genInfo_, genInfoHndl);
-
-       double weight = genInfoHndl->weight();
-       int mcSign = weight/abs(weight);
-       MyPileUpWeight     *= mcSign;
-       MyPileUpWeightTrue *= mcSign;
-       edm::LogInfo("EvtWeightPU")<<"mcSign="<<mcSign<<std::endl;
-    }
     edm::LogInfo("EvtWeightPU")<<"MyPileUpWeight="<<MyPileUpWeight<<std::endl;
     edm::LogInfo("EvtWeightPU")<<"MyPileUpWeightTrue="<<MyPileUpWeightTrue<<std::endl;
 

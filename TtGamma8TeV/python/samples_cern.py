@@ -111,13 +111,15 @@ class TTMCNLO(smp.Sample):
         self.n_events    = 4900000
         self.input_files = path_pc + 'TTNLO' + postfix
         self.cfg_builtin = {"preSelOpt": "doOverlapRemoval"}
-        self.cfg_add_lines = ["process.puWeight.isMCatNLO=cms.untracked.bool(True)"]
+        self.cfg_add_lines = [
+            "process.weightComb.src.append(cms.InputTag('MCatNLOWeight'))",
+            "process.weightCombSequence.insert(1, process.MCatNLOWeight)"
+        ]
         super(TTMCNLO, self).__init__()
 
 
 class TTGamRD1(smp.Sample):
     def __init__(self):
-        self.legend      = "Real Photons"
         self.x_sec       = 1.6
         self.n_events    = 1719954
         self.input_files = path_pc + "TTGamRD1" + postfix
