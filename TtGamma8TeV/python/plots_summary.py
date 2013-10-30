@@ -13,7 +13,7 @@ summed_uncerts = [
     "SysIsrFsr",
     "SysMCatNLO",
 #    "SysMadgraph",
-    "SysOverlapDRCut",
+#    "SysOverlapDRCut",
     "SysPU",
 #    "SysPhotonETCut",
     "SysSelEffSig",
