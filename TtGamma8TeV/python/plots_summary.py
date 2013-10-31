@@ -10,18 +10,18 @@ import plots_xsec
 from plots_commons import copy_tex_to_target_dir
 
 summed_uncerts = [
-    "SysIsrFsr",
-    "SysMCatNLO",
 #    "SysMadgraph",
 #    "SysOverlapDRCut",
     "SysPU",
+    "SysFit",
 #    "SysPhotonETCut",
     "SysSelEffSig",
     "SysSelEffBkg",
+    "SysIsrFsr",
+    "SysMCatNLO",
+    "SysWhizPDF",
     "SysTopPt",
     "SysBTagWeight",
-    "SysFit",
-    "SysWhizPDF"
 ]
 
 result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]
@@ -188,47 +188,46 @@ class ResultTexifier(ppc.PostProcTool):
             r"\hline",
             r"\hline",
             r"Source & \multicolumn{2}{c}{Uncertainty (\%)} \\",
-            r"& $\Nsig$ & $\Rvis$ \\",
+            r"& $\Rvis$ & $\sigma_{\ttgam}$ \\",
             r"\hline",
             r"Statistical & %.1f & %.1f \\" % (
-                getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.,
                 getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.,
+                getattr(res, "xsec_err_stat") / getattr(res, "xsec") * 100.,
             ),
             r"\hline",
             r"Systematic & %.1f & %.1f \\" % (
-                getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.,
                 getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.,
+                getattr(res, "xsec_err_sys") / getattr(res, "xsec") * 100.,
             ),
             r"\hline",
             r"Individual contributions: & & \\"
         ]
-        for sys in sorted(summed_uncerts,
-            key=lambda s: -getattr(res, s + "_" + self.xsec_calc + "_R")
-        ):
+#        # sort by largest contribution
+#        for sys in sorted(summed_uncerts,
+#            key=lambda s: -getattr(res, s + "_" + self.xsec_calc + "_R")
+#        ):
+        for sys in summed_uncerts:
             table.append(
                 "\;\;\;"
                 + settings.get_pretty_name(sys)
                 + r" & %.1f & %.1f \\" % (
-                    getattr(res, sys+"_"+self.xsec_calc+"_n_sig_ttgam") * 100.,
                     getattr(res, sys+"_"+self.xsec_calc+"_R_fid") * 100.,
+                    getattr(res, sys+"_"+self.xsec_calc+"_xsec") * 100.,
                 ),
             )
         table += (
             r"\;\;\;JES             & ---  & --- \\",
             r"\;\;\;JER             & ---  & --- \\",
-            r"\;\;\;top-quark $\pt$ & ---  & --- \\",
-            r"\;\;\;b-quark tag     & ---  & --- \\",
             r"\;\;\;top-quark mass  & ---  & --- \\",
-            r"\;\;\;PDF uncert.     & ---  & --- \\",
             r"\hline",
             r"\textbf{Total} & %.1f & %.1f \\" % (
 (
-    (getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.)**2
-  + (getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.)**2
-)**.5,
-(
     (getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.)**2
   + (getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.)**2
+)**.5,
+(
+    (getattr(res, "xsec_err_stat") / getattr(res, "xsec") * 100.)**2
+  + (getattr(res, "xsec_err_sys") / getattr(res, "xsec") * 100.)**2
 )**.5,
             ),
             r"\hline",

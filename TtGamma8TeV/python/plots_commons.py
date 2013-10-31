@@ -140,8 +140,8 @@ pn.update({
     "SysFit"                : "out-of-time pileup",
     "SysWhizPDF"            : "PDF",
     "SysPhotonETCut"        : r"$\epsilon_\gamma \;(\et)$",
-    "SysSelEffSig"          : r"$\epsilon_\gamma \;(\sigma_{\rm sig})$",
-    "SysSelEffBkg"          : r"$\epsilon_\gamma \;(\sigma_{\rm bkg})$",
+    "SysSelEffSig"          : r"$\sigma_{\rm sig}$",
+    "SysSelEffBkg"          : r"$\sigma_{\rm bkg}$",
 })
 
 pn.update({
