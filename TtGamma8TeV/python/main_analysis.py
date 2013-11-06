@@ -62,12 +62,10 @@ post_proc_sys = [
     plots_commons.IdPurityCount,
     plots_commons.RealIdPurityCount,
     plots_template_fit.TemplateFitTools,
-    plots_template_fit.TemplateFitPlots,
 #    plots_shilpi.ShilpiMethodTools,
 #    plots_ABCD.RealPhotonsABCD,
 #    plots_ABCD.RealPhotonsABCDMC,
     plots_xsec.XsecCalculators,
-    ppt.HistoPoolClearer,
 ]
 
 if settings.do_sys_uncert:
@@ -87,6 +85,7 @@ post_proc_tools = [
     plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
+post_proc_tools += [plots_template_fit.TemplateFitPlots]
 closure_seq = post_proc_sys[:]
 if not plots_template_fit.do_dist_reweighting:
     closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
@@ -149,7 +148,7 @@ post_proc_tools += [
     ppt.SimpleWebCreator,
     plots_summary.RootPlotConverter,
     plots_summary.CopyTool,
-    plots_summary.TexCompiler,
+#    plots_summary.TexCompiler,
 ]
 
 

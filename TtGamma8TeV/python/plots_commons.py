@@ -130,7 +130,7 @@ pn.update({
 })
 
 pn.update({
-    "SysIsrFsr"             : "sho./hadr.",
+    "SysIsrFsr"             : "shower./hadr.",
     "SysMCatNLO"            : r"generator", #. \MCATNLO",
     "SysMadgraph"           : r"generator", #. \MADGRAPH",
     "SysOverlapDRCut"       : "overlap removal",

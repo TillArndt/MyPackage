@@ -154,7 +154,7 @@ class ResultTexifier(ppc.PostProcTool):
         # largestSys
         with open(self.plot_output_dir + "largestSys.tex", "w") as f:
             f.write(("%.1f" % (
-                getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R") * 100.
+                getattr(res, "SysFit_"+self.xsec_calc+"_R") * 100.
                 ))+"\\,\\%")
 
     def write_snippets_for_latexit(self):
