@@ -22,7 +22,6 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -73,7 +72,7 @@ FilterJEC::FilterJEC(const edm::ParameterSet& iConfig):
     src_(iConfig.getParameter<edm::InputTag>("src")),
     uncert_(new JetCorrectionUncertainty(
         *(new JetCorrectorParameters(
-            iConfig.getParameter<std::string>("inputFile")
+            iConfig.getParameter<std::string>("uncertFile")
         ))
     ))
 {
@@ -124,10 +123,9 @@ FilterJEC::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByLabel(src_, src);
     std::vector<pat::Jet>::const_iterator jets = src->begin();
     for (; jets != src->end(); ++jets) {
-        std::cout << getJetUncert(jets->pt(), jets->eta()) << std::endl;
         jet_pts.push_back(
-            // uncerts are relative and have sign
-            (jets->pt()) * (1 + getJetUncert(jets->pt(), jets->eta()))
+            // uncerts are relative and have no sign
+            (jets->pt()) * (1 - getJetUncert(jets->pt(), jets->eta()))
         );
     }
     return passesJetCuts(jet_pts);

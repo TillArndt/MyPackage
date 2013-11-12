@@ -264,6 +264,28 @@ SysBTagWeight = SysGroupAdd(
 )
 
 
+####################################################################### JEC ###
+def makeSysSamplesJEC():
+    for name in settings.active_samples:
+        makeSysSample(
+            name,
+            name + "_JEC",
+            {}
+        )
+        settings.samples[name + "_JEC"].cfg_add_lines += (
+            "process.load('MyPackage.TtGamma8TeV.cfi_filterJEC')",
+            "process.preSel.insert(0, process.filterJEC)",
+        )
+
+
+class SysJEC(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples = list(
+            smp + "_JEC" for smp in settings.active_samples
+        )
+        super(SysJEC, self).prepare_for_systematic()
+
+
 ######################################################## top-pt reweighting ###
 def makeSysSamplesTopPt():
     for name in settings.active_samples:

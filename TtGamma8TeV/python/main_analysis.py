@@ -70,6 +70,7 @@ post_proc_sys = [
 
 if settings.do_sys_uncert:
     sys_uncert.makeSysSamplesPU()
+    sys_uncert.makeSysSamplesJEC()
     sys_uncert.makeSysSamplesTopPt()
     sys_uncert.makeSysSamplesDRCut()
     sys_uncert.makeSysSamplesETCut()
@@ -134,6 +135,7 @@ if settings.do_sys_uncert:
     post_proc_tools += [
         ppt.SimpleWebCreator, # see output before looong sys calculation
         sys_uncert.SysPU(None, post_proc_sys),
+        sys_uncert.SysJEC(None, post_proc_sys),
         sys_uncert.SysTopPt.push_tools(post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
