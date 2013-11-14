@@ -142,6 +142,8 @@ pn.update({
     "SysPhotonETCut"        : r"$\epsilon_\gamma \;(\et)$",
     "SysSelEffSig"          : r"$\sigma_{\rm sig}$",
     "SysSelEffBkg"          : r"$\sigma_{\rm bkg}$",
+    "SysJEC"                : r"JEC",
+    "SysJER"                : r"JER",
 })
 
 pn.update({

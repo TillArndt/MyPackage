@@ -22,6 +22,8 @@ summed_uncerts = [
     "SysWhizPDF",
     "SysTopPt",
     "SysBTagWeight",
+    "SysJEC",
+    "SysJER",
 ]
 
 result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]
@@ -72,7 +74,6 @@ class ResultSummary(ppc.PostProcTool):
 
 ResultSummaries = ppc.PostProcChain(
     "ResultSummaries",
-#    [ResultSummary("XsecCalculatorABCD")]
     list(ResultSummary(x) for x in xsec_calc_name_iter())
 )
 
@@ -216,8 +217,6 @@ class ResultTexifier(ppc.PostProcTool):
                 ),
             )
         table += (
-            r"\;\;\;JES             & ---  & --- \\",
-            r"\;\;\;JER             & ---  & --- \\",
             r"\;\;\;top-quark mass  & ---  & --- \\",
             r"\hline",
             r"\textbf{Total} & %.1f & %.1f \\" % (

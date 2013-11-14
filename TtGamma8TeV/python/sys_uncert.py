@@ -286,6 +286,28 @@ class SysJEC(SysBase):
         super(SysJEC, self).prepare_for_systematic()
 
 
+####################################################################### JER ###
+def makeSysSamplesJER():
+    for name in settings.active_samples:
+        makeSysSample(
+            name,
+            name + "_JER",
+            {}
+        )
+        settings.samples[name + "_JER"].cfg_add_lines += (
+            "process.load('MyPackage.TtGamma8TeV.cfi_filterJER')",
+            "process.preSel.insert(0, process.filterJER)",
+        )
+
+
+class SysJER(SysBase):
+    def prepare_for_systematic(self):
+        settings.active_samples = list(
+            smp + "_JER" for smp in settings.active_samples
+        )
+        super(SysJER, self).prepare_for_systematic()
+
+
 ######################################################## top-pt reweighting ###
 def makeSysSamplesTopPt():
     for name in settings.active_samples:

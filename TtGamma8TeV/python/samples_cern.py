@@ -159,7 +159,7 @@ class RunA(smp.Sample):
     def __init__(self):
         self.is_data     = True
         self.legend      = "Data"
-        self.lumi        = 889.301 #lumiCalc2
+        self.lumi        = 889.3 #lumiCalc2
         self.input_files = path_pc + 'RunA' + postfix
         self.cfg_builtin = {}
         super(RunA, self).__init__()

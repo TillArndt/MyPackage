@@ -20,6 +20,7 @@
 
 // system include files
 #include <memory>
+#include <iostream>
 #include <algorithm>
 
 // user include files
@@ -107,15 +108,21 @@ FilterJER::~FilterJER()
 double
 FilterJER::getNewPt(const pat::Jet& jet, TH1F& factors) {
     // Formula for smearing: pT->max[0.,pTgen+c*(pT–pTgen)]
-    double jetPt = jet.pt();
-    double c_factor = factors.GetBinContent(factors.FindBin(jet.eta()));
-    double genJetPt = jet.genJet()->pt();
-    return genJetPt + c_factor * (jetPt - genJetPt);
+    if (jet.genJet()) {
+        double jetPt = jet.pt();
+        double c_factor = factors.GetBinContent(factors.FindBin(fabs(jet.eta())));
+        double genJetPt = jet.genJet()->pt();
+        return genJetPt + c_factor * (jetPt - genJetPt);
+    } else {
+        return jet.pt();
+    }
 }
 
 bool
 FilterJER::passesJetCuts(std::vector<float> &jet_pts) {
-    std::sort(jet_pts.begin(), jet_pts.end());
+    std::sort(jet_pts.begin(), jet_pts.end(), [](int a, int b) {
+        return b < a;   // reverse sort
+    });
     for (unsigned i=0; i<4; ++i) {
         if (jet_pts.at(i) < cuts_.at(i)) {
             return false;
