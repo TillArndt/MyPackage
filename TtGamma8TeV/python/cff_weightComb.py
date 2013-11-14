@@ -10,7 +10,7 @@ except NameError:
 import FWCore.ParameterSet.Config as cms
 from MyPackage.TtGamma8TeV.cfi_weightBTag import *
 from MyPackage.TtGamma8TeV.cfi_weightTopPt import *
-from MyPackage.TtGamma8TeV.cfi_evtWeightPU import *
+from MyPackage.TtGamma8TeV.cfi_weightPU import *
 from MyPackage.TtGamma8TeV.cfi_weightMCatNLO import *
 
 weightComb = cms.EDProducer("DoubleProduct",
