@@ -11,9 +11,10 @@ from MyPackage.TtGamma8TeV.cfi_bTagRequirement import *
 from MyPackage.TtGamma8TeV.cfi_trigger import *
 
 preSel = cms.Sequence(
+    triggerSelection *
     bTagSequence
 )
 
-if not runOnMC: # run trigger on data
-    preSel *= triggerSelection
+#if not runOnMC: # run trigger on data
+#    preSel *= triggerSelection
 

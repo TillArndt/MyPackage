@@ -1,7 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 
 
-trigWeight = cms.EDProducer("TopTriggerWeight",
+#trigWeight = cms.EDProducer("TopTriggerWeight",
+#    uncertMode = cms.untracked.int32(0),
+#)
+
+
+import os
+
+path = os.environ["CMSSW_BASE"] + "/src/MyPackage/TtGamma8TeV/data/"
+path += "SingleMuonTriggerEfficiencies_eta2p1_Run2012ABCD_v5trees.root"
+
+trigWeight = cms.EDProducer("IsoMuTrigWeight",
+    sfFile = cms.string(path),
     uncertMode = cms.untracked.int32(0),
 )
 

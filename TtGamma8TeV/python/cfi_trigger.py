@@ -4,19 +4,21 @@ try:
 except NameError:
     pass
 
-hltPath = ['HLT_*']
-if "RunA" in sample:
-    hltPath = ["HLT_IsoMu17_eta2p1_TriCentralPFJet30_v*"]
-elif "RunB" in sample:
-    hltPath = [
-        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_v*",
-        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v*",
-    ]
-elif ("RunC" in sample) or ("RunD" in sample):
-    hltPath = [
-        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v*",
-        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet45_35_25_v*",
-    ]
+#hltPath = ['HLT_*']
+#if "RunA" in sample:
+#    hltPath = ["HLT_IsoMu17_eta2p1_TriCentralPFJet30_v*"]
+#elif "RunB" in sample:
+#    hltPath = [
+#        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_v*",
+#        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v*",
+#    ]
+#elif ("RunC" in sample) or ("RunD" in sample):
+#    hltPath = [
+#        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet30_30_20_v*",
+#        "HLT_IsoMu17_eta2p1_TriCentralPFNoPUJet45_35_25_v*",
+#    ]
+
+hltPath = ["HLT_IsoMu24_eta2p1_v*"]
 
 import FWCore.ParameterSet.Config as cms
 

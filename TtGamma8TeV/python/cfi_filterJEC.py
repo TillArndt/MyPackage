@@ -9,8 +9,8 @@ print "<"+__name__+">: Running On MC:", runOnMC
 
 
 import FWCore.ParameterSet.Config as cms
-
 import os
+
 path = os.environ["CMSSW_BASE"] + "/src/MyPackage/TtGamma8TeV/data/"
 
 if runOnMC:
