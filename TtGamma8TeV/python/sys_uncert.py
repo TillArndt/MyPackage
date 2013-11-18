@@ -350,6 +350,55 @@ SysTopPt = SysGroupMax(
     ]
 )
 
+
+#################################################################### pileup ###
+def makeSysSamplesTrig():
+    mc_samples = settings.mc_samples()
+    for name in mc_samples.iterkeys():
+        makeSysSample(
+            name,
+            name + "_TrigPlus",
+            {}
+        )
+        makeSysSample(
+            name,
+            name + "_TrigMinus",
+            {}
+        )
+        settings.samples[name + "_TrigPlus"].cfg_add_lines += (
+            "process.trigWeight.uncertMode = 1",
+        )
+        settings.samples[name + "_TrigMinus"].cfg_add_lines += (
+            "process.trigWeight.uncertMode = -1",
+        )
+
+class SysTrigPlus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        pu_samples = list(s + "_TrigPlus" for s in mc_samples)
+        settings.active_samples = pu_samples + da_samples
+        super(SysTrigPlus, self).prepare_for_systematic()
+
+
+class SysTrigMinus(SysBase):
+    def prepare_for_systematic(self):
+        mc_samples = settings.mc_samples().keys()
+        da_samples = settings.data_samples().keys()
+        pu_samples = list(s + "_TrigMinus" for s in mc_samples)
+        settings.active_samples = pu_samples + da_samples
+        super(SysTrigMinus, self).prepare_for_systematic()
+
+
+SysTrig = SysGroupAdd(
+    "SysTrig",
+    [
+        SysTrigPlus,
+        SysTrigMinus,
+    ]
+)
+
+
 ###################################################### selection efficiency ###
 def sys_xsec(sample, factor):
     for s in _iterableize(sample):

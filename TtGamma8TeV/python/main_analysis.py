@@ -24,6 +24,8 @@ settings.ttbar_xsec_cms_err = (
 )**.5
 settings.do_sys_uncert = not "--noSys" in sys.argv
 
+settings.max_num_processes = 4
+
 import plots_commons  # sets style related things
 from cmstoolsac3b.sample import load_samples
 import samples_cern
@@ -71,7 +73,9 @@ post_proc_sys = [
 if settings.do_sys_uncert:
     sys_uncert.makeSysSamplesPU()
     sys_uncert.makeSysSamplesJEC()
+    sys_uncert.makeSysSamplesJER()
     sys_uncert.makeSysSamplesTopPt()
+    #sys_uncert.makeSysSamplesTrig()
     sys_uncert.makeSysSamplesDRCut()
     sys_uncert.makeSysSamplesETCut()
     sys_uncert.makeSysSamplesBTag()
@@ -136,7 +140,9 @@ if settings.do_sys_uncert:
         ppt.SimpleWebCreator, # see output before looong sys calculation
         sys_uncert.SysPU(None, post_proc_sys),
         sys_uncert.SysJEC(None, post_proc_sys),
+        sys_uncert.SysJER(None, post_proc_sys),
         sys_uncert.SysTopPt.push_tools(post_proc_sys),
+        #sys_uncert.SysTrig.push_tools(post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
@@ -160,7 +166,6 @@ def drop_toolchain():
 def analysis_main():
     main.main(
         post_proc_tools = post_proc_tools,
-        max_num_processes = 4,
         try_reuse_results = True,
         cfg_main_import_path="MyPackage.TtGamma8TeV.cfg_photon_selection",
     )
