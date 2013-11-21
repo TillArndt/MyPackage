@@ -75,7 +75,7 @@ if settings.do_sys_uncert:
     sys_uncert.makeSysSamplesJEC()
     sys_uncert.makeSysSamplesJER()
     sys_uncert.makeSysSamplesTopPt()
-    #sys_uncert.makeSysSamplesTrig()
+    sys_uncert.makeSysSamplesTrig()
     sys_uncert.makeSysSamplesDRCut()
     sys_uncert.makeSysSamplesETCut()
     sys_uncert.makeSysSamplesBTag()
@@ -142,7 +142,7 @@ if settings.do_sys_uncert:
         sys_uncert.SysJEC(None, post_proc_sys),
         sys_uncert.SysJER(None, post_proc_sys),
         sys_uncert.SysTopPt.push_tools(post_proc_sys),
-        #sys_uncert.SysTrig.push_tools(post_proc_sys),
+        sys_uncert.SysTrig.push_tools(post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
