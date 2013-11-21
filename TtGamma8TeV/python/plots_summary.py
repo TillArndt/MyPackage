@@ -217,7 +217,7 @@ class ResultTexifier(ppc.PostProcTool):
                 ),
             )
         table += (
-            r"\;\;\;top-quark mass  & ---  & --- \\",
+#            r"\;\;\;top-quark mass  & ---  & --- \\",
             r"\hline",
             r"\textbf{Total} & %.1f & %.1f \\" % (
 (
@@ -332,6 +332,7 @@ class RootPlotConverter(ppc.PostProcTool):
         super(RootPlotConverter, self).__init__(tool_name)
         self.target_dir = settings.plot_target_dir
         self.pdf_copy_dirs = [
+(settings.DIR_PLOTS + "TemplateFitPlots/SigRegCmp/", "sigregcmp_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTMadG/", "sb_vs_fake_MadG_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoPy/", "sb_vs_fake_PoPy_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoHe/", "sb_vs_fake_PoHe_"),
