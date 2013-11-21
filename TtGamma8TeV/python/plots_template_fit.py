@@ -367,9 +367,9 @@ class ThetaFitter(Fitter):
             "fake_rate":self.fit_res["real"]["fake_rate"][0][0]
         }
         self.bkg_val = self.model.get_coeff("chhadiso", "fake").get_value(par_values)
-        self.bkg_err = self.bkg_val * self.fit_res["real"]["fake_rate"][0][1] / self.fit_res["real"]["fake_rate"][0][0]
+        self.bkg_err = abs(self.bkg_val * self.fit_res["real"]["fake_rate"][0][1] / self.fit_res["real"]["fake_rate"][0][0])
         self.sig_val = self.fit_res["real"]["beta_signal"][0][0]
-        self.sig_err = self.fit_res["real"]["beta_signal"][0][1]
+        self.sig_err = abs(self.fit_res["real"]["beta_signal"][0][1])
         templates[1].histo.Scale(self.sig_val)
         templates[0].histo.Scale(self.bkg_val)
 
@@ -452,6 +452,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
         textbox.SetLineWidth(0)
         textbox.SetFillColor(0)
         textbox.SetFillStyle(1001)
+        textbox.SetTextSize(settings.box_text_size)
 
         chi2 = (
             "#chi^{2} / NDF = "
@@ -524,7 +525,7 @@ class TemplateFitToolChHadIso(TemplateFitTool):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
         self.fitter = Fitter()
-        self.fitbox_bounds = 0.33, 0.62, 0.88
+        self.fitbox_bounds = 0.33, 0.62, settings.defaults_Legend["y_pos"]
 
         # here the stacked templates are taken for purity calculation
         # but they are replaced in fetch_mc_templates(..)
@@ -1014,6 +1015,7 @@ class SigRegCmp(TemplateOverlays):
             for w in wrps:
                 w.legend = w.sample
                 w.draw_option = "E1"
+                w.histo.SetMarkerStyle(24)
                 yield w
         mc_tmplts = leg(mc_tmplts)
         mc_tmplts = rebin_chhadiso(mc_tmplts)
