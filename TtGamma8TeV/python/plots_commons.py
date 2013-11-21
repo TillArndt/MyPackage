@@ -74,8 +74,8 @@ colors["Single Top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
 
 colors.update({
-    "real"      : 409,
-    "fake"      : 625,
+    "real"      : ROOT.kGreen - 9,
+    "fake"      : ROOT.kRed + 2,
     "fakeGamma" : ROOT.kMagenta + 1,
     "fakeOther" : ROOT.kOrange + 8
 })
