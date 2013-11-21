@@ -154,10 +154,14 @@ if settings.do_sys_uncert:
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-    plots_summary.RootPlotConverter,
-    plots_summary.CopyTool,
-#    plots_summary.TexCompiler,
 ]
+
+if settings.do_sys_uncert:
+    post_proc_tools += [
+        plots_summary.RootPlotConverter,
+        plots_summary.CopyTool,
+    #    plots_summary.TexCompiler,
+    ]
 
 
 def drop_toolchain():
