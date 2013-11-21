@@ -12,7 +12,7 @@ import sys
 import cmstoolsac3b.main as main
 import cmstoolsac3b.settings as settings
 settings.ttbar_xsec = 245.8
-settings.ttbar_xsec_err = 2.6 * settings.ttbar_xsec
+settings.ttbar_xsec_err = 9.634
 settings.ttbar_xsec_cms = 227.
 settings.ttbar_xsec_cms_stat = 3.
 settings.ttbar_xsec_cms_syst = 11.
