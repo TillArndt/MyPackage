@@ -73,8 +73,8 @@ TF1* GetSFLight(TString meanminmax, TString tagger, TString TaggerStrength, Floa
   TString Atagger = tagger+TaggerStrength;
   TString sEtamin = Form("%1.1f",Etamin);
   TString sEtamax = Form("%1.1f",Etamax);
-  std::cout << sEtamin << std::endl;
-  std::cout << sEtamax << std::endl;
+//  std::cout << sEtamin << std::endl;
+//  std::cout << sEtamax << std::endl;
 
   if( (TaggerStrength == "L" || TaggerStrength == "M") && sEtamin == "0.0" && sEtamax == "2.4" )
   {

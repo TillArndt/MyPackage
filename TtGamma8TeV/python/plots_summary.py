@@ -10,18 +10,21 @@ import plots_xsec
 from plots_commons import copy_tex_to_target_dir
 
 summed_uncerts = [
-    "SysIsrFsr",
-    "SysMCatNLO",
 #    "SysMadgraph",
 #    "SysOverlapDRCut",
     "SysPU",
+    "SysFit",
 #    "SysPhotonETCut",
     "SysSelEffSig",
     "SysSelEffBkg",
+    "SysIsrFsr",
+    "SysMCatNLO",
+    "SysWhizPDF",
+#    "SysWhizPDFWeight",
     "SysTopPt",
     "SysBTagWeight",
-    "SysFit",
-    "SysWhizPDF"
+    "SysJEC",
+    "SysJER",
 ]
 
 result_quantities = ["n_sig_ttgam", "R_fid", "R", "xsec"]
@@ -72,7 +75,6 @@ class ResultSummary(ppc.PostProcTool):
 
 ResultSummaries = ppc.PostProcChain(
     "ResultSummaries",
-#    [ResultSummary("XsecCalculatorABCD")]
     list(ResultSummary(x) for x in xsec_calc_name_iter())
 )
 
@@ -97,6 +99,7 @@ class ResultTexifier(ppc.PostProcTool):
         self.numbers_percent_1f = [
             "TotalSysUncert_R",
             "eff_gamma",
+            "eff_gamma_fid",
             "pur_ttgam",
             "pur_tt",
         ]
@@ -153,9 +156,11 @@ class ResultTexifier(ppc.PostProcTool):
             )
         # largestSys
         with open(self.plot_output_dir + "largestSys.tex", "w") as f:
-            f.write(("%.1f" % (
-                getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R") * 100.
-                ))+"\\,\\%")
+            f.write(("%d" % round((
+                getattr(res, "SysFit_"+self.xsec_calc+"_R")**2
+                + getattr(res, "SysIsrFsr_"+self.xsec_calc+"_R")**2
+                + getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R")**2
+            )**.5 * 100))+"\\,\\%")
 
     def write_snippets_for_latexit(self):
         res = self.result
@@ -168,9 +173,9 @@ class ResultTexifier(ppc.PostProcTool):
             + (r" \;\pm \;%.1f{\rm (syst.)} \,\tn{pb}" % res.xsec_err_sys),
             R_result=
             r"\begin{align*} "
-            + (r"\pi_{t\bar t} = %.1f" % (res.pur_tt*100)) + r"\,\% \\ "
-            + (r"\pi_{t\bar t+\gamma} = %.1f" % (res.pur_ttgam*100)) + r"\,\% \\ "
-            + (r"\epsilon_\gamma = %.1f" % (res.eff_gamma*100)) + r"\,\% \\ "
+            + (r"\pi_{t\bar t} = N^{presel}_{t\bar t} / N^{presel} = %.1f" % (res.pur_tt*100)) + r"\,\% \\ "
+            + (r"\epsilon_\gamma^{\rm vis} = N^{vis}_{{t\bar t}+\gamma} / N^{presel}_{{t\bar t}+\gamma} = %.1f" % (res.eff_gamma_fid*100)) + r"\,\% \\ "
+            + (r"\epsilon_\gamma = N^{sel}_{{t\bar t}+\gamma} / N^{vis}_{{t\bar t}+\gamma} = %.1f" % (res.eff_gamma*100)) + r"\,\% \\ "
             + (r"\Rightarrow R \;=\;(%.2f " % (res.R*100))
             + (r"\;\pm %.2f^\tn{fit})\cdot 10^{-2} " % (res.R_err_stat*100))
             + r"\end{align*} ",
@@ -188,47 +193,44 @@ class ResultTexifier(ppc.PostProcTool):
             r"\hline",
             r"\hline",
             r"Source & \multicolumn{2}{c}{Uncertainty (\%)} \\",
-            r"& $\Nsig$ & $\Rvis$ \\",
+            r"& $\Rvis$ & $\sigma_{\ttgam}$ \\",
             r"\hline",
             r"Statistical & %.1f & %.1f \\" % (
-                getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.,
                 getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.,
+                getattr(res, "xsec_err_stat") / getattr(res, "xsec") * 100.,
             ),
             r"\hline",
             r"Systematic & %.1f & %.1f \\" % (
-                getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.,
                 getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.,
+                getattr(res, "xsec_err_sys") / getattr(res, "xsec") * 100.,
             ),
             r"\hline",
             r"Individual contributions: & & \\"
         ]
-        for sys in sorted(summed_uncerts,
-            key=lambda s: -getattr(res, s + "_" + self.xsec_calc + "_R")
-        ):
+#        # sort by largest contribution
+#        for sys in sorted(summed_uncerts,
+#            key=lambda s: -getattr(res, s + "_" + self.xsec_calc + "_R")
+#        ):
+        for sys in summed_uncerts:
             table.append(
                 "\;\;\;"
                 + settings.get_pretty_name(sys)
                 + r" & %.1f & %.1f \\" % (
-                    getattr(res, sys+"_"+self.xsec_calc+"_n_sig_ttgam") * 100.,
                     getattr(res, sys+"_"+self.xsec_calc+"_R_fid") * 100.,
+                    getattr(res, sys+"_"+self.xsec_calc+"_xsec") * 100.,
                 ),
             )
         table += (
-            r"\;\;\;JES             & ---  & --- \\",
-            r"\;\;\;JER             & ---  & --- \\",
-            r"\;\;\;top-quark $\pt$ & ---  & --- \\",
-            r"\;\;\;b-quark tag     & ---  & --- \\",
-            r"\;\;\;top-quark mass  & ---  & --- \\",
-            r"\;\;\;PDF uncert.     & ---  & --- \\",
+#            r"\;\;\;top-quark mass  & ---  & --- \\",
             r"\hline",
             r"\textbf{Total} & %.1f & %.1f \\" % (
 (
-    (getattr(res, "n_sig_ttgam_err") / getattr(res, "n_sig_ttgam") * 100.)**2
-  + (getattr(res, "n_sig_ttgam_err_sys") / getattr(res, "n_sig_ttgam") * 100.)**2
-)**.5,
-(
     (getattr(res, "R_fid_err_stat") / getattr(res, "R_fid") * 100.)**2
   + (getattr(res, "R_fid_err_sys") / getattr(res, "R_fid") * 100.)**2
+)**.5,
+(
+    (getattr(res, "xsec_err_stat") / getattr(res, "xsec") * 100.)**2
+  + (getattr(res, "xsec_err_sys") / getattr(res, "xsec") * 100.)**2
 )**.5,
             ),
             r"\hline",
@@ -334,6 +336,7 @@ class RootPlotConverter(ppc.PostProcTool):
         super(RootPlotConverter, self).__init__(tool_name)
         self.target_dir = settings.plot_target_dir
         self.pdf_copy_dirs = [
+(settings.DIR_PLOTS + "TemplateFitPlots/SigRegCmp/", "sigregcmp_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTMadG/", "sb_vs_fake_MadG_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoPy/", "sb_vs_fake_PoPy_"),
 (settings.DIR_PLOTS + "TemplateFitPlots/SideBandVSFakeTTPoHe/", "sb_vs_fake_PoHe_"),
@@ -353,6 +356,8 @@ class RootPlotConverter(ppc.PostProcTool):
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCMuonCheck_logscale/","datamc_muon_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCJetCheck_logscale/","datamc_jet_"),
 (settings.DIR_PLOTS + "MatchQualityStack/", "match_"),
+(settings.DIR_PLOTS + "SysWhizPDF/SysWhizPDFWeight/SysWhizPDFWeightMinus/XsecCalculatorChHadIsoSBID/", "gencmp_m"),
+(settings.DIR_PLOTS + "SysWhizPDF/SysWhizPDFWeight/SysWhizPDFWeightPlus/XsecCalculatorChHadIsoSBID/", "gencmp_p"),
         ]
 
     def convert_eps_to_pdf(self):

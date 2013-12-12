@@ -2,7 +2,7 @@ puWeightInput = "PU_Run2012_69400.root"
 try:
     puWeightInput  = cms_var.get("puWeightInput", puWeightInput)
 except NameError:
-    print "<"+__name__+">: cms_var not in __builtin__!"
+    pass
 
 import os
 path = os.environ["CMSSW_BASE"] + "/src/MyPackage/TtGamma8TeV/data/"
