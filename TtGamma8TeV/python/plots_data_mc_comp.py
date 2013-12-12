@@ -29,7 +29,8 @@ def generate_data_mc_comp_tools():
         re.compile("PlotLooseID"),
 #        re.compile("DataMCPhotonCheck"),
 #        re.compile("WeightsCheck"),
-        re.compile("bTagWeightHisto"),
+        re.compile("weightCombHisto"),
+        re.compile(r".*WeightHisto")
         ]
     list_of_tools = []
     for at in analyzer_pats:
@@ -51,8 +52,6 @@ def generate_data_mc_comp_tools():
                 tool.hook_post_canvas_build = hook_DataMC_canv_post_log
             if "Nm1Plot" == at.pattern:
                 tool.hook_post_canvas_build = hook_Nm1Plot_conv_post_log
-	    if "TagWeigt" in at.pattern:
-		tool.draw_option="nostack"
             list_of_tools.append(tool)
 
             ############################################# lin scale
@@ -71,8 +70,6 @@ def generate_data_mc_comp_tools():
                 tool.hook_post_canvas_build = hook_CrtlPlotPost_conv_post_lin
             if "Nm1Plot" == at.pattern:
                 tool.hook_pre_canvas_build = hook_DataMC_canv_pre_lin
-	    if "TagWeight" in at.pattern:
-		tool.draw_option="nostack"
             list_of_tools.append(tool)
     chain = ppc.PostProcChainIndie("DataMcComp")
     chain.add_tools(list_of_tools)

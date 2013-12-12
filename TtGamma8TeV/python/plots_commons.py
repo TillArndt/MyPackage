@@ -7,12 +7,12 @@ import cmstoolsac3b.wrappers as wrappers
 
 class SimpleTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS Preliminary #sqrt{s}=8 TeV  "
+        return "      CMS preliminary #sqrt{s}=8 TeV  "
 
 
 class LumiTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS Preliminary  L="\
+        return "      CMS preliminary  L="\
                + str(round(self.renderers[0].lumi/1000.,1))\
                + " fb^{-1} at #sqrt{s}=8 TeV"
 
@@ -70,12 +70,12 @@ colors["t#bar{t} inclusive"]                = ROOT.kAzure + 7
 colors["W + Jets"]                          = ROOT.kSpring + 8
 colors["Z + Jets"]                          = ROOT.kSpring + 5
 colors["DY + Jets"]                         = ROOT.kSpring + 5
-colors["Single Top"]                        = ROOT.kOrange + 2
+colors["Single top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
 
 colors.update({
-    "real"      : 409,
-    "fake"      : 625,
+    "real"      : ROOT.kGreen - 9,
+    "fake"      : ROOT.kRed + 2,
     "fakeGamma" : ROOT.kMagenta + 1,
     "fakeOther" : ROOT.kOrange + 8
 })
@@ -86,7 +86,7 @@ settings.stacking_order = [
     "t#bar{t}#gamma #mu+Jets (Signal)",
     "t#bar{t}#gamma (Signal)",
     "QCD",
-    "Single Top",
+    "Single top",
     "Z + Jets",
     "DY + Jets",
     "W + Jets",
@@ -119,18 +119,18 @@ pn["#DeltaR(#gamma, #mu)_tex"]    = r"$\Delta R(\gamma, \mu)$"
 pn["#DeltaR(#gamma, j)_tex"  ]    = r"$\Delta R(\gamma, j)$"
 
 pn.update({
-    "TemplateSihihreal"         : "real",
-    "TemplateSihihfake"         : "fake",
-    "TemplateChHadIsoreal"      : "real",
-    "TemplateChHadIsofake"      : "fake",
-    "PlotLooseIDSihihSigRegreal": "real",
-    "PlotLooseIDSihihSidBanfake": "fake",
+    "TemplateSihihreal"         : "Real",
+    "TemplateSihihfake"         : "Fake",
+    "TemplateChHadIsoreal"      : "Real",
+    "TemplateChHadIsofake"      : "Fake",
+    "PlotLooseIDSihihSigRegreal": "Real",
+    "PlotLooseIDSihihSidBanfake": "Fake",
     "PlotSBID"                  : "SBID",
     "PlotLooseIDSliceSihihSB12to13": "#sigma_{i#eta i#eta} SB"
 })
 
 pn.update({
-    "SysIsrFsr"             : "sho./hadr.",
+    "SysIsrFsr"             : "shower./hadr.",
     "SysMCatNLO"            : r"generator", #. \MCATNLO",
     "SysMadgraph"           : r"generator", #. \MADGRAPH",
     "SysOverlapDRCut"       : "overlap removal",
@@ -140,8 +140,10 @@ pn.update({
     "SysFit"                : "out-of-time pileup",
     "SysWhizPDF"            : "PDF",
     "SysPhotonETCut"        : r"$\epsilon_\gamma \;(\et)$",
-    "SysSelEffSig"          : r"$\epsilon_\gamma \;(\sigma_{\rm sig})$",
-    "SysSelEffBkg"          : r"$\epsilon_\gamma \;(\sigma_{\rm bkg})$",
+    "SysSelEffSig"          : r"$\sigma_{\rm sig}$",
+    "SysSelEffBkg"          : r"$\sigma_{\rm bkg}$",
+    "SysJEC"                : r"JEC",
+    "SysJER"                : r"JER",
 })
 
 pn.update({

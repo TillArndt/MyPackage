@@ -11,8 +11,9 @@
 import sys
 import cmstoolsac3b.main as main
 import cmstoolsac3b.settings as settings
+settings.max_num_processes = 4
 settings.ttbar_xsec = 245.8
-settings.ttbar_xsec_err = 2.6 * settings.ttbar_xsec
+settings.ttbar_xsec_err = 9.634
 settings.ttbar_xsec_cms = 227.
 settings.ttbar_xsec_cms_stat = 3.
 settings.ttbar_xsec_cms_syst = 11.
@@ -24,8 +25,8 @@ settings.ttbar_xsec_cms_err = (
 )**.5
 settings.do_sys_uncert = not "--noSys" in sys.argv
 
-settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
-#settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
+#settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
+settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
 
 
 import plots_commons  # sets style related things
@@ -69,17 +70,18 @@ post_proc_sys = [
     plots_commons.IdPurityCount,
     plots_commons.RealIdPurityCount,
     plots_template_fit.TemplateFitTools,
-    plots_template_fit.TemplateFitPlots,
 #    plots_shilpi.ShilpiMethodTools,
 #    plots_ABCD.RealPhotonsABCD,
 #    plots_ABCD.RealPhotonsABCDMC,
     plots_xsec.XsecCalculators,
-    ppt.HistoPoolClearer,
 ]
 
 if settings.do_sys_uncert:
     sys_uncert.makeSysSamplesPU()
+    sys_uncert.makeSysSamplesJEC()
+    sys_uncert.makeSysSamplesJER()
     sys_uncert.makeSysSamplesTopPt()
+    sys_uncert.makeSysSamplesTrig()
     sys_uncert.makeSysSamplesDRCut()
     sys_uncert.makeSysSamplesETCut()
     sys_uncert.makeSysSamplesBTag()
@@ -94,6 +96,7 @@ post_proc_tools = [
 #    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
+post_proc_tools += [plots_template_fit.TemplateFitPlots]
 closure_seq = post_proc_sys[:]
 if not plots_template_fit.do_dist_reweighting:
     closure_seq += [plots_templ_fit_closure.seq_sbid_MC]
@@ -142,13 +145,16 @@ if settings.do_sys_uncert:
     post_proc_tools += [
         ppt.SimpleWebCreator, # see output before looong sys calculation
         sys_uncert.SysPU(None, post_proc_sys),
+        sys_uncert.SysJEC(None, post_proc_sys),
+        sys_uncert.SysJER(None, post_proc_sys),
         sys_uncert.SysTopPt.push_tools(post_proc_sys),
+        sys_uncert.SysTrig.push_tools(post_proc_sys),
         sys_uncert.SysSelEff.push_tools(post_proc_sys),
         sys_uncert.SysOverlapDRCut.push_tools(post_proc_sys),
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
         sys_uncert.SysBTagWeight.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
-        sys_uncert.SysWhizPDF(None, post_proc_sys),
+        sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
         plots_summary.ResultSummaries,
        # plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
@@ -159,6 +165,13 @@ post_proc_tools += [
    # plots_summary.TexCompiler,
 ]
 
+if settings.do_sys_uncert:
+    post_proc_tools += [
+        plots_summary.RootPlotConverter,
+        plots_summary.CopyTool,
+    #    plots_summary.TexCompiler,
+    ]
+
 
 def drop_toolchain():
     settings.postprocessor.tool_chain = []
@@ -166,7 +179,6 @@ def drop_toolchain():
 def analysis_main():
     main.main(
         post_proc_tools = post_proc_tools,
-        max_num_processes = 8,
         try_reuse_results = True,
         cfg_main_import_path="MyPackage.TtGamma8TeV.cfg_photon_selection",
     )
