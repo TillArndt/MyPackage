@@ -11,7 +11,6 @@
 import sys
 import cmstoolsac3b.main as main
 import cmstoolsac3b.settings as settings
-settings.max_num_processes = 4
 settings.ttbar_xsec = 245.8
 settings.ttbar_xsec_err = 9.634
 settings.ttbar_xsec_cms = 227.
@@ -25,9 +24,7 @@ settings.ttbar_xsec_cms_err = (
 )**.5
 settings.do_sys_uncert = not "--noSys" in sys.argv
 
-#settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
-settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
-
+settings.max_num_processes = 4
 
 import plots_commons  # sets style related things
 from cmstoolsac3b.sample import load_samples
@@ -43,13 +40,10 @@ settings.active_samples.remove("TTGamRD1")
 settings.active_samples.remove("TTJeRD1")
 settings.active_samples.remove("whiz2to5_PDF")
 work = "/afs/cern.ch/work/h/htholen/"
-#cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
-#settings.web_target_dir     = work + "public/www/MainAnalysis/"
-settings.web_target_dir     = work + "public/www/TillSpace"
-#settings.sample_data_path = "file:/afs/cern.ch/user/t/tarndt/mount_pcac3b04/"
-#settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
-#settings.tex_target_dir     = cmsAN + "auto_snippets/"
-#settings.plot_target_dir    = cmsAN + "auto_images/"
+cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
+settings.web_target_dir     = work + "public/www/MainAnalysis/"
+settings.tex_target_dir     = cmsAN + "auto_snippets/"
+settings.plot_target_dir    = cmsAN + "auto_images/"
 
 import cmstoolsac3b.postproctools as ppt
 import plots_ME_overlap
@@ -91,9 +85,9 @@ post_proc_tools = [
     ppt.UnfinishedSampleRemover(True),
     plots_counters.CounterReader,
     plots_counters.TopPtWeightNorm,
-#    plots_cutflow.cutflow_chain,
+    plots_cutflow.cutflow_chain,
     plots_data_mc_comp.generate_data_mc_comp_tools(),
-#    plots_match_quality.MatchQualityStack,
+    plots_match_quality.MatchQualityStack,
 ]
 post_proc_tools += post_proc_sys
 post_proc_tools += [plots_template_fit.TemplateFitPlots]
@@ -156,13 +150,10 @@ if settings.do_sys_uncert:
         sys_uncert.SysBTags(None, post_proc_sys),
         sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
         plots_summary.ResultSummaries,
-       # plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
+        plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
 post_proc_tools += [
     ppt.SimpleWebCreator,
-   # plots_summary.RootPlotConverter,
-   # plots_summary.CopyTool,
-   # plots_summary.TexCompiler,
 ]
 
 if settings.do_sys_uncert:
