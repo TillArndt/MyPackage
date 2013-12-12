@@ -190,7 +190,10 @@ process.InputEventCount = cms.EDProducer("EventCountProducer")
 process.OutputEventCount = cms.EDProducer("EventCountProducer")
 #process.out.outputCommands += ["keep *_*EventCount*_*_*"]
 
-process.selectionPath.insert(0, process.InputEventCount)
+process.selectionPath.replace(
+    process.preSel,
+    process.preSel * process.InputEventCount
+)
 process.selectionPath += process.OutputEventCount
 
 process.InputCntPrnt = cms.EDAnalyzer("EventCountPrinter",
@@ -230,9 +233,6 @@ if skipChecks:
             'doNotHandleEmptyRunsAndLumis'
         )
 
-# btag currently not needed
-#process.preSel.remove(process.bTagRequirement)
-#process.preSel.remove(process.bTagCounter)
 
 ################################################ output module for debugging ###
 #process.out = cms.OutputModule( "PoolOutputModule",

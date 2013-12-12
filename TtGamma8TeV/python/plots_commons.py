@@ -7,12 +7,12 @@ import cmstoolsac3b.wrappers as wrappers
 
 class SimpleTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS Preliminary #sqrt{s}=8 TeV  "
+        return "      CMS preliminary #sqrt{s}=8 TeV  "
 
 
 class LumiTitleBox(rnd.TitleBox):
     def make_title(self):
-        return "      CMS Preliminary  L="\
+        return "      CMS preliminary  L="\
                + str(round(self.renderers[0].lumi/1000.,1))\
                + " fb^{-1} at #sqrt{s}=8 TeV"
 
@@ -70,7 +70,7 @@ colors["t#bar{t} inclusive"]                = ROOT.kAzure + 7
 colors["W + Jets"]                          = ROOT.kSpring + 8
 colors["Z + Jets"]                          = ROOT.kSpring + 5
 colors["DY + Jets"]                         = ROOT.kSpring + 5
-colors["Single Top"]                        = ROOT.kOrange + 2
+colors["Single top"]                        = ROOT.kOrange + 2
 colors["QCD"]                               = ROOT.kYellow + 2
 
 colors.update({
@@ -86,7 +86,7 @@ settings.stacking_order = [
     "t#bar{t}#gamma #mu+Jets (Signal)",
     "t#bar{t}#gamma (Signal)",
     "QCD",
-    "Single Top",
+    "Single top",
     "Z + Jets",
     "DY + Jets",
     "W + Jets",
@@ -119,12 +119,12 @@ pn["#DeltaR(#gamma, #mu)_tex"]    = r"$\Delta R(\gamma, \mu)$"
 pn["#DeltaR(#gamma, j)_tex"  ]    = r"$\Delta R(\gamma, j)$"
 
 pn.update({
-    "TemplateSihihreal"         : "real",
-    "TemplateSihihfake"         : "fake",
-    "TemplateChHadIsoreal"      : "real",
-    "TemplateChHadIsofake"      : "fake",
-    "PlotLooseIDSihihSigRegreal": "real",
-    "PlotLooseIDSihihSidBanfake": "fake",
+    "TemplateSihihreal"         : "Real",
+    "TemplateSihihfake"         : "Fake",
+    "TemplateChHadIsoreal"      : "Real",
+    "TemplateChHadIsofake"      : "Fake",
+    "PlotLooseIDSihihSigRegreal": "Real",
+    "PlotLooseIDSihihSidBanfake": "Fake",
     "PlotSBID"                  : "SBID",
     "PlotLooseIDSliceSihihSB12to13": "#sigma_{i#eta i#eta} SB"
 })

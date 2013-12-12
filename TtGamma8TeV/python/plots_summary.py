@@ -99,6 +99,7 @@ class ResultTexifier(ppc.PostProcTool):
         self.numbers_percent_1f = [
             "TotalSysUncert_R",
             "eff_gamma",
+            "eff_gamma_fid",
             "pur_ttgam",
             "pur_tt",
         ]
@@ -155,9 +156,11 @@ class ResultTexifier(ppc.PostProcTool):
             )
         # largestSys
         with open(self.plot_output_dir + "largestSys.tex", "w") as f:
-            f.write(("%.1f" % (
-                getattr(res, "SysFit_"+self.xsec_calc+"_R") * 100.
-                ))+"\\,\\%")
+            f.write(("%d" % round((
+                getattr(res, "SysFit_"+self.xsec_calc+"_R")**2
+                + getattr(res, "SysIsrFsr_"+self.xsec_calc+"_R")**2
+                + getattr(res, "SysMCatNLO_"+self.xsec_calc+"_R")**2
+            )**.5 * 100))+"\\,\\%")
 
     def write_snippets_for_latexit(self):
         res = self.result
@@ -170,9 +173,9 @@ class ResultTexifier(ppc.PostProcTool):
             + (r" \;\pm \;%.1f{\rm (syst.)} \,\tn{pb}" % res.xsec_err_sys),
             R_result=
             r"\begin{align*} "
-            + (r"\pi_{t\bar t} = %.1f" % (res.pur_tt*100)) + r"\,\% \\ "
-            + (r"\pi_{t\bar t+\gamma} = %.1f" % (res.pur_ttgam*100)) + r"\,\% \\ "
-            + (r"\epsilon_\gamma = %.1f" % (res.eff_gamma*100)) + r"\,\% \\ "
+            + (r"\pi_{t\bar t} = N^{presel}_{t\bar t} / N^{presel} = %.1f" % (res.pur_tt*100)) + r"\,\% \\ "
+            + (r"\epsilon_\gamma^{\rm vis} = N^{vis}_{{t\bar t}+\gamma} / N^{presel}_{{t\bar t}+\gamma} = %.1f" % (res.eff_gamma_fid*100)) + r"\,\% \\ "
+            + (r"\epsilon_\gamma = N^{sel}_{{t\bar t}+\gamma} / N^{vis}_{{t\bar t}+\gamma} = %.1f" % (res.eff_gamma*100)) + r"\,\% \\ "
             + (r"\Rightarrow R \;=\;(%.2f " % (res.R*100))
             + (r"\;\pm %.2f^\tn{fit})\cdot 10^{-2} " % (res.R_err_stat*100))
             + r"\end{align*} ",

@@ -1,5 +1,5 @@
 preSelOpt = None
-runOnMC     = True
+runOnMC   = True
 
 try:
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
@@ -15,7 +15,7 @@ from MyPackage.TtGamma8TeV.cfi_weightTrig import *
 from MyPackage.TtGamma8TeV.cfi_weightMCatNLO import *
 
 weightComb = cms.EDProducer("DoubleProduct",
-    src=cms.VInputTag(
+    src = cms.VInputTag(
         cms.InputTag("puWeight","PUWeightTrue"),
         cms.InputTag("bTagWeight"),
     )
@@ -31,8 +31,8 @@ weightCombHisto = cms.EDAnalyzer("DoubleValueHisto",
 )
 
 
-weightCombSequence=cms.Sequence(
-    bTagWeightSequence*
+weightCombSequence = cms.Sequence(
+    bTagWeightSequence *
     puWeightSequence
 )
 
@@ -44,5 +44,5 @@ if runOnMC:
     weightComb.src.append(cms.InputTag("trigWeight"))
     weightCombSequence *= trigWeightSequence
 
-weightCombSequence*=weightComb
-weightCombSequence*=weightCombHisto
+weightCombSequence *= weightComb
+weightCombSequence *= weightCombHisto

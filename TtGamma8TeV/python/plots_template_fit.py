@@ -430,6 +430,21 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.fitter         = Fitter()
         self.x_min          = 0.
         self.x_max          = 0.
+        #self.canvas_decorators
+        def fix_ratio_histo_name(cnvs):
+            for c in cnvs:
+                d = c.get_decorator(rnd.BottomPlotRatioSplitErr)
+                d.dec_par["y_title"] = "Fit residual"
+                yield c
+        def set_no_exp(cnvs):
+            for c in cnvs:
+                c.first_drawn.GetYaxis().SetNoExponent()
+                c.bottom_hist.GetYaxis().SetTitleSize(0.14)
+                c.canvas.Modified()
+                c.canvas.Update()
+                yield c
+        self.hook_pre_canvas_build = fix_ratio_histo_name
+        self.hook_post_canvas_build = set_no_exp
 
     def configure(self):
         super(TemplateFitTool, self).configure()
@@ -504,7 +519,6 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.stream_stack = gen.pool_store_items(stream_stack)
 
         del self.fitter
-
 
 class TemplateFitToolSihih(TemplateFitTool):
     def configure(self):

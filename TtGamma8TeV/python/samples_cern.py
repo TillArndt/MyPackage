@@ -40,7 +40,7 @@ class whiz2to5_PDF(smp.Sample):
 
 class T_t(smp.Sample):
     def __init__(self):
-        self.legend      = "Single Top"
+        self.legend      = "Single top"
         self.x_sec       = 56.4
         self.n_events    = 99876
         self.input_files = path_pc + 'T_t' + postfix
@@ -49,7 +49,7 @@ class T_t(smp.Sample):
 
 class Tbar_t(smp.Sample):
     def __init__(self):
-        self.legend      = "Single Top"
+        self.legend      = "Single top"
         self.x_sec       = 30.7
         self.n_events    = 1935072
         self.input_files = path_pc + 'Tbar_t' + postfix
@@ -58,7 +58,7 @@ class Tbar_t(smp.Sample):
 
 class T_tW(smp.Sample):
     def __init__(self):
-        self.legend      = "Single Top"
+        self.legend      = "Single top"
         self.x_sec       = 11.1
         self.n_events    = 497658
         self.input_files = path_pc + 'T_tW' + postfix
@@ -68,7 +68,7 @@ class T_tW(smp.Sample):
 
 class Tbar_tW(smp.Sample):
     def __init__(self):
-        self.legend      = "Single Top"
+        self.legend      = "Single top"
         self.x_sec       = 11.1
         self.n_events    = 493460
         self.input_files = path_pc + 'Tbar_tW' + postfix
@@ -189,7 +189,7 @@ class RunD(smp.Sample):
     def __init__(self):
         self.is_data     = True
         self.legend      = "Data"
-        self.lumi        = 7318. #lumiCalc2
+        self.lumi        = 7318. - 68.8 #lumiCalc2 # and correct to value from pixelLumiCalc
         self.input_files = path_pc + 'RunD' + postfix
         self.cfg_builtin = {}
         super(RunD, self).__init__()
