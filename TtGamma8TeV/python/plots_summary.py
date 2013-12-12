@@ -20,6 +20,7 @@ summed_uncerts = [
     "SysIsrFsr",
     "SysMCatNLO",
     "SysWhizPDF",
+#    "SysWhizPDFWeight",
     "SysTopPt",
     "SysBTagWeight",
     "SysJEC",
@@ -352,6 +353,8 @@ class RootPlotConverter(ppc.PostProcTool):
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCMuonCheck_logscale/","datamc_muon_"),
 (settings.DIR_PLOTS + "DataMcComp/DataMC_DataMCJetCheck_logscale/","datamc_jet_"),
 (settings.DIR_PLOTS + "MatchQualityStack/", "match_"),
+(settings.DIR_PLOTS + "SysWhizPDF/SysWhizPDFWeight/SysWhizPDFWeightMinus/XsecCalculatorChHadIsoSBID/", "gencmp_m"),
+(settings.DIR_PLOTS + "SysWhizPDF/SysWhizPDFWeight/SysWhizPDFWeightPlus/XsecCalculatorChHadIsoSBID/", "gencmp_p"),
         ]
 
     def convert_eps_to_pdf(self):

@@ -20,6 +20,9 @@
 
 // system include files
 #include <memory>
+#include <vector>
+#include <string>
+#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -54,7 +57,9 @@ class PDFWeight : public edm::EDProducer {
 
       // ----------member data ---------------------------
       edm::InputTag src_;
-      int uncertMode_;
+      edm::InputTag weights_;
+      std::string label_;
+      std::vector<double> weightCounters_;
 };
 
 //
@@ -62,10 +67,9 @@ class PDFWeight : public edm::EDProducer {
 //
 PDFWeight::PDFWeight(const edm::ParameterSet& iConfig):
     src_(iConfig.getParameter<edm::InputTag>("src")),
-    uncertMode_(iConfig.getParameter<int>("uncertMode"))
+    weights_(iConfig.getParameter<edm::InputTag>("weights")),
+    label_(iConfig.getParameter<std::string>("label"))
 {
-    produces<double>("");
-    produces<double>("central");
 }
 
 
@@ -79,36 +83,28 @@ void
 PDFWeight::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
-    std::auto_ptr<double> eventWeightOut(new double);
-    std::auto_ptr<double> eventWeightCentralOut(new double);
-    *eventWeightOut = 1.;
-    *eventWeightCentralOut = 1.;
+    using namespace std;
 
-    if (iEvent.isRealData  || 0 == uncertMode_) {
-        iEvent.put(eventWeightOut, "");
-        iEvent.put(eventWeightCentralOut, "central");
+    if (iEvent.isRealData()) {
         return;
     }
 
-    edm::Handle<std::vector<double> > weightVector;
-    iEvent.getByLabel(src_, weightVector);
+    edm::Handle<std::vector<double> > pdfWeightHndl;
+    iEvent.getByLabel(src_, pdfWeightHndl);
 
-    double centralWeight = weightVector->at(0);
-    *eventWeightCentralOut = centralWeight;
-    iEvent.put(eventWeightCentralOut, "central");
+    if (!weightCounters_.size()) {  // first event: initialize vector
+        weightCounters_.resize(pdfWeightHndl->size(), 0.);
+    }
 
-    if (true) { //uncertMode_ > 0) {
-        double minWeight = centralWeight;
-        double maxWeight = centralWeight;
-        for (unsigned i=1; i<weightVector->size(); i+=2) {
-           std::cout << "Event weight for PDF variation +" << (j+1)/2 << ": " << weightVector[j] << std::endl;
-           std::cout << "Event weight for PDF variation -" << (j+1)/2 << ": " << weightVector[j+1] << std::endl;
-//            if (minWeight > weightVector->at(i))
-//                minWeight = weightVector->at(i);
-//            if (maxWeight < weightVector->at(i))
-//                maxWeight = weightVector->at(i);
-        }
-        iEvent.put(eventWeightOut, "");
+    edm::Handle<double> outerWeightHndl;
+    iEvent.getByLabel(weights_, outerWeightHndl);
+    double outerEventWeight = *outerWeightHndl.product();
+    weightCounters_[0] += outerEventWeight;
+
+    double nominal = pdfWeightHndl->at(0);
+    double weightFactor = outerEventWeight / nominal;
+    for (unsigned i=1; i<pdfWeightHndl->size(); i+=1) {
+        weightCounters_[i] += weightFactor * pdfWeightHndl->at(i);
     }
 }
 
@@ -121,6 +117,12 @@ PDFWeight::beginJob()
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 PDFWeight::endJob() {
+    using namespace std;
+    for (unsigned i=0; i<weightCounters_.size(); ++i) {
+        cout << "PDFWeightEventCountPrinter: InputTag:  label = PDFWeight" << label_ << i
+             << ", instance =  " << weightCounters_[i]
+             << endl;
+    }
 }
 
 // ------------ method called when starting to processes a run  ------------
