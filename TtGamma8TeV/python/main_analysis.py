@@ -23,6 +23,7 @@ settings.ttbar_xsec_cms_err = (
     + settings.ttbar_xsec_cms_lum**2
 )**.5
 settings.do_sys_uncert = not "--noSys" in sys.argv
+settings.sample_data_path ="file:/user/tholen/eventFiles/20130828Skim/"
 
 settings.max_num_processes = 4
 
@@ -39,11 +40,11 @@ settings.active_samples.remove("TTMCNLO")
 settings.active_samples.remove("TTGamRD1")
 settings.active_samples.remove("TTJeRD1")
 settings.active_samples.remove("whiz2to5_PDF")
-work = "/afs/cern.ch/work/h/htholen/"
-cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
-settings.web_target_dir     = work + "public/www/MainAnalysis/"
-settings.tex_target_dir     = cmsAN + "auto_snippets/"
-settings.plot_target_dir    = cmsAN + "auto_images/"
+work = "/afs/cern.ch/work/t/tarndt/"
+#cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
+#settings.web_target_dir     = work + "public/www/MainAnalysis/"
+#settings.tex_target_dir     = cmsAN + "auto_snippets/"
+#settings.plot_target_dir    = cmsAN + "auto_images/"
 
 import cmstoolsac3b.postproctools as ppt
 import plots_ME_overlap
@@ -148,18 +149,18 @@ if settings.do_sys_uncert:
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
         sys_uncert.SysBTagWeight.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
-        sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
+#        sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
         plots_summary.ResultSummaries,
         plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
 post_proc_tools += [
-    ppt.SimpleWebCreator,
+    #ppt.SimpleWebCreator,
 ]
 
 if settings.do_sys_uncert:
     post_proc_tools += [
-        plots_summary.RootPlotConverter,
-        plots_summary.CopyTool,
+        #plots_summary.RootPlotConverter,
+        #plots_summary.CopyTool,
     #    plots_summary.TexCompiler,
     ]
 

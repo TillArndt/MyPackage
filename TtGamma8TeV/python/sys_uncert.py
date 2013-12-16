@@ -137,155 +137,155 @@ class SysMCatNLO(SysBase):
 
 
 ################################################################## whiz pdf ###
-from plots_xsec import XsecCalculatorChHadIsoSBID
-from cmstoolsac3b import util
-import cmstoolsac3b.generators as gen
-from ROOT import TH1D
-
-
-class XsecCalculatorBase(XsecCalculatorChHadIsoSBID):
-    def __init__(self, name=None, pre=None, fid=None, post=None):
-        super(XsecCalculatorBase, self).__init__(name)
-        if pre:
-            self.replacement_pre = pre
-            self.replacement_fid = fid
-            self.replacement_post = post
-
-    def get_sig_count_name(self, orig):
-        if orig == self.pre_count_name:
-            return self.replacement_pre
-        if orig == self.fid_count_name:
-            return self.replacement_fid
-        if orig == self.post_count_name:
-            return self.replacement_post
-
-
-class PDFUncertCombiner(ppc.PostProcTool):
-    def __init__(self, name=None):
-        super(PDFUncertCombiner, self).__init__(
-            "XsecCalculatorChHadIsoSBID",  # fake the original XsecCalculator
-        )
-        self.values = []
-
-    def get_quantity(self, i, quantity):
-        if i == 0:
-            return getattr(self.result, quantity)
-        else:
-            return getattr(
-                settings.post_proc_dict["XsecCalculatorPDF_%d" % i],
-                quantity
-            )
-
-    def calc_variation(self, quantity):
-        pass
-
-    def store_value(self, v):
-        self.values.append(v)
-        return v
-
-    def run(self):
-        self.result = settings.post_proc_dict["XsecCalculatorChHadIsoSBID"]
-        for quantity in ["R", "R_fid", "xsec"]:
-            self.calc_variation(quantity)
-            histo = wrappers.HistoWrapper(
-                util.list2histogram(
-                    self.values,
-                    "PDF_uncert_distr_" + quantity,
-                    ";#Delta("+quantity+");CTEQ61 PDF eigenvector evaluation",
-                    60
-                )
-            )
-            del self.values[:]
-            cnv = gen.canvas([[histo]])
-            cnv = gen.save(cnv, lambda c: self.plot_output_dir + c.name)
-            gen.consume_n_count(cnv)
-
-
-# math taken from
-# http://www.hep.ucl.ac.uk/pdf4lhc/PDF4LHC_practical_guide.pdf
-class PDFUncertCombinerPlus(PDFUncertCombiner):
-    def calc_variation(self, quantity):
-        variance90 = sum(
-            self.store_value(max((
-                self.get_quantity(2*i-1, quantity) -
-                self.get_quantity(0, quantity),
-                self.get_quantity(2*i, quantity) -
-                self.get_quantity(0, quantity),
-                0,
-            )))**2
-            for i in xrange(1, 21)
-        )
-        nominal = getattr(self.result, quantity)
-        plus = nominal + variance90**.5 / 1.64485 # 1.64.. for CL90 => CL68
-        setattr(self.result, quantity, plus)
-
-
-class PDFUncertCombinerMinus(PDFUncertCombiner):
-    def calc_variation(self, quantity):
-        variance90 = sum(
-            self.store_value(max((
-                self.get_quantity(0, quantity) -
-                self.get_quantity(2*i-1, quantity),
-                self.get_quantity(0, quantity) -
-                self.get_quantity(2*i, quantity),
-                0,
-            )))**2
-            for i in xrange(1, 21)
-        )
-        nominal = getattr(self.result, quantity)
-        minus = nominal - variance90**.5 / 1.64485 # 1.64.. to get to CL68
-        setattr(self.result, quantity, minus)
-
-
-class SysWhizPDFWeightBase(SysBase):
-    def prepare_for_systematic(self):
-        for i in xrange(1, 41):
-            self.tool_chain.append(XsecCalculatorBase(
-                "XsecCalculatorPDF_%d" % i,
-                "PDFWeightpre%d," % i,
-                "PDFWeightfid%d," % i,
-                "PDFWeightpost%d," % i,
-            ))
-        super(SysWhizPDFWeightBase, self).prepare_for_systematic()
-
-
-class SysWhizPDFWeightPlus(SysWhizPDFWeightBase):
-    def prepare_for_systematic(self):
-        super(SysWhizPDFWeightPlus, self).prepare_for_systematic()
-        self.tool_chain.append(PDFUncertCombinerPlus())
-
-
-class SysWhizPDFWeightMinus(SysWhizPDFWeightBase):
-    def prepare_for_systematic(self):
-        super(SysWhizPDFWeightMinus, self).prepare_for_systematic()
-        self.tool_chain.append(PDFUncertCombinerMinus())
-
-
-SysWhizPDFWeight = SysGroupMax(
-    "SysWhizPDFWeight",
-    [
-        SysWhizPDFWeightPlus,
-        SysWhizPDFWeightMinus,
-    ]
-)
-
-
-class SysWhizNNPDF(SysBase):
-    def prepare_for_systematic(self):
-        settings.active_samples.remove("whiz2to5")
-        settings.active_samples.append("whiz2to5_PDF")
-        super(SysWhizNNPDF, self).prepare_for_systematic()
-
-
-SysWhizPDF = SysGroupAdd(
-    "SysWhizPDF",
-    [
-        SysWhizNNPDF,
-        SysWhizPDFWeight,
-    ]
-)
-
-
+#from plots_xsec import XsecCalculatorChHadIsoSBID
+#from cmstoolsac3b import util
+#import cmstoolsac3b.generators as gen
+#from ROOT import TH1D
+#
+#
+#class XsecCalculatorBase(XsecCalculatorChHadIsoSBID):
+#    def __init__(self, name=None, pre=None, fid=None, post=None):
+#        super(XsecCalculatorBase, self).__init__(name)
+#        if pre:
+#            self.replacement_pre = pre
+#            self.replacement_fid = fid
+#            self.replacement_post = post
+#
+#    def get_sig_count_name(self, orig):
+#        if orig == self.pre_count_name:
+#            return self.replacement_pre
+#        if orig == self.fid_count_name:
+#            return self.replacement_fid
+#        if orig == self.post_count_name:
+#            return self.replacement_post
+#
+#
+#class PDFUncertCombiner(ppc.PostProcTool):
+#    def __init__(self, name=None):
+#        super(PDFUncertCombiner, self).__init__(
+#            "XsecCalculatorChHadIsoSBID",  # fake the original XsecCalculator
+#        )
+#        self.values = []
+#
+#    def get_quantity(self, i, quantity):
+#        if i == 0:
+#            return getattr(self.result, quantity)
+#        else:
+#            return getattr(
+#                settings.post_proc_dict["XsecCalculatorPDF_%d" % i],
+#                quantity
+#            )
+#
+#    def calc_variation(self, quantity):
+#        pass
+#
+#    def store_value(self, v):
+#        self.values.append(v)
+#        return v
+#
+#    def run(self):
+#        self.result = settings.post_proc_dict["XsecCalculatorChHadIsoSBID"]
+#        for quantity in ["R", "R_fid", "xsec"]:
+#            self.calc_variation(quantity)
+#            histo = wrappers.HistoWrapper(
+#                util.list2histogram(
+#                    self.values,
+#                    "PDF_uncert_distr_" + quantity,
+#                    ";#Delta("+quantity+");CTEQ61 PDF eigenvector evaluation",
+#                    60
+#                )
+#            )
+#            del self.values[:]
+#            cnv = gen.canvas([[histo]])
+#            cnv = gen.save(cnv, lambda c: self.plot_output_dir + c.name)
+#            gen.consume_n_count(cnv)
+#
+#
+## math taken from
+## http://www.hep.ucl.ac.uk/pdf4lhc/PDF4LHC_practical_guide.pdf
+#class PDFUncertCombinerPlus(PDFUncertCombiner):
+#    def calc_variation(self, quantity):
+#        variance90 = sum(
+#            self.store_value(max((
+#                self.get_quantity(2*i-1, quantity) -
+#                self.get_quantity(0, quantity),
+#                self.get_quantity(2*i, quantity) -
+#                self.get_quantity(0, quantity),
+#                0,
+#            )))**2
+#            for i in xrange(1, 21)
+#        )
+#        nominal = getattr(self.result, quantity)
+#        plus = nominal + variance90**.5 / 1.64485 # 1.64.. for CL90 => CL68
+#        setattr(self.result, quantity, plus)
+#
+#
+#class PDFUncertCombinerMinus(PDFUncertCombiner):
+#    def calc_variation(self, quantity):
+#        variance90 = sum(
+#            self.store_value(max((
+#                self.get_quantity(0, quantity) -
+#                self.get_quantity(2*i-1, quantity),
+#                self.get_quantity(0, quantity) -
+#                self.get_quantity(2*i, quantity),
+#                0,
+#            )))**2
+#            for i in xrange(1, 21)
+#        )
+#        nominal = getattr(self.result, quantity)
+#        minus = nominal - variance90**.5 / 1.64485 # 1.64.. to get to CL68
+#        setattr(self.result, quantity, minus)
+#
+#
+#class SysWhizPDFWeightBase(SysBase):
+#    def prepare_for_systematic(self):
+#        for i in xrange(1, 41):
+#            self.tool_chain.append(XsecCalculatorBase(
+#                "XsecCalculatorPDF_%d" % i,
+#                "PDFWeightpre%d," % i,
+#                "PDFWeightfid%d," % i,
+#                "PDFWeightpost%d," % i,
+#            ))
+#        super(SysWhizPDFWeightBase, self).prepare_for_systematic()
+#
+#
+#class SysWhizPDFWeightPlus(SysWhizPDFWeightBase):
+#    def prepare_for_systematic(self):
+#        super(SysWhizPDFWeightPlus, self).prepare_for_systematic()
+#        self.tool_chain.append(PDFUncertCombinerPlus())
+#
+#
+#class SysWhizPDFWeightMinus(SysWhizPDFWeightBase):
+#    def prepare_for_systematic(self):
+#        super(SysWhizPDFWeightMinus, self).prepare_for_systematic()
+#        self.tool_chain.append(PDFUncertCombinerMinus())
+#
+#
+#SysWhizPDFWeight = SysGroupMax(
+#    "SysWhizPDFWeight",
+#    [
+#        SysWhizPDFWeightPlus,
+#        SysWhizPDFWeightMinus,
+#    ]
+#)
+#
+#
+#class SysWhizNNPDF(SysBase):
+#    def prepare_for_systematic(self):
+#        settings.active_samples.remove("whiz2to5")
+#        settings.active_samples.append("whiz2to5_PDF")
+#        super(SysWhizNNPDF, self).prepare_for_systematic()
+#
+#
+#SysWhizPDF = SysGroupAdd(
+#    "SysWhizPDF",
+#    [
+#        SysWhizNNPDF,
+#        SysWhizPDFWeight,
+#    ]
+#)
+#
+#
 #################################################################### pileup ###
 def makeSysSamplesPU():
     mc_samples = settings.mc_samples()
