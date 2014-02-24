@@ -1,0 +1,12 @@
+140204_112822: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -create
+140204_112943: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -create
+140204_112958: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -clean
+140204_113004: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -create
+140204_113031: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -create
+140204_113814: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -submit
+140204_123807: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -status
+140204_123940: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -get
+140204_124005: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -publish
+140224_095527: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -clean
+140224_095706: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -clean
+140224_095721: /user/arndt/CRAB/CRAB_2_9_1/python/crab.py -clean
