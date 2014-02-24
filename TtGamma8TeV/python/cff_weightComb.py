@@ -1,24 +1,25 @@
 preSelOpt = None
+runOnMC   = True
 
 try:
-    print "cms_var options: "
-    print cms_var
     preSelOpt   = cms_var.get("preSelOpt",preSelOpt)
+    runOnMC     = not cms_var["is_data"]
 except NameError:
-    print "<"+__name__+">: cms_var not in __builtin__!"
+    pass
 
 import FWCore.ParameterSet.Config as cms
 from MyPackage.TtGamma8TeV.cfi_weightBTag import *
 from MyPackage.TtGamma8TeV.cfi_weightTopPt import *
-from MyPackage.TtGamma8TeV.cfi_evtWeightPU import *
+from MyPackage.TtGamma8TeV.cfi_weightPU import *
+from MyPackage.TtGamma8TeV.cfi_weightTrig import *
 from MyPackage.TtGamma8TeV.cfi_weightMCatNLO import *
 
 weightComb = cms.EDProducer("DoubleProduct",
-	src=cms.VInputTag(
-		cms.InputTag("puWeight","PUWeightTrue"),
-		cms.InputTag("bTagWeight"),
-		)
-	)
+    src = cms.VInputTag(
+        cms.InputTag("puWeight","PUWeightTrue"),
+        cms.InputTag("bTagWeight"),
+    )
+)
 
 weightCombHisto = cms.EDAnalyzer("DoubleValueHisto",
     src = cms.InputTag("weightComb"),
@@ -30,13 +31,18 @@ weightCombHisto = cms.EDAnalyzer("DoubleValueHisto",
 )
 
 
-weightCombSequence=cms.Sequence(
-	bTagWeightSequence*
-	puWeightSequence
+weightCombSequence = cms.Sequence(
+    bTagWeightSequence *
+    puWeightSequence
 )
 
 if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
-	weightComb.src.append(cms.InputTag("topPtWeight"))
-	weightCombSequence *= weightTopPtSequence
+    weightComb.src.append(cms.InputTag("topPtWeight"))
+    weightCombSequence *= weightTopPtSequence
 
-weightCombSequence*=weightComb
+if runOnMC:
+    weightComb.src.append(cms.InputTag("trigWeight"))
+    weightCombSequence *= trigWeightSequence
+
+weightCombSequence *= weightComb
+weightCombSequence *= weightCombHisto

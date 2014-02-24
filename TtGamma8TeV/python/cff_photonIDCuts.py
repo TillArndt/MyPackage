@@ -96,7 +96,7 @@ cuts = {
     "passEleVeto" : [
         "userFloat('passEleVeto') > 0.5",
         -.5, 1.5, 2,
-        "passes conv. ele. veto",
+        "Passes conv. ele. veto",
         "userFloat('passEleVeto')"
     ],
     "hadTowOverEm" : [
@@ -114,25 +114,25 @@ cuts = {
     "chargedHadronIsoEB" : [
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 40,
-        "PF charged hadron isolation / GeV",
+        "Charged hadron isolation / GeV",
         "max(chargedHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ],
     "neutralHadronIsoEB" : [
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.) < (0.4 + 0.04*pt)", # EE: 1.5 + 0.04*pt
         0., 10., 40,
-        "PF neutral hadron isolation / GeV",
+        "Neutral hadron isolation / GeV",
         "max(neutralHadronIso - (userFloat('kt6pf_rho')*userFloat('EA_neutral')), 0.)"
     ],
     "photonIsoEB" : [
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.) < (0.5 + 0.005*pt)", # EE: 1.0 + 0.005*pt
         0., 10., 40,
-        "PF photon isolation / GeV",
+        "Photon isolation / GeV",
         "max(photonIso - (userFloat('kt6pf_rho')*userFloat('EA_photons')), 0.)"
     ],
     "chargedisoSCFootRmEB" : [
         "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
         0., 10., 40,
-        "PF charged hadron isolation / GeV",
+        "Charged hadron isolation / GeV",
         "max(userFloat('chargedisoSCFootRm') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
     ],
 }
@@ -224,7 +224,7 @@ def make_histo_analyzer(src, tokens):
                 nbins        = cms.untracked.int32 (tokens[3]),
                 name         = cms.untracked.string("histo"),
                 description  = cms.untracked.string(
-                    ";" + tokens[4] + ";number of photons"
+                    ";" + tokens[4] + ";Number of photons"
                 ),
                 plotquantity = cms.untracked.string(tokens[5]),
             )

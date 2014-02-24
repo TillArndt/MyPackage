@@ -75,7 +75,7 @@ matchQualitySihih = cms.EDAnalyzer(
             max          = cms.untracked.double(0.02),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('deltaR'),
-            description  = cms.untracked.string(';#DeltaR(#gamma_{reco},#gamma_{gen});number of photons'),
+            description  = cms.untracked.string(';#DeltaR(#gamma_{reco},#gamma_{gen});Number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string('deltaR(eta, phi, genParticle.eta, genParticle.phi)')
         ),
@@ -84,7 +84,7 @@ matchQualitySihih = cms.EDAnalyzer(
             max          = cms.untracked.double(0.2),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('deltaErel'),
-            description  = cms.untracked.string(';(E_{#gamma,reco} - E_{#gamma,gen}) / E_{#gamma,gen};number of photons'),
+            description  = cms.untracked.string(';(E_{#gamma,reco} - E_{#gamma,gen}) / E_{#gamma,gen};Number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string('(energy - genParticle.energy) / genParticle.energy')
         ),
@@ -201,7 +201,7 @@ matchQualityChHadIso = cms.EDAnalyzer(
             max          = cms.untracked.double(0.02),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('deltaR'),
-            description  = cms.untracked.string(';#DeltaR(#gamma_{reco},#gamma_{gen});number of photons'),
+            description  = cms.untracked.string(';#DeltaR(#gamma_{reco},#gamma_{gen});Number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string('deltaR(eta, phi, genParticle.eta, genParticle.phi)')
         ),
@@ -210,7 +210,7 @@ matchQualityChHadIso = cms.EDAnalyzer(
             max          = cms.untracked.double(0.2),
             nbins        = cms.untracked.int32 (80),
             name         = cms.untracked.string('deltaErel'),
-            description  = cms.untracked.string(';(E_{#gamma,reco} - E_{#gamma,gen}) / E_{#gamma,gen};number of photons'),
+            description  = cms.untracked.string(';(E_{#gamma,reco} - E_{#gamma,gen}) / E_{#gamma,gen};Number of photons'),
             lazyParsing  = cms.untracked.bool(True),
             plotquantity = cms.untracked.string('(energy - genParticle.energy) / genParticle.energy')
         ),

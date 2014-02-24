@@ -367,9 +367,9 @@ class ThetaFitter(Fitter):
             "fake_rate":self.fit_res["real"]["fake_rate"][0][0]
         }
         self.bkg_val = self.model.get_coeff("chhadiso", "fake").get_value(par_values)
-        self.bkg_err = self.bkg_val * self.fit_res["real"]["fake_rate"][0][1] / self.fit_res["real"]["fake_rate"][0][0]
+        self.bkg_err = abs(self.bkg_val * self.fit_res["real"]["fake_rate"][0][1] / self.fit_res["real"]["fake_rate"][0][0])
         self.sig_val = self.fit_res["real"]["beta_signal"][0][0]
-        self.sig_err = self.fit_res["real"]["beta_signal"][0][1]
+        self.sig_err = abs(self.fit_res["real"]["beta_signal"][0][1])
         templates[1].histo.Scale(self.sig_val)
         templates[0].histo.Scale(self.bkg_val)
 
@@ -430,6 +430,21 @@ class TemplateFitTool(ppt.FSStackPlotter):
         self.fitter         = Fitter()
         self.x_min          = 0.
         self.x_max          = 0.
+        #self.canvas_decorators
+        def fix_ratio_histo_name(cnvs):
+            for c in cnvs:
+                d = c.get_decorator(rnd.BottomPlotRatioSplitErr)
+                d.dec_par["y_title"] = "Fit residual"
+                yield c
+        def set_no_exp(cnvs):
+            for c in cnvs:
+                c.first_drawn.GetYaxis().SetNoExponent()
+                c.bottom_hist.GetYaxis().SetTitleSize(0.14)
+                c.canvas.Modified()
+                c.canvas.Update()
+                yield c
+        self.hook_pre_canvas_build = fix_ratio_histo_name
+        self.hook_post_canvas_build = set_no_exp
 
     def configure(self):
         super(TemplateFitTool, self).configure()
@@ -452,6 +467,7 @@ class TemplateFitTool(ppt.FSStackPlotter):
         textbox.SetLineWidth(0)
         textbox.SetFillColor(0)
         textbox.SetFillStyle(1001)
+        textbox.SetTextSize(settings.box_text_size)
 
         chi2 = (
             "#chi^{2} / NDF = "
@@ -504,7 +520,6 @@ class TemplateFitTool(ppt.FSStackPlotter):
 
         del self.fitter
 
-
 class TemplateFitToolSihih(TemplateFitTool):
     def configure(self):
         super(TemplateFitToolSihih, self).configure()
@@ -524,7 +539,7 @@ class TemplateFitToolChHadIso(TemplateFitTool):
     def configure(self):
         super(TemplateFitToolChHadIso, self).configure()
         self.fitter = Fitter()
-        self.fitbox_bounds = 0.33, 0.62, 0.88
+        self.fitbox_bounds = 0.33, 0.62, settings.defaults_Legend["y_pos"]
 
         # here the stacked templates are taken for purity calculation
         # but they are replaced in fetch_mc_templates(..)
@@ -1014,6 +1029,7 @@ class SigRegCmp(TemplateOverlays):
             for w in wrps:
                 w.legend = w.sample
                 w.draw_option = "E1"
+                w.histo.SetMarkerStyle(24)
                 yield w
         mc_tmplts = leg(mc_tmplts)
         mc_tmplts = rebin_chhadiso(mc_tmplts)

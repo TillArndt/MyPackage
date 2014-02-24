@@ -1,5 +1,5 @@
 # commands  check out full analysis
-
+# Heiners Checkout, change for my Version not done
 source /afs/cern.ch/cms/cmsset_default.sh
 cmsrel CMSSW_5_3_11_patch6
 cd CMSSW_5_3_11_patch6/
