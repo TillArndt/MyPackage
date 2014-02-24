@@ -41,7 +41,7 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "DataFormats/Provenance/interface/Provenance.h"
-#include "EGamma/EGammaAnalysisTools/src/PFIsolationEstimator.cc"
+#include "EgammaAnalysis/ElectronTools/src/PFIsolationEstimator.cc"
 
 class MyPhotonUserDataAdder : public edm::EDProducer {
    public:
