@@ -13,13 +13,13 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.Geometry.GeometryIdeal_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.load('EGamma.EGammaAnalysisTools.electronIdMVAProducer_cfi')
-process.load('EGamma.EGammaAnalysisTools.electronIsolatorFromEffectiveArea_cfi')
+process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
+process.load('EgammaAnalysis.ElectronTools.electronIsolatorFromEffectiveArea_cfi')
 
 # from Burt Betchart:
 # https://twiki.cern.ch/twiki/bin/view/CMS/TwikiTopRefHermeticTopProjections
-process.load('TopQuarkAnalysis.TopRefTuple.vertex_cff')
-process.load('TopQuarkAnalysis.TopRefTuple.cleaning_cff')
+process.load('TopQuarkAnalysis.Configuration.patRefSel_goodVertex_cfi')
+process.load('TopQuarkAnalysis.Configuration.patRefSel_eventCleaning_cff')
 
 process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring("") )
 process.out = cms.OutputModule( "PoolOutputModule", 
@@ -35,8 +35,10 @@ process.add_(
     ) 
 )
 
-from TopQuarkAnalysis.TopRefTuple.pf2pat import TopRefPF2PAT
-topPF2PAT = TopRefPF2PAT(process,options) #configuration object for patPF2PATSequence
+from TopQuarkAnalysis.Configuration.patRefSel_PF2PAT import *
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT
+topPF2PAT = usePF2PAT(process,options,postfix=options.postfix) #configuration object for patPF2PATSequence
 
 process.GlobalTag.globaltag = options.globalTag + '::All'
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool( not options.quiet ))
@@ -50,7 +52,7 @@ process.patreco = cms.Path( reduce(operator.add, [getattr(process, item) for ite
                                                                                       'mvaTrigV0',
                                                                                       'patPF2PATSequence'+options.postfix]]))
 
-process.load('TopQuarkAnalysis.TopRefTuple.lumi_cfi')
+#process.load('TopQuarkAnalysis.TopRefTuple.lumi_cfi')
 #from TopQuarkAnalysis.TopRefTuple.tuple import Tuple
 #process.tuple = Tuple(process, options).path()
 
@@ -91,7 +93,7 @@ process.ElectronVeto = cms.EDFilter("PATCandViewCountFilter",
     minNumber = cms.uint32(0)
 )
 add_with_counter("ElectronVeto")
-process.selectedPatJetsForAnalysis55=process.selectedPatJetsForAnalysis.clone(src="selectedPatJetsForAnalysis", cut="pt>55")
+process.selectedPatJetsForAnalysis55=process.selectedPatJetsTR.clone(src=str("selectedPatJets" + options.postfix), cut="pt>55")
 process.patreco +=process.selectedPatJetsForAnalysis55
 process.selectedPatJetsForAnalysis45=process.selectedPatJetsForAnalysis55.clone(cut="pt>45")
 process.patreco +=process.selectedPatJetsForAnalysis45
@@ -208,7 +210,7 @@ process.patreco += process.photonUserDataSequence
 
 process.schedule = cms.Schedule( process.patreco,
                                  #process.tuple,
-                                 process.lumi,
+                                 #process.lumi,
                                  process.outPath
 )
 
@@ -246,7 +248,7 @@ process.connectedJets = cms.EDProducer("PATJetCleaner",
     ),
     finalCut = cms.string(''),
 )
-process.OverlapJets=process.selectedPatJetsForAnalysis.clone(src="connectedJets", cut="hasOverlaps('unsmearedJets') && overlaps('unsmearedJets')[0].pt >0")
+process.OverlapJets=process.selectedPatJetsTR.clone(src="connectedJets", cut="hasOverlaps('unsmearedJets') && overlaps('unsmearedJets')[0].pt >0")
 
 process.ResFactorsJets= cms.EDAnalyzer( "CandViewHistoAnalyzer",
                                         src = cms.InputTag("OverlapJets"),                                        
@@ -289,8 +291,8 @@ process.NumConnectedJets= cms.EDAnalyzer( "CandViewHistoAnalyzer",
                                         )
 if not options.isData and not options.noJetSmearing:
      print "Smear Jets."
-     process.selectedPatJetsForAnalysis.src="smearedPatJets"
-     process.patreco.replace(process.selectedPatJetsForAnalysis,process.smearedPatJets * process.selectedPatJetsForAnalysis)
+     process.selectedPatJetsTR.src="smearedPatJets"
+     process.patreco.replace(process.selectedPatJetsTR,process.smearedPatJets * process.selectedPatJetsTR)
 
 #* process.connectedJets * process.OverlapJets * process.ResFactorsJets * process.NumOverlaps * process.NumConnectedJets)
 
