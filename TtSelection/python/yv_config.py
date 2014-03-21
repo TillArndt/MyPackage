@@ -38,7 +38,7 @@ process.add_(
 from TopQuarkAnalysis.Configuration.patRefSel_PF2PAT import *
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT
-topPF2PAT = usePF2PAT(process,options,postfix=options.postfix) #configuration object for patPF2PATSequence
+topPF2PAT = usePF2PAT(process,runOnMC = not options.isData,typeIMetCorrections = True,pvCollection= "goodOfflinePrimaryVertices",postfix=options.postfix) #configuration object for patPF2PATSequence
 
 process.GlobalTag.globaltag = options.globalTag + '::All'
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool( not options.quiet ))
