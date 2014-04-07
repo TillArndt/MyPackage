@@ -20,6 +20,7 @@ process.load('EgammaAnalysis.ElectronTools.electronIsolatorFromEffectiveArea_cfi
 # https://twiki.cern.ch/twiki/bin/view/CMS/TwikiTopRefHermeticTopProjections
 process.load('TopQuarkAnalysis.Configuration.patRefSel_goodVertex_cfi')
 process.load('TopQuarkAnalysis.Configuration.patRefSel_eventCleaning_cff')
+process.trackingFailureFilter.VertexSource= cms.InputTag("goodOfflinePrimaryVertices")
 
 process.source = cms.Source('PoolSource', fileNames = cms.untracked.vstring("") )
 process.out = cms.OutputModule( "PoolOutputModule", 
@@ -46,6 +47,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000 if options.quiet else 10
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32( options.maxEvents ))
 if not options.isData : process.eventCleaning.remove( process.scrapingFilter )
 for item in ['mvaNonTrigV0'] : delattr( process, item )
+
 
 process.patreco = cms.Path( reduce(operator.add, [getattr(process, item) for item in ['goodOfflinePrimaryVertices',
                                                                                       'eventCleaning',
