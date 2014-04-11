@@ -1,5 +1,5 @@
 
-cutDeltaR = 0.1
+cutDeltaR = 0.3
 try:
     cutDeltaR   = cms_var.get("cutDeltaR", cutDeltaR)
 except NameError:
@@ -19,8 +19,9 @@ from TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff import *
 #)
 
 ttbarPhotonMerger = cms.EDFilter("TTGammaMerger",
-    ptCut = cms.double(20.),
+    ptCut = cms.double(13.),
     drCut = cms.double(cutDeltaR),
+    etaCut = cms.double(3),
     filter = cms.bool(True),
 )
 
