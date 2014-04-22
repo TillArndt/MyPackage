@@ -5,7 +5,7 @@ import cmstoolsac3b.settings as settings
 
 #dcap_path = "root://grid-cms-xrootd.physik.rwth-aachen.de//pnfs/physik.rwth-aachen.de/cms"
 #output_path = "/user/tholen/link_pcac3b04/eventFiles/fromGrid20130618/"
-output_path = "/user/tarndt/eventFiles/fromGrid20130823/"
+output_path = "/user/tholen/eventFiles/20130828Skim/"
 
 def _make_sample_inst(samplename, is_data_sample, input_files_list):
     class sample_subclass(smp.Sample):
