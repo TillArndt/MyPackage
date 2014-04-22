@@ -95,6 +95,8 @@ process.ElectronVeto = cms.EDFilter("PATCandViewCountFilter",
     minNumber = cms.uint32(0)
 )
 add_with_counter("ElectronVeto")
+process.selectedPatJetsForAnalysis = process.selectedPatJetsTR.clone(src=str("selectedPatJets" + options.postfix))
+process.patreco += process.selectedPatJetsForAnalysis
 process.selectedPatJetsForAnalysis55=process.selectedPatJetsTR.clone(src=str("selectedPatJets" + options.postfix), cut="pt>55")
 process.patreco +=process.selectedPatJetsForAnalysis55
 process.selectedPatJetsForAnalysis45=process.selectedPatJetsForAnalysis55.clone(cut="pt>45")
