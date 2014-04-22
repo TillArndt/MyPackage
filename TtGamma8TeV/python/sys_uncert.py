@@ -454,7 +454,7 @@ class SysJER(SysBase):
 def makeSysSamplesTopPt():
     for name in settings.active_samples:
         opt = settings.samples[name].cfg_builtin.get("preSelOpt")
-        if opt in ("doOverlapRemoval", "go4Whiz"):
+        if opt in ("doOverlapRemoval", "go4Whiz","MadG_Signal"):
             makeSysSample(name, name + "_topPtMinus", {})
             settings.samples[name + "_topPtMinus"].cfg_add_lines.append(
                 "process.topPtWeight.uncertMode = cms.untracked.int32(-1)"
@@ -469,7 +469,7 @@ class SysTopPtMinus(SysBase):
     def prepare_for_systematic(self):
         for name in settings.active_samples[:]:
             opt = settings.samples[name].cfg_builtin.get("preSelOpt")
-            if opt in ("doOverlapRemoval", "go4Whiz"):
+            if opt in ("doOverlapRemoval", "go4Whiz","MadG_Signal"):
                 settings.active_samples.remove(name)
                 settings.active_samples.append(name + "_topPtMinus")
         super(SysTopPtMinus, self).prepare_for_systematic()
@@ -479,7 +479,7 @@ class SysTopPtPlus(SysBase):
     def prepare_for_systematic(self):
         for name in settings.active_samples[:]:
             opt = settings.samples[name].cfg_builtin.get("preSelOpt")
-            if opt in ("doOverlapRemoval", "go4Whiz"):
+            if opt in ("doOverlapRemoval", "go4Whiz","MadG_Signal"):
                 settings.active_samples.remove(name)
                 settings.active_samples.append(name + "_topPtPlus")
         super(SysTopPtPlus, self).prepare_for_systematic()

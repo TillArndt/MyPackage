@@ -36,7 +36,7 @@ weightCombSequence = cms.Sequence(
     puWeightSequence
 )
 
-if preSelOpt in ("doOverlapRemoval", "go4Whiz"):
+if preSelOpt in ("doOverlapRemoval", "go4Whiz","MadG_Signal"):
     weightComb.src.append(cms.InputTag("topPtWeight"))
     weightCombSequence *= weightTopPtSequence
 
