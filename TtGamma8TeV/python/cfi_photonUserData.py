@@ -15,7 +15,13 @@ photonUserDataLargestPdgId = cms.EDProducer("MyPhotonUserDataLargestPdgId",
     srcPhoton = cms.InputTag("photonUserData"),
 )
 
+photonUserDataSCFootRm = cms.EDProducer("MyPhotonUserDataSCFootRm",
+    srcPhoton = cms.InputTag("photonUserData"),
+)
+
+
 photonUserDataSequence = cms.Sequence(
     photonUserData *
+    photonUserDataSCFootRm *
     photonUserDataLargestPdgId
 )
