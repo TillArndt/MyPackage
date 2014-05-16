@@ -207,16 +207,17 @@ process.selectionPath.insert(0, process.InputCntPrnt)
 
 
 ######################################## event counters for pdf uncertainty ###
+#######has to be bugfixed #########
 #if sample == "whiz2to5":
- #   import MyPackage.TtGamma8TeV.cff_pdfUncertPath as pdfUncertPath
- #   process.extend(pdfUncertPath)
- #   process.pdfUncertFiltFid = process.FidFiltBlocking.clone()
- #   process.pdfUncertFiltFull = process.Nm1FiltBlockingchargedHadronIsoEB.clone()
- #   process.pdfUncertPath = pdfUncertPath.make_pdf_uncert_path(
- #       process.pdfUncertFiltFid,
- #       process.pdfUncertFiltFull
- #   )
- #   process.schedule.append(process.pdfUncertPath)
+#    import MyPackage.TtGamma8TeV.cff_pdfUncertPath as pdfUncertPath
+#    process.extend(pdfUncertPath)
+#    process.pdfUncertFiltFid = process.FidFiltBlocking.clone()
+#    process.pdfUncertFiltFull = process.Nm1FiltBlockingchargedHadronIsoEB.clone()
+#    process.pdfUncertPath = pdfUncertPath.make_pdf_uncert_path(
+#        process.pdfUncertFiltFid,
+#        process.pdfUncertFiltFull
+#    )
+#    process.schedule.append(process.pdfUncertPath)
 
 
 ############################################################### skip checks ###
