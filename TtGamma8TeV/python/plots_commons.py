@@ -23,9 +23,6 @@ class PurityCount(ppc.PostProcTool):
     def get_purity_counts(self, c):
         for smp in settings.mc_samples().itervalues():
             l = smp.legend
-	    print(smp.log_event_counts.keys())
-	    print 'toll' if smp.log_event_counts.has_key('FullIDCount,') else 'bloed'
-	    print(smp.legend)
             c.mc_sum  += smp.log_event_counts[self.cnt_name] / smp.lumi
             if l == "t#bar{t}#gamma (Signal)":
                 c.mc_ttgam  += smp.log_event_counts[self.cnt_name] / smp.lumi
@@ -35,8 +32,9 @@ class PurityCount(ppc.PostProcTool):
         r           = self.result
         r.mc_sum    = 0.
         r.mc_ttgam  = 0.
-
+        
         self.get_purity_counts(r)
+	print(r.mc_sum)
         r.pur_ttgam = r.mc_ttgam / r.mc_sum
 
 class IdPurityCount(PurityCount):
