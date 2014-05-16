@@ -159,6 +159,11 @@ else:
     process.schedule += ddrvTmplSBID.add_path_core(process)
 
 
+#path for Random Cone Iso
+
+import MyPackage.TtGamma8TeV.cff_templateRandConeIso as RandConeIso
+process.schedule += RandConeIso.add_path(process)
+
 ##################################### sihih shifted histos for template fit ###
 #if runOnMC:
 #    from MyPackage.TtGamma8TeV.cff_templateCreation import add_sihih_shifted_histos

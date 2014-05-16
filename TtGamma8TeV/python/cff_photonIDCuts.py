@@ -32,6 +32,13 @@ histo_pre = {
         "#DeltaR(photon, jet)",
         'deltaR(eta, phi, overlaps("jets")[0].eta, overlaps("jets")[0].phi)'
     ),
+        "randomConeIso" : (
+        "max(userFloat('randomConeIsoCharged') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.) < 0.7", # EE: 0.5
+        0., 10., 40,
+        "Random Cone isolation / GeV",
+        "max(userFloat('randomConeIsoCharged') - (userFloat('kt6pf_rho')*userFloat('EA_charged')), 0.)"
+    ),
+
 }
 
 histo_post = {
