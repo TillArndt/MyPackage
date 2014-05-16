@@ -91,6 +91,7 @@ MyPhotonUserDataSCFootRm::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         ph.addUserFloat("chargedisoSCFootRm", remover.PFIsolation("charged",scref,vertexforchargediso));
         ph.addUserFloat("neutralisoSCFootRm", remover.PFIsolation("neutral",scref));
         ph.addUserFloat("photonisoSCFootRm",  remover.PFIsolation("photon",scref));
+	ph.addUserFloat("randomConeIsoCharged",remover.RandomConeIsolation(scref,vertexforchargediso).chargediso);
     }
 
     iEvent.put( photonColl);
