@@ -149,7 +149,7 @@ if settings.do_sys_uncert:
         sys_uncert.SysPhotonETCut.push_tools(post_proc_sys),
         sys_uncert.SysBTagWeight.push_tools(post_proc_sys),
         sys_uncert.SysBTags(None, post_proc_sys),
-#        sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
+        #sys_uncert.SysWhizPDF.push_tools(post_proc_sys),
         plots_summary.ResultSummaries,
     #    plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
