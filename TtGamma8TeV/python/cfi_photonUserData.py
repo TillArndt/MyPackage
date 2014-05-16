@@ -16,7 +16,7 @@ photonUserDataLargestPdgId = cms.EDProducer("MyPhotonUserDataLargestPdgId",
 )
 
 photonUserDataSCFootRm = cms.EDProducer("MyPhotonUserDataSCFootRm",
-    srcPhoton = cms.InputTag("photonUserData"),
+    srcPhoton = cms.InputTag("photonUserDataLargestPdgId"),
 )
 
 
