@@ -10,7 +10,7 @@ import cmstoolsac3b.sample as smp
 import cmstoolsac3b.settings as settings
 
 path_pc = settings.sample_data_path
-postfix = "/out_*.root"
+postfix = "/*.root"
 
 ttbar_xsec = settings.ttbar_xsec
 ttbar_xsec_err = settings.ttbar_xsec_err
@@ -21,7 +21,7 @@ class MadG_2to7(smp.Sample):
 	self.legend      = "t#bar{t}#gamma (Madgraph,Signal)"
 	self.x_sec       = 0.9387
 	self.n_events    = 1000000
-        self.input_files = path_pc + "MadG_2to7/M*.root"
+        self.input_files = path_pc + "MadG_2to7" + postfix
         self.cfg_builtin = {"preSelOpt":"MadG_Signal"}
         super(MadG_2to7, self).__init__()
 

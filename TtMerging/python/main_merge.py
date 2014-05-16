@@ -15,7 +15,7 @@ import cmstoolsac3b.main
 if __name__ == '__main__':
     cmstoolsac3b.main.main(
         samples=samples,
-        max_num_processes=3,
+        max_num_processes=4,
         try_reuse_results=True,
         cfg_use_file_service=False,
         #suppress_cmsRun_exec=True,
