@@ -8,8 +8,8 @@ def add_path(process):
 
     process.FiltRandCone = cms.EDFilter("PATPhotonSelector",
         src = cms.InputTag("photonInputDummy"),
-        cut =cms.string(""),
-	filter = cms.bool(True)
+        cut =cms.string("userFloat('randomConeIsoCharged') >= 0"),
+	filter = cms.bool(False)
     )
 
     process.PlotRandCone = pho_cuts.make_histo_analyzer(
