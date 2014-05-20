@@ -59,9 +59,11 @@ import plots_ABCD
 import plots_shilpi
 import plots_templ_fit_closure
 import sys_uncert
+import plots_RandCone_overlap
 
 post_proc_sys = [
 #    plots_ME_overlap.MEOverlapComp,
+    plots_RandCone_overlap.RandConeOverlapComp, 
     plots_commons.IdPurityCount,
     plots_commons.RealIdPurityCount,
     plots_template_fit.TemplateFitTools,
