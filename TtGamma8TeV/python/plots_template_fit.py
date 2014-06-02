@@ -24,6 +24,7 @@ analyzers_mc = [
     "PlotLooseIDSihihSBfake",
     "PlotSBIDreal",
     "PlotSBIDfake",
+    "TemplateRandConereal",	
 #    "TemplateChHadIsofakeGamma",
 #    "TemplateChHadIsofakeOther",
 #    "TemplateSihihreal",
@@ -56,6 +57,7 @@ all_analyzers = (
 analyzers_data = [
     "TemplateSihih",
     "TemplateChHadIso",
+    "TemplateRandConereal",
 ]
 
 legend_tags = ["real", "fakeGamma", "fakeOther", "fake"]
@@ -142,6 +144,7 @@ def rebin_chhadiso(wrps, skip_it=not do_chhadisorebinnig, norm_by_bin_width=Fals
         if not skip_it:  # want rebinning ??
             if ("TemplateChHadIso" in w.analyzer
                 or "PlotLooseID" in w.analyzer
+		or "TemplateRandConereal" in w.analyzer
                 or "PlotSBID" in w.analyzer):
                 # rebinning
                 histo = w.histo.Rebin(
@@ -579,6 +582,7 @@ class TemplateFitToolChHadIso(TemplateFitTool):
         tmplts[1].__dict__.update(sig.__dict__)
         tmplts[0].__dict__.update(bkg.__dict__)
         tmplts[0].is_data = False
+	tmplts[1].is_data = False
         return list(cosmetica2(tmplts))
 
 
@@ -788,6 +792,77 @@ class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
         )
 
 
+class TemplateFitToolRandConeIso(TemplateFitToolChHadIso):
+    def configure(self):
+        super(TemplateFitToolChHadIso, self).configure()
+        self.fitter = ThetaFitter()
+        self.fitbox_bounds  = 0.33, 0.62, 0.88
+
+        self.mc_tmplts      = gen.filter(
+            settings.post_proc_dict["TemplateStacks"], {
+                "analyzer"  : ("TemplateChHadIsoreal", "PlotSBIDfake"),
+            }
+        )
+        self.fitted         = rebin_chhadiso(
+            gen.fs_filter_active_sort_load({
+                "analyzer"  : "TemplateChHadIso",
+                "is_data"   : True,
+            })
+        )
+
+        self.gen_bkg_tmplt = iter(
+            settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkg"]
+        )
+        self.gen_sig_tmplt = rebin_chhadiso(
+            settings.post_proc_dict["TemplateFitToolRandConeIsoInputSig"]
+            
+        )
+
+class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
+    def run(self):
+        wrp = next(rebin_chhadiso(
+            gen.gen_sum(
+                [gen.fs_filter_active_sort_load({
+                    "analyzer"  : "TemplateRandConereal",
+                    "is_data"   : True
+                })]
+            )
+        ))
+        # normalize to mc expectation
+        integral_real = next(
+            gen.gen_integral(
+                gen.gen_norm_to_data_lumi(
+                    gen.filter(
+                        settings.post_proc_dict["TemplateStacks"],
+                        {"analyzer": "TemplateChHadIsoreal"}
+                    )
+                )
+            )
+        )
+        print integral_real
+        wrp = gen.op.prod((
+            gen.op.norm_to_integral(wrp),
+            integral_real
+        ))
+
+        # multiply with weight
+        if do_dist_reweighting:
+            wrp = gen.op.prod((
+                settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkgWeight"],
+                wrp,
+            ))
+
+        wrp.lumi = settings.data_lumi_sum()
+        self.result = [wrp]
+        gen.consume_n_count(
+            gen.save(
+                gen.canvas((self.result,)),
+                lambda c: self.plot_output_dir + c.name
+            )
+        )
+
+
+
 class TemplateFitToolSihihShift(TemplateFitTool):
     num_pat = re.compile(r".*(\d{4})")
 
@@ -967,6 +1042,8 @@ TemplateFitTools = ppc.PostProcChain(
         TemplateFitToolChHadIsoSBIDInputBkgWeight,
         TemplateFitToolChHadIsoSBIDInputBkg,
         TemplateFitToolChHadIsoSBID,
+	TemplateFitToolRandConeIsoInputSig,
+	TemplateFitToolRandConeIso,
         TemplateOverlaysNormLumi,
         TemplateOverlaysNormIntegral,
         SideBandOverlay,
