@@ -16,10 +16,12 @@ def add_path(process):
         "FiltRandCone",
         pho_cuts.histo_pre["randomConeIso"]
     )
+    process.TemplateRandConereal = process.PlotRandCone.clone()
 
     process.pathTmpltRandCone = cms.Path(
         process.preSel
         * process.FiltRandCone
         * process.PlotRandCone
+	* process.TemplateRandConereal
     )
     return [process.pathTmpltRandCone]
