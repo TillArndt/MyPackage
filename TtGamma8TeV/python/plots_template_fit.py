@@ -792,15 +792,15 @@ class TemplateFitToolChHadIsoSBID(TemplateFitToolChHadIso):
         )
 
 
-class TemplateFitToolRandConeIso(TemplateFitToolChHadIso):
+class TemplateFitToolRandConeIso(TemplateFitTool):
     def configure(self):
-        super(TemplateFitToolChHadIso, self).configure()
+        super(TemplateFitToolRandConeIso, self).configure()
         self.fitter = ThetaFitter()
         self.fitbox_bounds  = 0.33, 0.62, 0.88
 
         self.mc_tmplts      = gen.filter(
             settings.post_proc_dict["TemplateStacks"], {
-                "analyzer"  : ("TemplateChHadIsoreal", "PlotSBIDfake"),
+                "analyzer"  : ("TemplateRandConereal", "PlotSBIDfake"),
             }
         )
         self.fitted         = rebin_chhadiso(
@@ -817,6 +817,17 @@ class TemplateFitToolRandConeIso(TemplateFitToolChHadIso):
             settings.post_proc_dict["TemplateFitToolRandConeIsoInputSig"]
             
         )
+    def fetch_mc_templates(self):
+        # mix in tt(gam) only templates
+        tmplts = super(TemplateFitToolRandConeIso, self).fetch_mc_templates()
+        sig = next(self.gen_sig_tmplt)
+        bkg = next(self.gen_bkg_tmplt)
+        tmplts[1].__dict__.update(sig.__dict__)
+        tmplts[0].__dict__.update(bkg.__dict__)
+        tmplts[0].is_data = False
+        tmplts[1].is_data = False
+        return list(cosmetica2(tmplts))
+
 
 class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
     def run(self):
@@ -834,7 +845,7 @@ class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
                 gen.gen_norm_to_data_lumi(
                     gen.filter(
                         settings.post_proc_dict["TemplateStacks"],
-                        {"analyzer": "TemplateChHadIsoreal"}
+                        {"analyzer": "TemplateRandConereal"}
                     )
                 )
             )
@@ -848,7 +859,7 @@ class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
         # multiply with weight
         if do_dist_reweighting:
             wrp = gen.op.prod((
-                settings.post_proc_dict["TemplateFitToolChHadIsoSBIDInputBkgWeight"],
+                settings.post_proc_dict["TemplateFitToolRandConeIsoInputSigWeight"],
                 wrp,
             ))
 
@@ -860,6 +871,35 @@ class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
                 lambda c: self.plot_output_dir + c.name
             )
         )
+
+
+class TemplateFitToolRandConeIsoInputSigWeight(ppc.PostProcTool):
+    def run(self):
+            top_sample = next(s for s in settings.active_samples if s[:2] == "TT")
+            wrp_fake = next(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "TemplateChHadIsoreal",
+                "sample":   top_sample,#"TTMadG",
+            })))
+            wrp_sb = gen.op.merge(rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "TemplateRandConereal",
+                "sample": top_sample,#"TTMadG",
+            })))
+            wrp = gen.op.div((
+                gen.op.norm_to_integral(wrp_fake),
+                gen.op.norm_to_integral(wrp_sb),
+            ))
+            wrp.lumi = 1.
+            wrp.draw_option = "E1"
+            self.result = wrp
+            cnvs = list(gen.canvas(((wrp,),)),)
+            cnvs[0].canvas.SetGridy(1)
+            gen.consume_n_count(
+                gen.save(
+                    cnvs,
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+            del wrp.draw_option
 
 
 
@@ -1042,6 +1082,7 @@ TemplateFitTools = ppc.PostProcChain(
         TemplateFitToolChHadIsoSBIDInputBkgWeight,
         TemplateFitToolChHadIsoSBIDInputBkg,
         TemplateFitToolChHadIsoSBID,
+	TemplateFitToolRandConeIsoInputSigWeight,
 	TemplateFitToolRandConeIsoInputSig,
 	TemplateFitToolRandConeIso,
         TemplateOverlaysNormLumi,
