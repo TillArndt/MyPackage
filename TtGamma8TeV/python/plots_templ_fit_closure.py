@@ -18,7 +18,7 @@ dicts_sample_MC = [
     },
     {
         "sample"    : "whiz2to5",
-        "analyzer"  : "TemplateChHadIsoreal",
+        "analyzer"  : "TemplateRandConereal",
     },
 ]
 dicts_sample_altMC = [
@@ -28,7 +28,7 @@ dicts_sample_altMC = [
     },
     {
         "sample"    : "TTGamRD1",
-        "analyzer"  : "TemplateChHadIsoreal",
+        "analyzer"  : "TemplateRandConereal",
     },
 ]
 
