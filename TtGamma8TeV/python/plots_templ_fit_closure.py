@@ -18,7 +18,7 @@ dicts_sample_MC = [
     },
     {
         "sample"    : "whiz2to5",
-        "analyzer"  : "TemplateRandConereal",
+        "analyzer"  : "TemplateChHadIsoreal",
     },
 ]
 dicts_sample_altMC = [
@@ -28,7 +28,7 @@ dicts_sample_altMC = [
     },
     {
         "sample"    : "TTGamRD1",
-        "analyzer"  : "TemplateRandConereal",
+        "analyzer"  : "TemplateChHadIsoreal",
     },
 ]
 
@@ -99,6 +99,34 @@ def make_input_maker_sbid(sample):
                 )
             )
     return TemplateFitToolChHadIsoSBIDInputBkg
+
+def make_input_maker_randcone(sample):
+    class TemplateFitToolRandConeIsoInputSig(ppc.PostProcTool):
+        def run(self):
+            wrps = tmpl_fit.rebin_chhadiso(gen.fs_filter_sort_load({
+                "analyzer": "TemplateRandConereal",
+                "sample": sample,
+            }))
+            wrp = gen.op.merge(wrps)
+
+            # multiply with weight
+            if tmpl_fit.do_dist_reweighting:
+                wrp = gen.op.prod((
+                    settings.post_proc_dict["TemplateFitToolRandConeIsoInputSigWeight"],
+                    wrp,
+                ))
+
+            wrps = gen.gen_norm_to_data_lumi((wrp,))
+            wrps = list(wrps)
+            self.result = wrps
+            gen.consume_n_count(
+                gen.save(
+                    gen.canvas((wrps,)),
+                    lambda c: self.plot_output_dir + c.name
+                )
+            )
+    return TemplateFitToolRandConeIsoInputSig
+
 
 
 def gen_mixer_input(input_dict):
@@ -312,15 +340,16 @@ def make_closure_test_sequence_chhadiso_sbid(seq_name, input_dicts):
     tools = [
         histo_mixer,
         make_input_maker_sbid(input_dicts[0]["sample"]),
+	make_input_maker_randcone(input_dicts[0]["sample"]),
         make_sequence(
             name, histo_mixer, 1,
-            xrange(1200, 2900, 100), [4000, 2000],
-            tmpl_fit.TemplateFitToolChHadIsoSBID
+            xrange(1200, 2900, 100), [3900, 2000],
+            tmpl_fit.TemplateFitToolRandConeIso
         ),
         make_sequence(
             name, histo_mixer, 0,
             xrange(2100, 6100, 200), [4000, 2000],
-            tmpl_fit.TemplateFitToolChHadIsoSBID
+            tmpl_fit.TemplateFitToolRandConeIso
         ),
     ]
     return ppc.PostProcChain(
