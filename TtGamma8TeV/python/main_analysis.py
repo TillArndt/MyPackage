@@ -42,7 +42,7 @@ settings.active_samples.remove("TTJeRD1")
 settings.active_samples.remove("whiz2to5_PDF")
 work = "/afs/cern.ch/work/t/tarndt/"
 #cmsAN = work + "private/cmsPublishDir/cms_repo/notes/AN-13-195/trunk/"
-#settings.web_target_dir     = work + "public/www/MainAnalysis/"
+settings.web_target_dir     = work + "public/www/MainAnalysis/"
 #settings.tex_target_dir     = cmsAN + "auto_snippets/"
 #settings.plot_target_dir    = cmsAN + "auto_images/"
 
@@ -156,7 +156,7 @@ if settings.do_sys_uncert:
     #    plots_summary.ResultTexifier("XsecCalculatorChHadIsoSBID"),
     ]
 post_proc_tools += [
-    #ppt.SimpleWebCreator,
+    ppt.SimpleWebCreator,
 ]
 
 if settings.do_sys_uncert:
