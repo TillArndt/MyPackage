@@ -340,10 +340,32 @@ def make_closure_test_sequence_chhadiso_sbid(seq_name, input_dicts):
     tools = [
         histo_mixer,
         make_input_maker_sbid(input_dicts[0]["sample"]),
-	make_input_maker_randcone(input_dicts[0]["sample"]),
         make_sequence(
             name, histo_mixer, 1,
-            xrange(1200, 2900, 100), [3900, 2000],
+            xrange(1200, 2900, 100), [4000, 2000],
+            tmpl_fit.TemplateFitToolRandConeIso
+        ),
+        make_sequence(
+            name, histo_mixer, 0,
+            xrange(2100, 6100, 200), [4000, 2000],
+            tmpl_fit.TemplateFitToolRandConeIso
+        ),
+    ]
+    return ppc.PostProcChain(
+        "TemplateFitClosureSequences" + seq_name,
+        tools
+    )
+
+def make_closure_test_sequence_chhadiso_raco(seq_name, input_dicts):
+    histo_mixer = make_mixer_class(input_dicts)("MixerChHadIsoSBID")
+    name = "ChHadIso"
+    tools = [
+        histo_mixer,
+        make_input_maker_sbid(input_dicts[0]["sample"]),
+        make_input_maker_randcone(input_dicts[1]["sample"]),
+        make_sequence(
+            name, histo_mixer, 1,
+            xrange(1200, 2900, 100), [4000, 2000],
             tmpl_fit.TemplateFitToolRandConeIso
         ),
         make_sequence(
@@ -369,6 +391,8 @@ seq_sbbkg_MC    = make_seq_MC(make_closure_test_sequence_chhadiso_sbbkg)
 seq_sbbkg_altMC = make_seq_altMC(make_closure_test_sequence_chhadiso_sbbkg)
 seq_sbid_MC     = make_seq_MC(make_closure_test_sequence_chhadiso_sbid)
 seq_sbid_altMC  = make_seq_altMC(make_closure_test_sequence_chhadiso_sbid)
+seq_raco_MC     = make_seq_MC(make_closure_test_sequence_chhadiso_raco)
+seq_raco_altMC  = make_seq_altMC(make_closure_test_sequence_chhadiso_raco)
 
 
 def make_sys_uncert_fitter(fitter_base_class):
@@ -401,9 +425,39 @@ def make_sys_uncert_fitter(fitter_base_class):
     )
 
 
+def make_sys_uncert_fitter_raco(fitter_base_class):
+    fitter_name = fitter_base_class.__name__
+    class Fitter(fitter_base_class):
+        def __init__(self, name=None, *args):
+            super(Fitter, self).__init__(name)
+            if args:
+                self.mixer = args[0]
+
+        def configure(self):
+            super(Fitter, self).configure()
+            res_data = settings.post_proc_dict[fitter_name]
+            self.fitted = self.mixer.make_mixed_histo(res_data.binIntegralScaled)
+
+    # make mixer and tool chain
+    histo_mixer = make_mixer_class(dicts_sample_altMC)("Mixer"+fitter_name)
+    input_maker_bkg = make_input_maker_sbid(dicts_sample_altMC[0]["sample"])
+    input_maker_sig = make_input_maker_randcone(dicts_sample_altMC[1]["sample"])
+    
+    fitter = Fitter(fitter_name, histo_mixer)
+    return ppc.PostProcChain(
+        "SysFit" + fitter_name,
+        [
+            histo_mixer,
+            input_maker_bkg,
+	    input_maker_sig,
+            fitter
+        ]
+    )
+
+
 sys_fit_sbbkg = make_sys_uncert_fitter(tmpl_fit.TemplateFitToolChHadIsoSbBkg)
 sys_fit_sbid = make_sys_uncert_fitter(tmpl_fit.TemplateFitToolChHadIsoSBID)
-
+sys_fit_raco = make_sys_uncert_fitter_raco(tmpl_fit.TemplateFitToolRandConeIso)
 #dicts_sihih_shift_sep_fakes = [
 #    {
 #        "sample"    : "TTGamRD1",
