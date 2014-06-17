@@ -133,7 +133,7 @@ def histo_wrapperize(stk_wrps):
 ############################################### template processing classes ###
 ### rebin chhadiso templates
 do_chhadisorebinnig = True
-do_dist_reweighting = True
+do_dist_reweighting = False
 
 chhadiso_bins = array.array(
     "d",
